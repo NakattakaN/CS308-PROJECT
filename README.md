@@ -29,7 +29,9 @@
 
 - **Language:** [e.g., C++, Python, JavaScript]
 - **Framework/Library:** [e.g., OpenMP, PyTorch, React]
-- **Database:** [e.g., PostgreSQL, MongoDB]
+- **Database:** [MongoDB]
+- **Frontend** [React or Vue]
+- **Backend** [Nodejs]
 - **Tools:** [e.g., Docker, CMake]
 
 ---
