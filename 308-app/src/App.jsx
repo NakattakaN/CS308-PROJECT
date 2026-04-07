@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import ProductPage from './ProductPage';
+import ProductDetailsPage from './ProductDetailsPage';
 
 function App() {
-  // Simple state-based routing for demonstration
   const [currentPage, setCurrentPage] = useState('home');
+  // New state to hold the product the user clicked on
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const navigateTo = (page) => {
+  // Updated navigateTo to accept data
+  const navigateTo = (page, data = null) => {
     setCurrentPage(page);
+    if (data) {
+      setSelectedProduct(data);
+    }
   };
 
   return (
@@ -46,6 +52,9 @@ function App() {
       {currentPage === 'home' && <ProductPage navigateTo={navigateTo} />}
       {currentPage === 'login' && <LoginPage navigateTo={navigateTo} />}
       {currentPage === 'register' && <RegisterPage navigateTo={navigateTo} />}
+      {currentPage === 'product_details' && (
+        <ProductDetailsPage product={selectedProduct} navigateTo={navigateTo} />
+      )}
     </>
   );
 }
