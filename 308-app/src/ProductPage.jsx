@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. EKLENDİ
 import './ProductPage.css';
 
-const ProductPage = ({ navigateTo }) => {
+const ProductPage = () => { // 2. navigateTo prop'u silindi
+  const navigate = useNavigate(); // 3. EKLENDİ
+
   // Sample data for the marketplace
   const products = [
     { id: 1, name: "Submariner Date", brand: "Rolex", price: "$10,250", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&q=80&w=600" },
@@ -18,8 +21,9 @@ const ProductPage = ({ navigateTo }) => {
           <h2>Saatinden</h2>
         </div>
         <div className="nav-actions">
-          <button onClick={() => navigateTo('login')} className="nav-link">Log In</button>
-          <button onClick={() => navigateTo('register')} className="nav-btn-primary">Sign Up</button>
+          {/* 4. Butonlardaki yönlendirmeler güncellendi */}
+          <button onClick={() => navigate('/login')} className="nav-link">Log In</button>
+          <button onClick={() => navigate('/register')} className="nav-btn-primary">Sign Up</button>
         </div>
       </nav>
 

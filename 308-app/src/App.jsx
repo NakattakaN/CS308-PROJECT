@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import ProductPage from './ProductPage';
 
 function App() {
-  // Simple state-based routing for demonstration
-  const [currentPage, setCurrentPage] = useState('home');
-
-  const navigateTo = (page) => {
-    setCurrentPage(page);
-  };
-
   return (
-    <>
+    <Router>
       {/* Dev Navigation Bar */}
       <div style={{ 
         padding: '1rem', 
@@ -22,31 +16,52 @@ function App() {
         justifyContent: 'center', 
         borderBottom: '1px solid #e2e8f0' 
       }}>
-        <button 
-          onClick={() => navigateTo('home')}
-          style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: currentPage === 'home' ? 'bold' : 'normal' }}
+        {/* NavLink, bulunduğumuz sayfaya göre otomatik "isActive" durumu verir */}
+        <NavLink 
+          to="/home"
+          style={({ isActive }) => ({ 
+            padding: '0.5rem 1rem', 
+            textDecoration: 'none', 
+            color: '#333',
+            fontWeight: isActive ? 'bold' : 'normal' 
+          })}
         >
           Home
-        </button>
-        <button 
-          onClick={() => navigateTo('login')}
-          style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: currentPage === 'login' ? 'bold' : 'normal' }}
+        </NavLink>
+        <NavLink 
+          to="/login"
+          style={({ isActive }) => ({ 
+            padding: '0.5rem 1rem', 
+            textDecoration: 'none', 
+            color: '#333',
+            fontWeight: isActive ? 'bold' : 'normal' 
+          })}
         >
           Login
-        </button>
-        <button 
-          onClick={() => navigateTo('register')}
-          style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontWeight: currentPage === 'register' ? 'bold' : 'normal' }}
+        </NavLink>
+        <NavLink 
+          to="/register"
+          style={({ isActive }) => ({ 
+            padding: '0.5rem 1rem', 
+            textDecoration: 'none', 
+            color: '#333',
+            fontWeight: isActive ? 'bold' : 'normal' 
+          })}
         >
           Register
-        </button>
+        </NavLink>
       </div>
 
-      {/* Page Rendering */}
-      {currentPage === 'home' && <ProductPage navigateTo={navigateTo} />}
-      {currentPage === 'login' && <LoginPage navigateTo={navigateTo} />}
-      {currentPage === 'register' && <RegisterPage navigateTo={navigateTo} />}
-    </>
+      {/* Page Rendering (Sayfaların URL'e göre gösterilmesi) */}
+      <Routes>
+        {/* Kullanıcı siteye ilk girdiğinde (/) otomatik olarak /home'a at */}
+        <Route path="/" element={<Navigate to="/home" />} />
+        
+        <Route path="/home" element={<ProductPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
+    </Router>
   );
 }
 

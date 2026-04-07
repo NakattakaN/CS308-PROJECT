@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import './LoginPage.css'; // Reusing your existing CSS for layout consistency
+import { useNavigate } from 'react-router-dom';
+import './LoginPage.css'; 
 
-const RegisterPage = ({ navigateTo }) => {
+const RegisterPage = () => { 
+  const navigate = useNavigate(); 
+  
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -16,14 +19,37 @@ const RegisterPage = ({ navigateTo }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Backend'e kayıt isteği atacak güncellenmiş fonksiyon
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Registration attempt:', formData);
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), // form verilerini gönderiyoruz
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert("Kayıt Başarılı! Lütfen giriş yapın.");
+        // Başarılı kayıttan sonra kullanıcıyı otomatik Login sayfasına yönlendir
+        navigate('/login'); 
+      } else {
+        alert("Kayıt Başarısız: " + data.message);
+      }
+
+    } catch (error) {
+      console.error("Backend bağlantı hatası:", error);
+      alert("Sunucuya ulaşılamadı. Lütfen backend'in çalıştığından emin olun.");
+    }
   };
 
   return (
     <main className="login-container">
-      {/* Left Side: Image Showcase */}
       <section className="login-image-section">
         <div className="brand-overlay">
           <h1>Saatinden</h1>
@@ -31,7 +57,6 @@ const RegisterPage = ({ navigateTo }) => {
         </div>
       </section>
 
-      {/* Right Side: Form Layout */}
       <section className="login-form-section">
         <div className="form-wrapper">
           <header className="form-header">
@@ -44,43 +69,19 @@ const RegisterPage = ({ navigateTo }) => {
           <form onSubmit={handleSubmit} className="login-form">
             <div className="input-group">
               <label htmlFor="fullName">Full Name</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                placeholder="John Doe"
-                value={formData.fullName}
-                onChange={handleChange}
-                required
-              />
+              <input type="text" id="fullName" name="fullName" placeholder="John Doe" value={formData.fullName} onChange={handleChange} required />
             </div>
 
             <div className="input-group">
               <label htmlFor="email">Email Address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="name@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+              <input type="email" id="email" name="email" placeholder="name@example.com" value={formData.email} onChange={handleChange} required />
             </div>
 
             <div className="input-group">
               <div className="label-flex">
                 <label htmlFor="password">Password</label>
               </div>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Create a strong password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <input type="password" id="password" name="password" placeholder="Create a strong password" value={formData.password} onChange={handleChange} required />
             </div>
 
             <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem' }}>
@@ -95,7 +96,7 @@ const RegisterPage = ({ navigateTo }) => {
           <button 
             type="button" 
             className="btn-secondary"
-            onClick={() => navigateTo('login')}
+            onClick={() => navigate('/login')}
           >
             Sign in instead
           </button>

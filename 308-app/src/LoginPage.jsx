@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Yönlendirme için eklendi
 import './LoginPage.css';
 
 const LoginPage = () => {
-  // Consolidating form state into a single object for cleaner management
+  const navigate = useNavigate(); // Yönlendirme fonksiyonunu tanımladık
+
+  // Form verilerini tuttuğumuz state
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
 
+  // Input alanları değiştikçe state'i güncelleyen fonksiyon
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -17,14 +21,45 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Form gönderildiğinde (Sign In butonuna basıldığında) çalışacak fonksiyon
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
+    
+    try {
+      // Backend'e form verilerini gönderiyoruz (POST isteği)
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      // Backend'den gelen cevabı (JSON) okuyoruz
+      const data = await response.json();
+
+      if (data.success) {
+        alert("Giriş Başarılı! Hoş geldin.");
+        
+        // BAŞARILI GİRİŞTEN SONRA ANA SAYFAYA (ProductPage) YÖNLENDİR
+        navigate('/home'); 
+      } else {
+        // Hatalı şifre veya kullanıcı bulunamadı durumu
+        alert("Giriş Başarısız: " + data.message);
+      }
+
+    } catch (error) {
+      console.error("Backend bağlantı hatası:", error);
+      alert("Sunucuya ulaşılamadı. Lütfen backend'in (Node.js) çalıştığından emin olun.");
+    }
   };
 
   return (
     <main className="login-container">
-      {/* Left Side: Image Showcase */}
+      {/* Sol Taraf: Görsel Alanı */}
       <section className="login-image-section">
         <div className="brand-overlay">
           <h1>Saatinden</h1>
@@ -32,7 +67,7 @@ const LoginPage = () => {
         </div>
       </section>
 
-      {/* Right Side: Form Layout */}
+      {/* Sağ Taraf: Form Alanı */}
       <section className="login-form-section">
         <div className="form-wrapper">
           <header className="form-header">
@@ -89,10 +124,12 @@ const LoginPage = () => {
           <div className="divider">
             <span>New to Saatinden?</span>
           </div>
+
+          {/* KAYIT SAYFASINA YÖNLENDİREN BUTON */}
           <button 
             type="button" 
             className="btn-secondary"
-            onClick={() => navigateTo('register')}
+            onClick={() => navigate('/register')}
           >
             Create your account
           </button>
