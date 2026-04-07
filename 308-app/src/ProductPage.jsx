@@ -1,53 +1,98 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. EKLENDİ
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ProductPage.css';
 
-const ProductPage = () => { // 2. navigateTo prop'u silindi
-  const navigate = useNavigate(); // 3. EKLENDİ
+const ProductPage = () => { 
+  const navigate = useNavigate(); 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data for the marketplace
-  const products = [
-    { id: 1, name: "Submariner Date", brand: "Rolex", price: "$10,250", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&q=80&w=600" },
-    { id: 2, name: "Speedmaster Professional", brand: "Omega", price: "$6,600", image: "https://images.unsplash.com/photo-1639006570490-79c0c53f1080?auto=format&fit=crop&q=80&w=600" },
-    { id: 3, name: "Black Bay 58", brand: "Tudor", price: "$3,950", image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&q=80&w=600" },
-    { id: 4, name: "Navitimer B01", brand: "Breitling", price: "$8,500", image: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?auto=format&fit=crop&q=80&w=600" },
-  ];
+  useEffect(() => {
+    const userStatus = localStorage.getItem('isLoggedIn');
+    const storedName = localStorage.getItem('userName'); 
+    
+    if (userStatus === 'true') {
+      setIsLoggedIn(true);
+      if (storedName) setUserName(storedName); 
+    }
+
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/products');
+        const data = await response.json();
+        setProducts(data); 
+        setLoading(false); 
+      } catch (error) {
+        console.error("Saatler çekilirken hata oluştu uwu:", error);
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName'); 
+    setIsLoggedIn(false);
+    setUserName('');
+  };
 
   return (
     <div className="product-page-container">
-      {/* Navigation Bar */}
       <nav className="navbar">
-        <div className="brand-logo">
-          <h2>Saatinden</h2>
-        </div>
+        <div className="brand-logo"><h2>Saatinden</h2></div>
         <div className="nav-actions">
-          {/* 4. Butonlardaki yönlendirmeler güncellendi */}
-          <button onClick={() => navigate('/login')} className="nav-link">Log In</button>
-          <button onClick={() => navigate('/register')} className="nav-btn-primary">Sign Up</button>
+          {isLoggedIn ? (
+            <>
+              <span style={{ marginRight: '1rem', fontWeight: '600', color: 'var(--text-muted)' }}>
+                Hoş Geldin, {userName}
+              </span>
+              <button className="nav-link">Sepetim</button>
+              <button onClick={handleLogout} className="nav-btn-primary" style={{ backgroundColor: '#dc2626' }}>
+                Çıkış Yap
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => navigate('/login')} className="nav-link">Log In</button>
+              <button onClick={() => navigate('/register')} className="nav-btn-primary">Sign Up</button>
+            </>
+          )}
         </div>
       </nav>
 
-      {/* Hero Section */}
       <header className="hero-section">
         <h1>Discover Exceptional Timepieces</h1>
         <p>Explore our curated collection of luxury and vintage watches.</p>
       </header>
 
-      {/* Product Grid */}
       <main className="product-grid">
-        {products.map(product => (
-          <div key={product.id} className="product-card">
-            <div className="product-image-container">
-              <img src={product.image} alt={product.name} />
+        {loading ? (
+          <p style={{ textAlign: 'center', width: '100%' }}>Saatler yükleniyor lütfen bekleyin uwu...</p>
+        ) : (
+          products.map(product => (
+            <div key={product._id} className="product-card">
+              <div className="product-image-container">
+                <img src={product.image} alt={product.name} />
+              </div>
+              <div className="product-info">
+                <span className="product-brand">{product.brand}</span>
+                <h3 className="product-name">{product.name}</h3>
+                <p className="product-price">{product.price}</p>
+                {/* BURASI GÜNCELLENDİ: Artık tıklandığında saatin detay sayfasına gidiyor */}
+                <button 
+                  className="add-to-cart-btn"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                >
+                  View Details
+                </button>
+              </div>
             </div>
-            <div className="product-info">
-              <span className="product-brand">{product.brand}</span>
-              <h3 className="product-name">{product.name}</h3>
-              <p className="product-price">{product.price}</p>
-              <button className="add-to-cart-btn">View Details</button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </main>
     </div>
   );

@@ -43,7 +43,9 @@ const LoginPage = () => {
 
       if (data.success) {
         alert("Giriş Başarılı! Hoş geldin.");
-        
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userId', data.userId);
+        localStorage.setItem('userName', data.firstName);
         // BAŞARILI GİRİŞTEN SONRA ANA SAYFAYA (ProductPage) YÖNLENDİR
         navigate('/home'); 
       } else {
