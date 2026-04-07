@@ -48,11 +48,19 @@ const ProductPage = () => {
           {isLoggedIn ? (
             <>
               <span style={{ marginRight: '1rem', fontWeight: '600', color: 'var(--text-muted)' }}>
-                Hoş Geldin, {userName}
+                Welcome, {userName}
               </span>
-              <button className="nav-link">Sepetim</button>
+              
+              {/* --- UPDATED BUTTON --- */}
+              <button 
+                className="nav-link" 
+                onClick={() => navigate('/cart')}
+              >
+                My Cart
+              </button>
+              
               <button onClick={handleLogout} className="nav-btn-primary" style={{ backgroundColor: '#dc2626' }}>
-                Çıkış Yap
+                Log out
               </button>
             </>
           ) : (
@@ -82,7 +90,6 @@ const ProductPage = () => {
                 <span className="product-brand">{product.brand}</span>
                 <h3 className="product-name">{product.name}</h3>
                 <p className="product-price">{product.price}</p>
-                {/* BURASI GÜNCELLENDİ: Artık tıklandığında saatin detay sayfasına gidiyor */}
                 <button 
                   className="add-to-cart-btn"
                   onClick={() => navigate(`/product/${product._id}`)}

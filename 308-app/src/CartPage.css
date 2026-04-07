@@ -1,0 +1,142 @@
+/* Full page background - changing from black to light gray/white */
+.cart-page-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Light theme background */
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.cart-main-content {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.cart-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.cart-header-section h1 {
+  color: #0f172a; /* Dark text for the title */
+  font-size: 2.2rem;
+  margin: 0;
+}
+
+.back-to-shop {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.cart-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 30px;
+}
+
+/* --- Watch Cards --- */
+.watch-cart-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+}
+
+.watch-img-small {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-right: 20px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.watch-details { flex: 1; text-align: left; }
+.watch-details h3 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.watch-details p { margin: 5px 0 0; color: #64748b; }
+
+.watch-price {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-right: 25px;
+}
+
+.delete-item-btn {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* --- Summary Card --- */
+.summary-card-white {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  height: fit-content;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.summary-heading {
+  color: #0f172a;
+  font-size: 1.4rem;
+  margin: 0 0 25px 0;
+  text-align: left;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  color: #475569;
+  font-size: 1rem;
+}
+
+.summary-line-break {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 20px 0;
+}
+
+.total-final {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.checkout-action-btn {
+  width: 100%;
+  padding: 16px;
+  background: #0f172a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.2s;
+}
+
+.checkout-action-btn:hover {
+  background: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .cart-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}

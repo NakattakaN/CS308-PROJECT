@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import ProductPage from './ProductPage';
+import CartPage from './CartPage';
 // YENİ SAYFAYI İÇERİ AKTARIYORUZ
 import ProductDetailsPage from './ProductDetailsPage';
 
@@ -16,6 +17,7 @@ function App() {
       </div>
 
       <Routes>
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/" element={<Navigate to="/home" />} />
         <Route path="/home" element={<ProductPage />} />
         <Route path="/login" element={<LoginPage />} />
