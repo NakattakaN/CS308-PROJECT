@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './LoginPage.css'; 
+import './RegisterPage.css'; // Updated to point to your new Register CSS
 
 const RegisterPage = () => { 
   const navigate = useNavigate(); 
@@ -19,24 +19,23 @@ const RegisterPage = () => {
     }));
   };
 
-  // Backend'e kayıt isteği atacak güncellenmiş fonksiyon
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
+      // Ensure your backend is running on port 5000
       const response = await fetch('http://localhost:5000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // form verilerini gönderiyoruz
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (data.success) {
         alert("Kayıt Başarılı! Lütfen giriş yapın.");
-        // Başarılı kayıttan sonra kullanıcıyı otomatik Login sayfasına yönlendir
         navigate('/login'); 
       } else {
         alert("Kayıt Başarısız: " + data.message);
@@ -69,19 +68,44 @@ const RegisterPage = () => {
           <form onSubmit={handleSubmit} className="login-form">
             <div className="input-group">
               <label htmlFor="fullName">Full Name</label>
-              <input type="text" id="fullName" name="fullName" placeholder="John Doe" value={formData.fullName} onChange={handleChange} required />
+              {/* Note: 'name' must match the key in your formData state */}
+              <input 
+                type="text" 
+                id="fullName" 
+                name="fullName" 
+                placeholder="John Doe" 
+                value={formData.fullName} 
+                onChange={handleChange} 
+                required 
+              />
             </div>
 
             <div className="input-group">
               <label htmlFor="email">Email Address</label>
-              <input type="email" id="email" name="email" placeholder="name@example.com" value={formData.email} onChange={handleChange} required />
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                placeholder="name@example.com" 
+                value={formData.email} 
+                onChange={handleChange} 
+                required 
+              />
             </div>
 
             <div className="input-group">
               <div className="label-flex">
                 <label htmlFor="password">Password</label>
               </div>
-              <input type="password" id="password" name="password" placeholder="Create a strong password" value={formData.password} onChange={handleChange} required />
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Create a strong password" 
+                value={formData.password} 
+                onChange={handleChange} 
+                required 
+              />
             </div>
 
             <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem' }}>
@@ -98,7 +122,7 @@ const RegisterPage = () => {
             className="btn-secondary"
             onClick={() => navigate('/login')}
           >
-            Sign in instead
+            Sign In Instead
           </button>
         </div>
       </section>
