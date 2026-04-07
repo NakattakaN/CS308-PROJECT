@@ -144,6 +144,10 @@ app.post('/api/register', async (req, res) => {
     // 4. Veritabanına kaydet
     await newUser.save();
 
+    // BURAYI EKLE:
+    console.log("Veri veritabanına yazıldı. Orijinal kayıt:", newUser);
+    console.log("Kullanılan veritabanı:", mongoose.connection.name);
+
     res.status(201).json({ success: true, message: "Kayıt başarıyla oluşturuldu!" });
 
   } catch (error) {
