@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
-import './LoginPage.css';
+import './LoginPage.css'; // Reusing your existing CSS for layout consistency
 
-const LoginPage = () => {
-  // Consolidating form state into a single object for cleaner management
+const RegisterPage = ({ navigateTo }) => {
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
     password: '',
-    rememberMe: false
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
+    console.log('Registration attempt:', formData);
   };
 
   return (
@@ -28,7 +27,7 @@ const LoginPage = () => {
       <section className="login-image-section">
         <div className="brand-overlay">
           <h1>Saatinden</h1>
-          <p>The marketplace for horology enthusiasts.</p>
+          <p>Join the premier marketplace for horology enthusiasts.</p>
         </div>
       </section>
 
@@ -36,13 +35,26 @@ const LoginPage = () => {
       <section className="login-form-section">
         <div className="form-wrapper">
           <header className="form-header">
-            <h2>Welcome Back</h2>
+            <h2>Create an Account</h2>
             <p className="subtitle">
-              Sign in to your account to track orders and manage your collection.
+              Start building your collection and connecting with sellers today.
             </p>
           </header>
 
           <form onSubmit={handleSubmit} className="login-form">
+            <div className="input-group">
+              <label htmlFor="fullName">Full Name</label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                placeholder="John Doe"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
             <div className="input-group">
               <label htmlFor="email">Email Address</label>
               <input
@@ -59,42 +71,33 @@ const LoginPage = () => {
             <div className="input-group">
               <div className="label-flex">
                 <label htmlFor="password">Password</label>
-                <a href="#forgot" className="forgot-password">Forgot Password?</a>
               </div>
               <input
                 type="password"
                 id="password"
                 name="password"
-                placeholder="••••••••"
+                placeholder="Create a strong password"
                 value={formData.password}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <div className="remember-me">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-              />
-              <label htmlFor="rememberMe">Keep me signed in</label>
-            </div>
-
-            <button type="submit" className="btn-primary">Sign In</button>
+            <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem' }}>
+              Sign Up
+            </button>
           </form>
 
           <div className="divider">
-            <span>New to Saatinden?</span>
+            <span>Already have an account?</span>
           </div>
+
           <button 
             type="button" 
             className="btn-secondary"
-            onClick={() => navigateTo('register')}
+            onClick={() => navigateTo('login')}
           >
-            Create your account
+            Sign in instead
           </button>
         </div>
       </section>
@@ -102,4 +105,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
