@@ -20,9 +20,9 @@ mongoose.connect(MONGO_URI)
   .catch((err) => console.error('❌ MongoDB bağlantı hatası:', err));
 
 
-// ----------------------------------------------------
+
 // 2. VERİTABANI MODELLERİ (SCHEMAS)
-// ----------------------------------------------------
+// ---------------------------------------------------
 // Sepetteki Saat (Ürün) Şeması
 const cartItemSchema = new mongoose.Schema({
   quantity: { type: Number, default: 1 },
