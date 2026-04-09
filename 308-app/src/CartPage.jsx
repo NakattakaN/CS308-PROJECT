@@ -20,7 +20,6 @@ const CartPage = () => {
       try {
         const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`);
         const data = await response.json();
-        // server.js sends user.cart back
         setCartItems(data);
         setLoading(false);
       } catch (error) {
@@ -32,12 +31,24 @@ const CartPage = () => {
     fetchCart();
   }, [userId, navigate]);
 
+  const handleRemove = async (itemId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCartItems(data.cart);
+      }
+    } catch (error) {
+      console.error("Error removing item:", error);
+    }
+  };
+
   // Logic to handle the "$35,000" strings from your DB
   const calculateTotal = () => {
     const sub = cartItems.reduce((acc, item) => {
-      const priceStr = item.product.price || "0";
-      // Removes $ and , to turn "$35,000" into 35000
-      const numPrice = parseInt(priceStr.replace(/[^0-9]/g, ""), 10);
+      const numPrice = item.product.price || 0;
       return acc + (numPrice * (item.quantity || 1));
     }, 0);
     const ship = cartItems.length > 0 ? 50 : 0;
@@ -74,8 +85,8 @@ const CartPage = () => {
                       <h3>{item.product.name}</h3>
                       <p>{item.product.brand}</p>
                     </div>
-                    <div className="watch-price">{item.product.price}</div>
-                    <button className="delete-item-btn">Remove</button>
+                    <div className="watch-price">${(item.product.price || 0).toLocaleString()}</div>
+                    <button className="delete-item-btn" onClick={() => handleRemove(item._id)}>Remove</button>
                   </div>
                 ))}
               </div>

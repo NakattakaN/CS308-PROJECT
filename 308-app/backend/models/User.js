@@ -1,17 +1,28 @@
 const mongoose = require('mongoose');
 
+// CartItem embeds a snapshot of the product at the time it was added to cart.
+// This means cart prices won't change if the listing is later updated.
+// The embedded product schema mirrors Product.js so the shapes are consistent.
 const cartItemSchema = new mongoose.Schema({
   quantity: { type: Number, default: 1 },
-  addedAt: { type: Date, default: Date.now },
+  addedAt:  { type: Date, default: Date.now },
   product: {
-    brand: String,
-    model: String,
-    referenceNumber: String,
-    price: { amount: Number, currency: String },
-    specs: { movement: String, condition: String, boxAndPapers: Boolean, caseSize: String, year: Number },
-    description: String,
-    images: [String],
-    status: String,
+    _id:            { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    name:           String,
+    brand:          String,
+    price:          Number,
+    image:          String,
+    images:         [String],
+    referenceNumber:String,
+    description:    String,
+    specs: {
+      movement:    String,
+      condition:   String,
+      boxAndPapers:Boolean,
+      caseSize:    String,
+      year:        Number
+    },
+    status:   String,
     sellerId: String
   }
 });
