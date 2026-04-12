@@ -6,6 +6,7 @@ import ProductPage from './ProductPage';
 import CartPage from './CartPage';
 // YENİ SAYFAYI İÇERİ AKTARIYORUZ
 import ProductDetailsPage from './ProductDetailsPage';
+import PaymentPage from './PaymentPage'; // YENİ ÖDEME SAYFASI
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
         
         {/* YENİ ROTA BURASI: Dinamik ID alacak şekilde ayarladık */}
         <Route path="/product/:id" element={<ProductDetailsPage />} />
+
+        {/* ÖDEME SAYFASI ROTASI */}
+        <Route path="/payment" element={<PaymentPage />} />
       </Routes>
     </Router>
   );

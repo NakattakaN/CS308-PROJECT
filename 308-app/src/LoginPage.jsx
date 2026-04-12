@@ -24,7 +24,7 @@ const LoginPage = () => {
   // Form gönderildiğinde (Sign In butonuna basıldığında) çalışacak fonksiyon
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       // Backend'e form verilerini gönderiyoruz (POST isteği)
       const response = await fetch('http://localhost:5000/api/login', {
@@ -47,7 +47,7 @@ const LoginPage = () => {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.firstName);
         // BAŞARILI GİRİŞTEN SONRA ANA SAYFAYA (ProductPage) YÖNLENDİR
-        navigate('/home'); 
+        navigate('/home');
       } else {
         // Hatalı şifre veya kullanıcı bulunamadı durumu
         alert("Giriş Başarısız: " + data.message);
@@ -128,8 +128,8 @@ const LoginPage = () => {
           </div>
 
           {/* KAYIT SAYFASINA YÖNLENDİREN BUTON */}
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn-secondary"
             onClick={() => navigate('/register')}
           >

@@ -59,10 +59,26 @@ const ProductDetailsPage = () => {
 
   return (
     <div className="details-container">
-      {/* Geri Dön Butonu */}
-      <button className="back-btn" onClick={() => navigate('/home')}>
-        ← Back to Marketplace
-      </button>
+      <div className="details-top-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingBottom: '1rem' }}>
+        <button className="back-btn" style={{ margin: 0 }} onClick={() => navigate('/home')}>
+          ← Back to Marketplace
+        </button>
+        <button 
+          className="go-to-cart-btn" 
+          style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#1a1a1a', 
+            color: '#fff', 
+            border: 'none', 
+            borderRadius: '8px', 
+            cursor: 'pointer', 
+            fontWeight: '600' 
+          }} 
+          onClick={() => navigate('/cart')}
+        >
+          Go to Cart 🛒
+        </button>
+      </div>
 
       <div className="details-card">
         {/* Sol Taraf: Görsel */}

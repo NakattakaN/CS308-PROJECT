@@ -1,8 +1,10 @@
 /* Full page background - changing from black to light gray/white */
 .cart-page-wrapper {
   width: 100%;
-  min-height: 100vh;
-  background-color: #f8fafc; /* Light theme background */
+  flex: 1;
+  min-height: 90vh;
+  background-color: #f8fafc;
+  /* Light theme background */
   padding: 40px 20px;
   display: flex;
   justify-content: center;
@@ -10,7 +12,7 @@
 
 .cart-main-content {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1600px;
 }
 
 .cart-header-section {
@@ -21,7 +23,8 @@
 }
 
 .cart-header-section h1 {
-  color: #0f172a; /* Dark text for the title */
+  color: #0f172a;
+  /* Dark text for the title */
   font-size: 2.2rem;
   margin: 0;
 }
@@ -61,9 +64,21 @@
   border-radius: 8px;
 }
 
-.watch-details { flex: 1; text-align: left; }
-.watch-details h3 { margin: 0; font-size: 1.2rem; color: #0f172a; }
-.watch-details p { margin: 5px 0 0; color: #64748b; }
+.watch-details {
+  flex: 1;
+  text-align: left;
+}
+
+.watch-details h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+.watch-details p {
+  margin: 5px 0 0;
+  color: #64748b;
+}
 
 .watch-price {
   font-weight: 700;

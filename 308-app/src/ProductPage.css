@@ -1,10 +1,11 @@
 .product-page-container {
   width: 100%;
-  max-width: 1200px;
+  flex: 1;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 0 2rem;
   background-color: var(--bg-main);
-  min-height: 100vh;
+  min-height: 90vh;
 }
 
 /* Navbar */

@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RegisterPage.css'; // Updated to point to your new Register CSS
 
-const RegisterPage = () => { 
-  const navigate = useNavigate(); 
-  
+const RegisterPage = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -21,7 +21,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       // Ensure your backend is running on port 5000
       const response = await fetch('http://localhost:5000/api/register', {
@@ -36,7 +36,7 @@ const RegisterPage = () => {
 
       if (data.success) {
         alert("Kayıt Başarılı! Lütfen giriş yapın.");
-        navigate('/login'); 
+        navigate('/login');
       } else {
         alert("Kayıt Başarısız: " + data.message);
       }
@@ -69,27 +69,27 @@ const RegisterPage = () => {
             <div className="input-group">
               <label htmlFor="fullName">Full Name</label>
               {/* Note: 'name' must match the key in your formData state */}
-              <input 
-                type="text" 
-                id="fullName" 
-                name="fullName" 
-                placeholder="John Doe" 
-                value={formData.fullName} 
-                onChange={handleChange} 
-                required 
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                placeholder="John Doe"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
               />
             </div>
 
             <div className="input-group">
               <label htmlFor="email">Email Address</label>
-              <input 
-                type="email" 
-                id="email" 
-                name="email" 
-                placeholder="name@example.com" 
-                value={formData.email} 
-                onChange={handleChange} 
-                required 
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="name@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -97,14 +97,14 @@ const RegisterPage = () => {
               <div className="label-flex">
                 <label htmlFor="password">Password</label>
               </div>
-              <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                placeholder="Create a strong password" 
-                value={formData.password} 
-                onChange={handleChange} 
-                required 
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Create a strong password"
+                value={formData.password}
+                onChange={handleChange}
+                required
               />
             </div>
 
@@ -117,8 +117,8 @@ const RegisterPage = () => {
             <span>Already have an account?</span>
           </div>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn-secondary"
             onClick={() => navigate('/login')}
           >

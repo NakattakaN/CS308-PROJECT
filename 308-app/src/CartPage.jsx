@@ -109,7 +109,7 @@ const CartPage = () => {
                     <span>${total.toLocaleString()}</span>
                   </div>
                 </div>
-                <button className="checkout-action-btn">Proceed to Checkout</button>
+                <button className="checkout-action-btn" onClick={() => navigate('/payment')}>Proceed to Checkout</button>
               </div>
             </>
           ) : (
