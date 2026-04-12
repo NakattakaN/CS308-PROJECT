@@ -1,21 +1,18 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import ProductPage from './ProductPage';
 import CartPage from './CartPage';
-// YENİ SAYFAYI İÇERİ AKTARIYORUZ
+// IMPORTING THE NEW PAGE
 import ProductDetailsPage from './ProductDetailsPage';
-import PaymentPage from './PaymentPage'; // YENİ ÖDEME SAYFASI
+import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
+import Navbar from './Navbar';
 
 function App() {
   return (
     <Router>
-      <div style={{ padding: '1rem', background: '#f8fafc', display: 'flex', gap: '1rem', justifyContent: 'center', borderBottom: '1px solid #e2e8f0' }}>
-        <NavLink to="/home" style={({ isActive }) => ({ padding: '0.5rem 1rem', textDecoration: 'none', color: '#333', fontWeight: isActive ? 'bold' : 'normal' })}>Home</NavLink>
-        <NavLink to="/login" style={({ isActive }) => ({ padding: '0.5rem 1rem', textDecoration: 'none', color: '#333', fontWeight: isActive ? 'bold' : 'normal' })}>Login</NavLink>
-        <NavLink to="/register" style={({ isActive }) => ({ padding: '0.5rem 1rem', textDecoration: 'none', color: '#333', fontWeight: isActive ? 'bold' : 'normal' })}>Register</NavLink>
-      </div>
+      <Navbar />
 
       <Routes>
         <Route path="/cart" element={<CartPage />} />
@@ -23,11 +20,11 @@ function App() {
         <Route path="/home" element={<ProductPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
-        {/* YENİ ROTA BURASI: Dinamik ID alacak şekilde ayarladık */}
+
+        {/* NEW ROUTE: Set up to take a dynamic ID */}
         <Route path="/product/:id" element={<ProductDetailsPage />} />
 
-        {/* ÖDEME SAYFASI ROTASI */}
+        {/* PAYMENT PAGE ROUTE */}
         <Route path="/payment" element={<PaymentPage />} />
       </Routes>
     </Router>

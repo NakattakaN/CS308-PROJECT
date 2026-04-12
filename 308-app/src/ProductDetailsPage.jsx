@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './ProductDetailsPage.css'; // Birazdan CSS'ini de oluşturacağız
+import './ProductDetailsPage.css'; // Importing CSS styles
 
 const ProductDetailsPage = () => {
-  const { id } = useParams(); // URL'deki saatin ID'sini alıyoruz
+  const { id } = useParams(); // Fetching watch ID from URL
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -33,7 +33,7 @@ const ProductDetailsPage = () => {
   };
 
   useEffect(() => {
-    // Sadece bu ID'ye ait saati Backend'den çek
+    // Fetch single watch by ID from Backend
     const fetchSingleProduct = async () => {
       try {
         const response = await fetch(`http://localhost:5000/api/products/${id}`);
@@ -42,11 +42,11 @@ const ProductDetailsPage = () => {
         if (response.ok) {
           setProduct(data);
         } else {
-          console.error("Saat bulunamadı!");
+          console.error("Watch not found!");
         }
         setLoading(false);
       } catch (error) {
-        console.error("Hata oluştu:", error);
+        console.error("An error occurred:", error);
         setLoading(false);
       }
     };
@@ -54,8 +54,8 @@ const ProductDetailsPage = () => {
     fetchSingleProduct();
   }, [id]);
 
-  if (loading) return <div className="loading-state">Saat detayları hazırlanıyor uwu...</div>;
-  if (!product) return <div className="loading-state">Maalesef bu saat bulunamadı :(</div>;
+  if (loading) return <div className="loading-state">Preparing watch details...</div>;
+  if (!product) return <div className="loading-state">Unfortunately, this watch could not be found :(</div>;
 
   return (
     <div className="details-container">
@@ -81,12 +81,12 @@ const ProductDetailsPage = () => {
       </div>
 
       <div className="details-card">
-        {/* Sol Taraf: Görsel */}
+        {/* Left Side: Image */}
         <div className="details-image-wrapper">
           <img src={product.image} alt={product.name} />
         </div>
 
-        {/* Sağ Taraf: Bilgiler */}
+        {/* Right Side: Information */}
         <div className="details-info-wrapper">
           <span className="details-brand">{product.brand}</span>
           <h1 className="details-name">{product.name}</h1>

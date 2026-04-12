@@ -35,15 +35,15 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert("Kayıt Başarılı! Lütfen giriş yapın.");
+        alert("Registration Successful! Please login.");
         navigate('/login');
       } else {
-        alert("Kayıt Başarısız: " + data.message);
+        alert("Registration Failed: " + data.message);
       }
 
     } catch (error) {
-      console.error("Backend bağlantı hatası:", error);
-      alert("Sunucuya ulaşılamadı. Lütfen backend'in çalıştığından emin olun.");
+      console.error("Backend connection error:", error);
+      alert("Server unreachable. Please make sure the backend is running.");
     }
   };
 

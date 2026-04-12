@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Yönlendirme için eklendi
+import { useNavigate } from 'react-router-dom'; // Added for navigation
 import './LoginPage.css';
 
 const LoginPage = () => {
-  const navigate = useNavigate(); // Yönlendirme fonksiyonunu tanımladık
+  const navigate = useNavigate(); // Defined the navigation function
 
-  // Form verilerini tuttuğumuz state
+  // State to hold form data
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
 
-  // Input alanları değiştikçe state'i güncelleyen fonksiyon
+  // Function to update state as input fields change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -21,12 +21,12 @@ const LoginPage = () => {
     }));
   };
 
-  // Form gönderildiğinde (Sign In butonuna basıldığında) çalışacak fonksiyon
+  // Function to run when the form is submitted (Sign In button clicked)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      // Backend'e form verilerini gönderiyoruz (POST isteği)
+      // Sending form data to backend (POST request)
       const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: {
@@ -38,30 +38,30 @@ const LoginPage = () => {
         }),
       });
 
-      // Backend'den gelen cevabı (JSON) okuyoruz
+      // Reading response from backend (JSON)
       const data = await response.json();
 
       if (data.success) {
-        alert("Giriş Başarılı! Hoş geldin.");
+        alert("Login Successful! Welcome.");
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.firstName);
-        // BAŞARILI GİRİŞTEN SONRA ANA SAYFAYA (ProductPage) YÖNLENDİR
+        // REDIRECT TO HOME PAGE (ProductPage) AFTER SUCCESSFUL LOGIN
         navigate('/home');
       } else {
-        // Hatalı şifre veya kullanıcı bulunamadı durumu
-        alert("Giriş Başarısız: " + data.message);
+        // Incorrect password or user not found case
+        alert("Login Failed: " + data.message);
       }
 
     } catch (error) {
-      console.error("Backend bağlantı hatası:", error);
-      alert("Sunucuya ulaşılamadı. Lütfen backend'in (Node.js) çalıştığından emin olun.");
+      console.error("Backend connection error:", error);
+      alert("Server unreachable. Please make sure the backend (Node.js) is running.");
     }
   };
 
   return (
     <main className="login-container">
-      {/* Sol Taraf: Görsel Alanı */}
+      {/* Left Side: Image Area */}
       <section className="login-image-section">
         <div className="brand-overlay">
           <h1>Saatinden</h1>
@@ -69,7 +69,7 @@ const LoginPage = () => {
         </div>
       </section>
 
-      {/* Sağ Taraf: Form Alanı */}
+      {/* Right Side: Form Area */}
       <section className="login-form-section">
         <div className="form-wrapper">
           <header className="form-header">
@@ -127,7 +127,7 @@ const LoginPage = () => {
             <span>New to Saatinden?</span>
           </div>
 
-          {/* KAYIT SAYFASINA YÖNLENDİREN BUTON */}
+          {/* BUTTON REDIRECTING TO REGISTRATION PAGE */}
           <button
             type="button"
             className="btn-secondary"

@@ -8,55 +8,6 @@
   min-height: 90vh;
 }
 
-/* Navbar */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.brand-logo h2 {
-  color: var(--primary-color);
-  font-size: 1.75rem;
-  letter-spacing: -0.02em;
-}
-
-.nav-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.nav-link {
-  background: none;
-  border: none;
-  color: var(--text-main);
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: var(--text-muted);
-}
-
-.nav-btn-primary {
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.25rem;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.nav-btn-primary:hover {
-  background-color: #1e293b;
-}
 
 /* Hero Section */
 .hero-section {
