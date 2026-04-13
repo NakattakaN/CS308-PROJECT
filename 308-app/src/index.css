@@ -29,20 +29,7 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-}
+
 
 /* --- THE "LINE KILLER" RESET --- */
 * {
@@ -65,15 +52,15 @@ input:focus {
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg);
+  background-color: #f8fafc;
   /* Centering the #root container on the page */
   display: flex;
   justify-content: center; 
 }
 
 #root {
-  width: 100%;
-  max-width: 1126px; /* Restoring your original width limit */
+  width: 95%;
+  max-width: 1600px; /* Expanded for widescreen optimize */
   margin: 0 auto;    /* Centers the content horizontally */
   min-height: 100svh;
   display: flex;
