@@ -34,7 +34,12 @@ router.post('/users/:userId/cart', async (req, res) => {
     const product = await Product.findById(productId).lean();
     if (!product) return res.status(404).json({ message: "Saat bulunamadı!" });
 
-    user.cart.push({ product, quantity: quantity || 1 });
+    const parsedQty = Number.parseInt(quantity, 10);
+    const safeQty = Number.isFinite(parsedQty)
+      ? Math.min(1000, Math.max(1, parsedQty))
+      : 1;
+
+    user.cart.push({ product, quantity: safeQty });
     await user.save();
     res.status(200).json({ message: "Saat sepete başarıyla eklendi!", cart: user.cart });
   } catch (error) {
