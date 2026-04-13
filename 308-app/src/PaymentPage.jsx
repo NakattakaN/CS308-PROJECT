@@ -34,11 +34,15 @@ const PaymentPage = () => {
         const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
           headers: authHeaders
         });
+        if (!response.ok) {
+          throw new Error(`Cart fetch failed (${response.status})`);
+        }
         const data = await response.json();
-        setCartItems(data);
+        const items = Array.isArray(data) ? data : [];
+        setCartItems(items);
         setLoading(false);
-        
-        if (data.length === 0) {
+
+        if (items.length === 0) {
           alert('Your cart is empty! Redirecting to marketplace.');
           navigate('/home');
         }
