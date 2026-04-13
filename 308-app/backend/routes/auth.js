@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 const User = require('../models/User');
 
@@ -30,7 +31,16 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı!" });
     if (user.password !== password) return res.status(401).json({ success: false, message: "Hatalı şifre girdiniz!" });
 
-    res.status(200).json({ success: true, message: "Giriş başarılı!", userId: user._id, firstName: user.firstName });
+    user.authToken = crypto.randomBytes(32).toString('hex');
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Giriş başarılı!",
+      userId: user._id,
+      firstName: user.firstName,
+      token: user.authToken
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Sunucu hatası oluştu!" });
   }

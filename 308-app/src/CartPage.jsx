@@ -9,6 +9,8 @@ const CartPage = () => {
 
   // Getting the ID from your LoginPage localStorage
   const userId = localStorage.getItem('userId');
+  const authToken = localStorage.getItem('authToken');
+  const authHeaders = { Authorization: `Bearer ${authToken}` };
 
   useEffect(() => {
     if (!userId) {
@@ -18,7 +20,9 @@ const CartPage = () => {
 
     const fetchCart = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`);
+        const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
+          headers: authHeaders
+        });
         const data = await response.json();
         setCartItems(data);
         setLoading(false);
@@ -34,7 +38,8 @@ const CartPage = () => {
   const handleRemove = async (itemId) => {
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: authHeaders
       });
       const data = await response.json();
       if (response.ok) {

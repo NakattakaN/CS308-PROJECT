@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Product = require('../models/Product');
+const { requireAuth, requireSelf } = require('../middleware/auth');
+
+router.use('/users/:userId/cart', requireAuth, requireSelf);
 
 // GET    /api/users/:userId/cart          - Returns all items in user's cart
 // POST   /api/users/:userId/cart          - Adds a product to cart by productId (snapshots product data)

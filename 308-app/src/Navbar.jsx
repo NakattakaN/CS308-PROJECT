@@ -13,6 +13,7 @@ const Navbar = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
+    localStorage.removeItem('authToken');
     navigate('/home');
   };
 

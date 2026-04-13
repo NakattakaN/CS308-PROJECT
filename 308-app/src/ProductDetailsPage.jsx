@@ -9,16 +9,20 @@ const ProductDetailsPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const userId = localStorage.getItem('userId');
+  const authToken = localStorage.getItem('authToken');
 
   const handleAddToCart = async () => {
-    if (!userId) {
+    if (!userId || !authToken) {
       navigate('/login');
       return;
     }
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`
+        },
         body: JSON.stringify({ productId: product._id, quantity: 1 })
       });
       const data = await response.json();

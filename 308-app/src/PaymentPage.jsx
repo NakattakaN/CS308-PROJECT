@@ -9,6 +9,8 @@ const PaymentPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const userId = localStorage.getItem('userId');
+  const authToken = localStorage.getItem('authToken');
+  const authHeaders = { Authorization: `Bearer ${authToken}` };
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -29,7 +31,9 @@ const PaymentPage = () => {
 
     const fetchCart = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`);
+        const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
+          headers: authHeaders
+        });
         const data = await response.json();
         setCartItems(data);
         setLoading(false);
@@ -75,7 +79,8 @@ const PaymentPage = () => {
       try {
         // Clear the cart on successful payment
         const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: authHeaders
         });
         
         if (response.ok) {

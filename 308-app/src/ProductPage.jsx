@@ -76,6 +76,7 @@ const ProductPage = () => {
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('authToken');
     setIsLoggedIn(false);
     setUserName('');
     navigate('/home');
