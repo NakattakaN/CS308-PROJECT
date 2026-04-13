@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PaymentPage.css';
 
@@ -7,6 +7,7 @@ const PaymentPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const processingRef = useRef(false);
 
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -76,30 +77,35 @@ const PaymentPage = () => {
 
   const handlePayment = async (e) => {
     e.preventDefault();
+    // Synchronous guard: React state updates are async, so two back-to-back
+    // invocations (e.g. submit + click bubble) would both see isProcessing=false.
+    if (processingRef.current) return;
+    processingRef.current = true;
     setIsProcessing(true);
 
-    // Mock processing delay
-    setTimeout(async () => {
-      try {
-        // Clear the cart on successful payment
-        const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
-          method: 'DELETE',
-          headers: authHeaders
-        });
-        
-        if (response.ok) {
-          alert(`Payment of $${total.toLocaleString()} was successful! Thank you for your purchase.`);
-          navigate('/home');
-        } else {
-          alert("Something went wrong with the payment API.");
-        }
-      } catch (error) {
-        console.error("Payment error:", error);
-        alert("Payment error occurred.");
-      } finally {
-        setIsProcessing(false);
+    try {
+      // Mock processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Clear the cart on successful payment
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+
+      if (response.ok) {
+        alert(`Payment of $${total.toLocaleString()} was successful! Thank you for your purchase.`);
+        navigate('/home');
+      } else {
+        alert("Something went wrong with the payment API.");
       }
-    }, 2000);
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Payment error occurred.");
+    } finally {
+      processingRef.current = false;
+      setIsProcessing(false);
+    }
   };
 
   if (loading) return <div className="payment-page-container"><h2>Loading Secure Checkout...</h2></div>;
@@ -195,10 +201,9 @@ const PaymentPage = () => {
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="pay-btn" 
-            onClick={handlePayment} 
+          <button
+            type="submit"
+            className="pay-btn"
             disabled={isProcessing || cartItems.length === 0}
           >
             {isProcessing ? 'Processing Securely...' : `Pay $${total.toLocaleString()}`}
