@@ -64,10 +64,21 @@ const PaymentPage = () => {
     }));
   };
 
+  // Clamp quantity defensively: server already validates, but corrupted cart
+  // data must not produce negative/NaN totals on the payment screen.
+  const safeQty = (q) => {
+    const n = Number.parseInt(q, 10);
+    return Number.isFinite(n) && n > 0 ? Math.min(n, 1000) : 1;
+  };
+
+  const safePrice = (p) => {
+    const n = Number(p);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+
   const calculateTotal = () => {
     const sub = cartItems.reduce((acc, item) => {
-      const numPrice = item.product.price || 0;
-      return acc + (numPrice * (item.quantity || 1));
+      return acc + safePrice(item?.product?.price) * safeQty(item?.quantity);
     }, 0);
     const ship = cartItems.length > 0 ? 50 : 0;
     return { sub, ship, total: sub + ship };
@@ -177,10 +188,10 @@ const PaymentPage = () => {
               <div key={item._id} className="preview-item">
                 <div className="preview-item-info">
                   <span className="preview-item-name">{item.product.name}</span>
-                  <span className="preview-item-qty">Qty: {item.quantity || 1} • {item.product.brand}</span>
+                  <span className="preview-item-qty">Qty: {safeQty(item.quantity)} • {item.product.brand}</span>
                 </div>
                 <div className="preview-item-price">
-                  ${(item.product.price * (item.quantity || 1)).toLocaleString()}
+                  ${(safePrice(item.product.price) * safeQty(item.quantity)).toLocaleString()}
                 </div>
               </div>
             ))}
