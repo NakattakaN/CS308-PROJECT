@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RegisterPage.css'; // Updated to point to your new Register CSS
 
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const PASSWORD_HINT = '8+ characters, at least 1 letter and 1 number.';
+
 const RegisterPage = () => {
   const navigate = useNavigate();
 
@@ -10,6 +13,7 @@ const RegisterPage = () => {
     email: '',
     password: '',
   });
+  const [passwordError, setPasswordError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,10 +21,18 @@ const RegisterPage = () => {
       ...prev,
       [name]: value
     }));
+    if (name === 'password') {
+      setPasswordError(value && !PASSWORD_REGEX.test(value) ? PASSWORD_HINT : '');
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!PASSWORD_REGEX.test(formData.password)) {
+      setPasswordError(PASSWORD_HINT);
+      return;
+    }
 
     try {
       // Ensure your backend is running on port 5000
@@ -106,6 +118,9 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
               />
+              <small style={{ color: passwordError ? '#b00020' : '#777', display: 'block', marginTop: '4px' }}>
+                {passwordError || PASSWORD_HINT}
+              </small>
             </div>
 
             <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem' }}>

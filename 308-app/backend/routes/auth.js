@@ -6,6 +6,9 @@ const User = require('../models/User');
 // Basic RFC-5322-ish check: non-empty local, @, non-empty domain with a dot.
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// At least 8 chars, one letter, one digit.
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
 // KAYIT OL (REGISTER) API'si
 router.post('/register', async (req, res) => {
   try {
@@ -16,6 +19,9 @@ router.post('/register', async (req, res) => {
     }
     if (typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
       return res.status(400).json({ success: false, message: "Geçerli bir e-posta adresi giriniz!" });
+    }
+    if (typeof password !== 'string' || !PASSWORD_REGEX.test(password)) {
+      return res.status(400).json({ success: false, message: "Şifre en az 8 karakter olmalı ve en az bir harf ile bir rakam içermelidir." });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
