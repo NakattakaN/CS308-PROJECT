@@ -52,6 +52,7 @@ router.post('/login', async (req, res) => {
       message: "Giriş başarılı!",
       userId: user._id,
       firstName: user.firstName,
+      role: user.role || 'user',
       token: user.authToken
     });
   } catch (error) {

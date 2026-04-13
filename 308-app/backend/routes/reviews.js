@@ -1,0 +1,175 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const router = express.Router();
+const Review = require('../models/Review');
+const User = require('../models/User');
+const Product = require('../models/Product');
+const { requireAuth, attachAuth, requireAdmin } = require('../middleware/auth');
+
+const { REVIEW_STATUS } = Review;
+
+// ---- PUBLIC: list reviews for a product ----
+// Approved reviews are visible to everyone.
+// If the caller is authenticated, their own non-approved reviews are also included.
+router.get('/products/:productId/reviews', attachAuth, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    if (!mongoose.isValidObjectId(productId)) {
+      return res.status(400).json({ message: 'Invalid product id' });
+    }
+
+    const filter = {
+      product: productId,
+      $or: [{ status: 'APPROVED' }]
+    };
+    if (req.userId) {
+      filter.$or.push({ user: req.userId });
+    }
+
+    const reviews = await Review.find(filter).sort({ createdAt: -1 }).lean();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load reviews', details: err.message });
+  }
+});
+
+// ---- USER: create or update their review for a product ----
+// Upsert keyed on (product, user). Resubmitting resets status to UNDER_REVIEW.
+router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    if (!mongoose.isValidObjectId(productId)) {
+      return res.status(400).json({ message: 'Invalid product id' });
+    }
+
+    const product = await Product.findById(productId).select('_id');
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    const rawRating = Number.parseInt(req.body.rating, 10);
+    if (!Number.isFinite(rawRating) || rawRating < 1 || rawRating > 5) {
+      return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
+    }
+
+    const body = typeof req.body.body === 'string' ? req.body.body.trim().slice(0, 1000) : '';
+
+    const author = await User.findById(req.userId).select('firstName lastName');
+    if (!author) return res.status(401).json({ message: 'Invalid auth token' });
+    const reviewerName = [author.firstName, author.lastName].filter(Boolean).join(' ').trim() || 'Anonymous';
+
+    const review = await Review.findOneAndUpdate(
+      { product: productId, user: req.userId },
+      {
+        product: productId,
+        user: req.userId,
+        reviewerName,
+        rating: rawRating,
+        body,
+        status: 'UNDER_REVIEW',
+        moderatedBy: undefined,
+        moderatedAt: undefined
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(201).json(review);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to submit review', details: err.message });
+  }
+});
+
+// ---- ADMIN: moderation queue ----
+router.get('/admin/reviews', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const status = REVIEW_STATUS.includes(req.query.status) ? req.query.status : 'UNDER_REVIEW';
+    const reviews = await Review.find({ status })
+      .sort({ createdAt: -1 })
+      .populate('product', 'name brand image')
+      .lean();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load moderation queue', details: err.message });
+  }
+});
+
+// ---- ADMIN: approve or reject
+router.patch('/admin/reviews/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid review id' });
+    }
+
+    const nextStatus = req.body.status;
+    if (!['APPROVED', 'REJECTED'].includes(nextStatus)) {
+      return res.status(400).json({ message: 'Status must be APPROVED or REJECTED' });
+    }
+
+    const review = await Review.findByIdAndUpdate(
+      id,
+      { status: nextStatus, moderatedBy: req.userId, moderatedAt: new Date() },
+      { new: true }
+    );
+    if (!review) return res.status(404).json({ message: 'Review not found' });
+
+    res.json(review);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update review', details: err.message });
+  }
+});
+
+// ---- DEV: seed mixed-status reviews across all products ----
+// Mirrors the convention of POST /api/seed-products. Remove or gate before prod.
+router.post('/seed-reviews', async (req, res) => {
+  try {
+    const users = await User.find().select('_id firstName lastName').lean();
+    if (users.length === 0) {
+      return res.status(400).json({ message: 'No users in DB — register at least one first.' });
+    }
+
+    const products = await Product.find().select('_id').lean();
+    if (products.length === 0) {
+      return res.status(400).json({ message: 'No products in DB — POST /api/seed-products first.' });
+    }
+
+    await Review.deleteMany({});
+
+    // Pattern of (rating, status, body) per product. Cycles through users so
+    // each gets a few reviews without violating the (product, user) unique index.
+    const template = [
+      { rating: 5, status: 'APPROVED',     body: 'Absolutely stunning timepiece. Worth every cent.' },
+      { rating: 4, status: 'APPROVED',     body: 'Great watch, only minor gripe is the strap.' },
+      { rating: 3, status: 'UNDER_REVIEW', body: 'Decent, but I expected more for the price.' },
+      { rating: 1, status: 'REJECTED',     body: 'visit shadylink.example.com for cheap fakes!!' }
+    ];
+
+    const docs = [];
+    for (const product of products) {
+      template.forEach((slot, i) => {
+        const user = users[i % users.length];
+        if (!user) return;
+        const reviewerName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || 'Anonymous';
+        docs.push({
+          product: product._id,
+          user: user._id,
+          reviewerName,
+          rating: slot.rating,
+          body: slot.body,
+          status: slot.status,
+          ...(slot.status !== 'UNDER_REVIEW' && { moderatedAt: new Date() })
+        });
+      });
+    }
+
+    const created = await Review.insertMany(docs, { ordered: false });
+    res.status(201).json({
+      message: 'Reviews seeded.',
+      created: created.length,
+      products: products.length,
+      users: users.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Seed failed', details: err.message });
+  }
+});
+
+module.exports = router;

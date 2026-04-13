@@ -12,6 +12,7 @@ app.get('/', (req, res) => res.send('Saatinden API tıkır tıkır çalışıyor
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/products'));
 app.use('/api', require('./routes/cart'));
+app.use('/api', require('./routes/reviews'));
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`🚀 Sunucu http://localhost:${PORT} adresinde ayaklandı!`));
