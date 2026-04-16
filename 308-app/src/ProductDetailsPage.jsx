@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './ProductDetailsPage.css'; // Importing CSS styles
+import './ProductDetailsPage.css'; 
 
 const ProductDetailsPage = () => {
-  const { id } = useParams(); // Fetching watch ID from URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // YENİ: Kaç adet ekleneceğini tutan State
+  const [quantity, setQuantity] = useState(1); 
+
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
 
@@ -23,11 +27,13 @@ const ProductDetailsPage = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`
         },
-        body: JSON.stringify({ productId: product._id, quantity: 1 })
+        // GÜNCELLENDİ: Sadece ID değil, tüm ürünü ve adedi gönderiyoruz
+        body: JSON.stringify({ productId: product._id, quantity: quantity })
       });
+      
       const data = await response.json();
       if (response.ok) {
-        alert('Watch added to your collection!');
+        alert(`${quantity} adet saat koleksiyonuna eklendi!`);
       } else {
         alert('Could not add to cart: ' + data.message);
       }
@@ -37,7 +43,6 @@ const ProductDetailsPage = () => {
   };
 
   useEffect(() => {
-    // Fetch single watch by ID from Backend
     const fetchSingleProduct = async () => {
       try {
         const response = await fetch(`http://localhost:5000/api/products/${id}`);
@@ -58,6 +63,10 @@ const ProductDetailsPage = () => {
     fetchSingleProduct();
   }, [id]);
 
+  // Sayıyı Artır/Azalt Fonksiyonları
+  const increaseQuantity = () => setQuantity(prev => prev + 1);
+  const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+
   if (loading) return <div className="loading-state">Preparing watch details...</div>;
   if (!product) return <div className="loading-state">Unfortunately, this watch could not be found :(</div>;
 
@@ -69,15 +78,7 @@ const ProductDetailsPage = () => {
         </button>
         <button 
           className="go-to-cart-btn" 
-          style={{ 
-            padding: '10px 20px', 
-            backgroundColor: '#1a1a1a', 
-            color: '#fff', 
-            border: 'none', 
-            borderRadius: '8px', 
-            cursor: 'pointer', 
-            fontWeight: '600' 
-          }} 
+          style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }} 
           onClick={() => navigate('/cart')}
         >
           Go to Cart 🛒
@@ -85,12 +86,10 @@ const ProductDetailsPage = () => {
       </div>
 
       <div className="details-card">
-        {/* Left Side: Image */}
         <div className="details-image-wrapper">
           <img src={product.image} alt={product.name} />
         </div>
 
-        {/* Right Side: Information */}
         <div className="details-info-wrapper">
           <span className="details-brand">{product.brand}</span>
           <h1 className="details-name">{product.name}</h1>
@@ -104,36 +103,27 @@ const ProductDetailsPage = () => {
           </div>
 
           <div className="details-specs">
-            <div className="spec-item">
-              <span className="spec-label">Condition:</span>
-              <span className="spec-value">{product.specs?.condition}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Movement:</span>
-              <span className="spec-value">{product.specs?.movement}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Case Size:</span>
-              <span className="spec-value">{product.specs?.caseSize}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Year:</span>
-              <span className="spec-value">{product.specs?.year}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Box & Papers:</span>
-              <span className="spec-value">{product.specs?.boxAndPapers ? 'Yes' : 'No'}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Reference:</span>
-              <span className="spec-value">{product.referenceNumber}</span>
-            </div>
+            <div className="spec-item"><span className="spec-label">Condition:</span><span className="spec-value">{product.specs?.condition}</span></div>
+            <div className="spec-item"><span className="spec-label">Movement:</span><span className="spec-value">{product.specs?.movement}</span></div>
+            <div className="spec-item"><span className="spec-label">Case Size:</span><span className="spec-value">{product.specs?.caseSize}</span></div>
+            <div className="spec-item"><span className="spec-label">Year:</span><span className="spec-value">{product.specs?.year}</span></div>
+            <div className="spec-item"><span className="spec-label">Reference:</span><span className="spec-value">{product.referenceNumber}</span></div>
           </div>
 
-          <div className="action-buttons">
-            <button className="btn-add-cart" onClick={handleAddToCart}>Add to Cart</button>
-            <button className="btn-make-offer">Make an Offer</button>
+          {/* YENİ: Adet (Quantity) Seçici ve Butonlar */}
+          <div className="action-buttons" style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '20px' }}>
+            
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px', overflow: 'hidden' }}>
+              <button onClick={decreaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>-</button>
+              <span style={{ padding: '10px 20px', fontWeight: 'bold' }}>{quantity}</span>
+              <button onClick={increaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>+</button>
+            </div>
+
+            <button className="btn-add-cart" style={{ flex: 1 }} onClick={handleAddToCart}>
+              Add to Cart
+            </button>
           </div>
+          
         </div>
       </div>
     </div>
