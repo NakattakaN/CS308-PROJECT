@@ -7,7 +7,6 @@ const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Getting the ID from your LoginPage localStorage
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
   const authHeaders = { Authorization: `Bearer ${authToken}` };
@@ -35,7 +34,38 @@ const CartPage = () => {
     fetchCart();
   }, [userId, navigate]);
 
+  // Miktarı güncelleyen fonksiyon
+  const handleUpdateQuantity = async (itemId, currentQuantity, change) => {
+    const newQuantity = currentQuantity + change;
+    
+    // EĞER MİKTAR 1'DEN KÜÇÜKSE (yani 0 oluyorsa) SİLME FONKSİYONUNU ÇALIŞTIR
+    if (newQuantity < 1) {
+      return handleRemove(itemId);
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+        body: JSON.stringify({ quantity: newQuantity })
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setCartItems(data.cart);
+      }
+    } catch (error) {
+      console.error("Miktar güncellenemedi:", error);
+    }
+  };
+
   const handleRemove = async (itemId) => {
+    // Silme işlemi öncesi kullanıcıya sormak istersen bu satırı açabilirsin:
+    // if (!window.confirm("Bu ürünü sepetten çıkarmak istediğinize emin misiniz?")) return;
+
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
         method: 'DELETE',
@@ -50,7 +80,6 @@ const CartPage = () => {
     }
   };
 
-  // Logic to handle the "$35,000" strings from your DB
   const calculateTotal = () => {
     const sub = cartItems.reduce((acc, item) => {
       const numPrice = item.product.price || 0;
@@ -77,7 +106,6 @@ const CartPage = () => {
         <div className="cart-layout-grid">
           {cartItems.length > 0 ? (
             <>
-              {/* Left Column: Your Watches */}
               <div className="items-column">
                 {cartItems.map((item) => (
                   <div key={item._id} className="watch-cart-card">
@@ -89,14 +117,36 @@ const CartPage = () => {
                     <div className="watch-details">
                       <h3>{item.product.name}</h3>
                       <p>{item.product.brand}</p>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
+                          <button 
+                            onClick={() => handleUpdateQuantity(item._id, (item.quantity || 1), -1)}
+                            style={{ padding: '4px 10px', background: '#f5f5f5', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                            // disabled özelliğini kaldırdık, böylece 1'deyken basılabilir ve silme tetiklenir
+                          >
+                            -
+                          </button>
+                          <span style={{ padding: '4px 12px', background: '#fff', fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
+                            {item.quantity || 1}
+                          </span>
+                          <button 
+                            onClick={() => handleUpdateQuantity(item._id, (item.quantity || 1), 1)}
+                            style={{ padding: '4px 10px', background: '#f5f5f5', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="watch-price">${(item.product.price || 0).toLocaleString()}</div>
+                    <div className="watch-price">
+                      ${((item.product.price || 0) * (item.quantity || 1)).toLocaleString()}
+                    </div>
                     <button className="delete-item-btn" onClick={() => handleRemove(item._id)}>Remove</button>
                   </div>
                 ))}
               </div>
 
-              {/* Right Column: Checkout Info */}
               <div className="summary-card-white">
                 <h2 className="summary-heading">Order Summary</h2>
                 <div className="summary-list">
