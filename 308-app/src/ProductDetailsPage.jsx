@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './ProductDetailsPage.css'; // Importing CSS styles
+import './ProductDetailsPage.css';
 
 const Stars = ({ value, size = 18 }) => {
   const rounded = Math.round(value || 0);
@@ -22,6 +22,7 @@ const ProductDetailsPage = () => {
   const [reviews, setReviews] = useState([]);
   const [draft, setDraft] = useState({ rating: 5, body: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -68,11 +69,11 @@ const ProductDetailsPage = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`
         },
-        body: JSON.stringify({ productId: product._id, quantity: 1 })
+        body: JSON.stringify({ productId: product._id, quantity: quantity })
       });
       const data = await response.json();
       if (response.ok) {
-        alert('Watch added to your collection!');
+        alert(`${quantity} adet saat koleksiyonuna eklendi!`);
       } else {
         alert('Could not add to cart: ' + data.message);
       }
@@ -116,6 +117,9 @@ const ProductDetailsPage = () => {
     }
   };
 
+  const increaseQuantity = () => setQuantity(prev => prev + 1);
+  const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+
   if (loading) return <div className="loading-state">Preparing watch details...</div>;
   if (!product) return <div className="loading-state">Unfortunately, this watch could not be found :(</div>;
 
@@ -129,15 +133,7 @@ const ProductDetailsPage = () => {
         </button>
         <button
           className="go-to-cart-btn"
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#1a1a1a',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '600'
-          }}
+          style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
           onClick={() => navigate('/cart')}
         >
           Go to Cart 🛒
@@ -179,10 +175,18 @@ const ProductDetailsPage = () => {
             <div className="spec-item"><span className="spec-label">Reference:</span><span className="spec-value">{product.referenceNumber}</span></div>
           </div>
 
-          <div className="action-buttons">
-            <button className="btn-add-cart" onClick={handleAddToCart}>Add to Cart</button>
-            <button className="btn-make-offer">Make an Offer</button>
+          <div className="action-buttons" style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px', overflow: 'hidden' }}>
+              <button onClick={decreaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>-</button>
+              <span style={{ padding: '10px 20px', fontWeight: 'bold' }}>{quantity}</span>
+              <button onClick={increaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>+</button>
+            </div>
+
+            <button className="btn-add-cart" style={{ flex: 1 }} onClick={handleAddToCart}>
+              Add to Cart
+            </button>
           </div>
+
         </div>
       </div>
 

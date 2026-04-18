@@ -1,75 +1,73 @@
+// backend/routes/cart.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth, requireSelf } = require('../middleware/auth');
 
-router.use('/users/:userId/cart', requireAuth, requireSelf);
-
-// GET    /api/users/:userId/cart          - Returns all items in user's cart
-// POST   /api/users/:userId/cart          - Adds a product to cart by productId (snapshots product data)
-// DELETE /api/users/:userId/cart/:itemId  - Removes a single item from cart
-// DELETE /api/users/:userId/cart          - Clears the entire cart
-
-// KULLANICI SEPETİNİ GETİR (GET)
+// KULLANICI SEPETİNİ GETİR
 router.get('/users/:userId/cart', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
     res.json(user.cart);
   } catch (error) {
-    res.status(500).json({ error: "Sunucu hatası", details: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// SEPETE SAAT EKLE (POST)
-// Accepts { productId, quantity } — looks up the product from DB and snapshots it.
-// This prevents clients from forging prices by sending arbitrary product data.
+// SEPETE SAAT EKLE (Miktar Kontrollü)
 router.post('/users/:userId/cart', async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
-
     const product = await Product.findById(productId).lean();
+
     if (!product) return res.status(404).json({ message: "Saat bulunamadı!" });
 
-    const parsedQty = Number.parseInt(quantity, 10);
-    const safeQty = Number.isFinite(parsedQty)
-      ? Math.min(1000, Math.max(1, parsedQty))
-      : 1;
+    const safeQty = Number.parseInt(quantity) || 1;
 
-    user.cart.push({ product, quantity: safeQty });
+    // Ürün sepette var mı kontrol et
+    const existingIndex = user.cart.findIndex(item => item.product._id.toString() === productId);
+
+    if (existingIndex > -1) {
+      user.cart[existingIndex].quantity += safeQty;
+    } else {
+      user.cart.push({ product, quantity: safeQty });
+    }
+
     await user.save();
-    res.status(200).json({ message: "Saat sepete başarıyla eklendi!", cart: user.cart });
+    res.status(200).json({ message: "Sepet güncellendi!", cart: user.cart });
   } catch (error) {
-    res.status(500).json({ error: "Saat sepete eklenirken hata oluştu", details: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// SEPETTEN ÜRÜN SİL (DELETE)
+// SEPETTEKİ MİKTARI GÜNCELLE (+/- Butonları için)
+router.put('/users/:userId/cart/:itemId', async (req, res) => {
+  try {
+    const { quantity } = req.body;
+    const user = await User.findById(req.params.userId);
+    const cartItem = user.cart.id(req.params.itemId);
+
+    if (!cartItem) return res.status(404).json({ message: "Ürün bulunamadı" });
+
+    cartItem.quantity = Math.max(1, quantity);
+    await user.save();
+    res.json({ cart: user.cart });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// SEPETTEN ÜRÜN SİL
 router.delete('/users/:userId/cart/:itemId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
     user.cart = user.cart.filter(item => item._id.toString() !== req.params.itemId);
     await user.save();
-    res.status(200).json({ message: "Ürün sepetten silindi!", cart: user.cart });
+    res.json({ message: "Silindi", cart: user.cart });
   } catch (error) {
-    res.status(500).json({ error: "Sunucu hatası", details: error.message });
-  }
-});
-
-// SEPETİ TEMIZLE (DELETE)
-router.delete('/users/:userId/cart', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
-    user.cart = [];
-    await user.save();
-    res.status(200).json({ message: "Sepet temizlendi!" });
-  } catch (error) {
-    res.status(500).json({ error: "Sunucu hatası", details: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
