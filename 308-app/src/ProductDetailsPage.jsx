@@ -103,9 +103,12 @@ const ProductDetailsPage = () => {
         alert(data.message || 'Could not submit review');
         return;
       }
+      const wasRatingOnly = !draft.body.trim();
       setDraft({ rating: 5, body: '' });
       await fetchReviews();
-      alert('Thanks! Your review is pending admin approval.');
+      alert(wasRatingOnly
+        ? 'Thanks! Your rating has been posted.'
+        : 'Thanks! Your review is pending admin approval.');
     } catch (err) {
       console.error('Submit review error:', err);
     } finally {
@@ -189,7 +192,7 @@ const ProductDetailsPage = () => {
         {authToken ? (
           <form onSubmit={handleSubmitReview} style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
             <h3 style={{ marginTop: 0 }}>{myReview ? 'Update your review' : 'Leave a review'}</h3>
-            <p style={{ color: '#666', marginTop: '-4px' }}>Reviews appear publicly after an admin approves them.</p>
+            <p style={{ color: '#666', marginTop: '-4px' }}>Ratings are posted instantly. Reviews with a comment need admin approval first.</p>
             <div style={{ margin: '12px 0' }}>
               <label style={{ marginRight: '10px' }}>Rating:</label>
               {[1, 2, 3, 4, 5].map(n => (

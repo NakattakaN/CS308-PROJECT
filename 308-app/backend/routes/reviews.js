@@ -56,6 +56,9 @@ router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
     if (!author) return res.status(401).json({ message: 'Invalid auth token' });
     const reviewerName = [author.firstName, author.lastName].filter(Boolean).join(' ').trim() || 'Anonymous';
 
+    // Reviews with a comment need moderator approval; rating-only reviews are auto-approved.
+    const nextStatus = body.length > 0 ? 'UNDER_REVIEW' : 'APPROVED';
+
     const review = await Review.findOneAndUpdate(
       { product: productId, user: req.userId },
       {
@@ -64,7 +67,7 @@ router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
         reviewerName,
         rating: rawRating,
         body,
-        status: 'UNDER_REVIEW',
+        status: nextStatus,
         moderatedBy: undefined,
         moderatedAt: undefined
       },

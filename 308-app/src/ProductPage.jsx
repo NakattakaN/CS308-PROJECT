@@ -245,6 +245,18 @@ const ProductPage = () => {
                 <p className="product-brand">{product.brand}</p>
                 <h3 className="product-name">{product.name}</h3>
                 <p className="product-price">${product.price.toLocaleString()}</p>
+                {product.reviewCount > 0 && (
+                  <div className="product-rating">
+                    <span className="product-rating-stars">
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <span key={n} style={{ color: n <= Math.round(product.averageRating) ? '#f5a623' : '#d4d4d4' }}>★</span>
+                      ))}
+                    </span>
+                    <span className="product-rating-text">
+                      {product.averageRating.toFixed(1)} ({product.reviewCount})
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
