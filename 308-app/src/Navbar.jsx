@@ -26,10 +26,9 @@ const Navbar = () => {
       </div>
 
       <div className="nav-actions-right">
-        <NavLink 
-          to="/home" 
+        <NavLink
+          to="/home"
           className={({ isActive }) => isActive ? "nav-btn active" : "nav-btn"}
-          style={{ marginRight: '1rem' }}
         >
           Home
         </NavLink>

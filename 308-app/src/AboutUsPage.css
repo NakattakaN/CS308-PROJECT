@@ -1,0 +1,119 @@
+.about-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+.about-hero {
+  text-align: center;
+  padding: 2rem 0 1.5rem;
+}
+
+.about-hero h1 {
+  font-size: 2.5rem;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.about-mission {
+  margin-bottom: 2rem;
+}
+
+.about-mission h2,
+.about-team h2,
+.about-values h2 {
+  font-size: 1.5rem;
+  color: var(--text-h);
+  margin-bottom: 1rem;
+}
+
+.about-mission p {
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+/* Team */
+.about-team {
+  margin-bottom: 2rem;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.team-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.team-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--text-h);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 auto 1rem;
+}
+
+.team-card h3 {
+  font-size: 1.1rem;
+  color: var(--text-h);
+  margin: 0 0 0.25rem;
+}
+
+.team-role {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+
+.team-card > p:last-child {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Values */
+.about-values {
+  margin-bottom: 1.5rem;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.value-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.value-item h3 {
+  font-size: 1.1rem;
+  color: var(--text-h);
+  margin: 0 0 0.5rem;
+}
+
+.value-item p {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
