@@ -8,7 +8,9 @@ import CartPage from './CartPage';
 import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AdminReviewsPage from './AdminReviewsPage';
+import AboutUsPage from './AboutUsPage';
 import Navbar from './Navbar';
+import Footer from './Footer';
 
 function App() {
   return (
@@ -28,9 +30,14 @@ function App() {
         {/* PAYMENT PAGE ROUTE */}
         <Route path="/payment" element={<PaymentPage />} />
 
+        {/* ABOUT US */}
+        <Route path="/about" element={<AboutUsPage />} />
+
         {/* ADMIN MODERATION PANEL */}
         <Route path="/admin/reviews" element={<AdminReviewsPage />} />
       </Routes>
+
+      <Footer />
     </Router>
   );
 }
