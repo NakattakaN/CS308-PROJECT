@@ -47,6 +47,7 @@ const LoginPage = () => {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.firstName);
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userRole', data.role || 'user');
         // REDIRECT TO HOME PAGE (ProductPage) AFTER SUCCESSFUL LOGIN
         navigate('/home');
       } else {

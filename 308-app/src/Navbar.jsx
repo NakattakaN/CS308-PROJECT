@@ -8,12 +8,14 @@ const Navbar = () => {
 
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const userName = localStorage.getItem('userName') || '';
+  const isAdmin = localStorage.getItem('userRole') === 'admin';
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userRole');
     navigate('/home');
   };
 
@@ -35,6 +37,9 @@ const Navbar = () => {
         {isLoggedIn ? (
           <>
             <span className="nav-welcome">Welcome, {userName}</span>
+            {isAdmin && (
+              <button className="nav-btn" onClick={() => navigate('/admin/reviews')}>Admin</button>
+            )}
             <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
             <button className="nav-btn" onClick={handleLogout}>Logout</button>
           </>

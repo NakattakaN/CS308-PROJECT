@@ -173,7 +173,24 @@
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 1rem;
+}
+
+.product-rating-stars {
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.product-rating-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .product-tags {
