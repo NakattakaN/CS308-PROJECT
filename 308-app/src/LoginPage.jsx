@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Added for navigation
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
-  const navigate = useNavigate(); // Defined the navigation function
+  const navigate = useNavigate();
 
-  // State to hold form data
+  useEffect(() => {
+    if (localStorage.getItem('isLoggedIn') === 'true') navigate('/home');
+  }, [navigate]);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',

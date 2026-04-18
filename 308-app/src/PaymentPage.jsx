@@ -95,10 +95,31 @@ const PaymentPage = () => {
     setIsProcessing(true);
 
     try {
-      // Mock processing delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Clear the cart on successful payment
+      // Save order for purchase-gated reviews
+      await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          items: cartItems.map(item => ({
+            productId: item.product._id,
+            name:      item.product.name,
+            brand:     item.product.brand,
+            price:     safePrice(item.product.price),
+            quantity:  safeQty(item.quantity)
+          })),
+          totalAmount: total,
+          shippingAddress: {
+            fullName: formData.fullName,
+            address:  formData.address,
+            city:     formData.city,
+            zipCode:  formData.zipCode
+          }
+        })
+      });
+
+      // Clear the cart
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'DELETE',
         headers: authHeaders
@@ -131,7 +152,7 @@ const PaymentPage = () => {
             ← Return to Cart
           </button>
 
-          <form onSubmit={handlePayment}>
+          <form id="payment-form" onSubmit={handlePayment}>
             <div className="payment-form-section" style={{ marginBottom: '2rem' }}>
               <h2>Shipping Address</h2>
               <div className="form-group">
@@ -214,6 +235,7 @@ const PaymentPage = () => {
 
           <button
             type="submit"
+            form="payment-form"
             className="pay-btn"
             disabled={isProcessing || cartItems.length === 0}
           >

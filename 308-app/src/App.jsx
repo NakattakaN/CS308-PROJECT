@@ -8,6 +8,7 @@ import CartPage from './CartPage';
 import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AdminReviewsPage from './AdminReviewsPage';
+import AdminPage from './AdminPage';
 import Navbar from './Navbar';
 
 function App() {
@@ -28,8 +29,8 @@ function App() {
         {/* PAYMENT PAGE ROUTE */}
         <Route path="/payment" element={<PaymentPage />} />
 
-        {/* ADMIN MODERATION PANEL */}
         <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </Router>
   );

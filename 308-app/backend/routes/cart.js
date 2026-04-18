@@ -59,6 +59,19 @@ router.put('/users/:userId/cart/:itemId', async (req, res) => {
   }
 });
 
+// TÜM SEPETİ TEMİZLE (ödeme sonrası)
+router.delete('/users/:userId/cart', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+    user.cart = [];
+    await user.save();
+    res.json({ message: 'Sepet temizlendi', cart: [] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // SEPETTEN ÜRÜN SİL
 router.delete('/users/:userId/cart/:itemId', async (req, res) => {
   try {
