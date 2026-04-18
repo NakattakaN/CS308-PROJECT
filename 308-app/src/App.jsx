@@ -9,6 +9,7 @@ import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AdminReviewsPage from './AdminReviewsPage';
 import AboutUsPage from './AboutUsPage';
+import AdminPage from './AdminPage';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
@@ -33,8 +34,9 @@ function App() {
         {/* ABOUT US */}
         <Route path="/about" element={<AboutUsPage />} />
 
-        {/* ADMIN MODERATION PANEL */}
+        {/* ADMIN */}
         <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
 
       <Footer />

@@ -24,8 +24,14 @@ const ProductDetailsPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
+  const [offerPrice, setOfferPrice] = useState('');
+  const [offerMessage, setOfferMessage] = useState('');
+  const [offerSubmitting, setOfferSubmitting] = useState(false);
+
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
+  const userName = localStorage.getItem('userName') || '';
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -117,6 +123,33 @@ const ProductDetailsPage = () => {
     }
   };
 
+  const handleMakeOffer = async (e) => {
+    e.preventDefault();
+    if (!userId || !authToken) { navigate('/login'); return; }
+    if (!offerPrice || Number(offerPrice) <= 0) { alert('Please enter a valid offer price.'); return; }
+    setOfferSubmitting(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${id}/offers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ offerPrice: Number(offerPrice), message: offerMessage, userName })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Your offer has been submitted!');
+        setOfferModalOpen(false);
+        setOfferPrice('');
+        setOfferMessage('');
+      } else {
+        alert(data.message || 'Could not submit offer.');
+      }
+    } catch {
+      alert('Server error. Please try again.');
+    } finally {
+      setOfferSubmitting(false);
+    }
+  };
+
   const increaseQuantity = () => setQuantity(prev => prev + 1);
   const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
@@ -159,6 +192,14 @@ const ProductDetailsPage = () => {
             </div>
           )}
 
+          <div style={{ margin: '8px 0' }}>
+            {product.status === 'available' ? (
+              <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>Available</span>
+            ) : (
+              <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>Unavailable</span>
+            )}
+          </div>
+
           <div className="details-divider"></div>
 
           <div className="details-description">
@@ -182,13 +223,61 @@ const ProductDetailsPage = () => {
               <button onClick={increaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>+</button>
             </div>
 
-            <button className="btn-add-cart" style={{ flex: 1 }} onClick={handleAddToCart}>
-              Add to Cart
+            <button
+              className="btn-add-cart"
+              style={{ flex: 1, opacity: product.status !== 'available' ? 0.5 : 1, cursor: product.status !== 'available' ? 'not-allowed' : 'pointer' }}
+              onClick={handleAddToCart}
+              disabled={product.status !== 'available'}
+            >
+              {product.status === 'available' ? 'Add to Cart' : 'Unavailable'}
+            </button>
+
+            <button className="btn-make-offer" onClick={() => {
+              if (!userId) { navigate('/login'); return; }
+              setOfferModalOpen(true);
+            }}>
+              Make an Offer
             </button>
           </div>
 
         </div>
       </div>
+
+      {offerModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h2 style={{ marginTop: 0, color: '#0f172a' }}>Make an Offer</h2>
+            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{product.brand} — {product.name}</p>
+            <form onSubmit={handleMakeOffer}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#0f172a' }}>Your Offer Price ($)</label>
+                <input
+                  type="number" min="1" required value={offerPrice}
+                  onChange={e => setOfferPrice(e.target.value)}
+                  placeholder={`Listed at $${product.price.toLocaleString()}`}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '1rem', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#0f172a' }}>Message (optional)</label>
+                <textarea
+                  value={offerMessage} onChange={e => setOfferMessage(e.target.value)}
+                  placeholder="Add a note to the seller..." rows={3}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '1rem', resize: 'vertical', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" disabled={offerSubmitting} style={{ flex: 1, padding: '12px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>
+                  {offerSubmitting ? 'Submitting...' : 'Submit Offer'}
+                </button>
+                <button type="button" onClick={() => setOfferModalOpen(false)} style={{ flex: 1, padding: '12px', background: '#f1f5f9', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <section className="reviews-section" style={{ marginTop: '2.5rem', padding: '1.5rem', background: '#fff', borderRadius: '12px' }}>
         <h2 style={{ marginTop: 0 }}>Reviews</h2>
@@ -242,8 +331,8 @@ const ProductDetailsPage = () => {
             </button>
           </form>
         ) : (
-          <p>
-            <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Sign in</a> to leave a review.
+          <p style={{ color: '#64748b' }}>
+            <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#0f172a', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>Sign in</button> to leave a review. Purchase required.
           </p>
         )}
 

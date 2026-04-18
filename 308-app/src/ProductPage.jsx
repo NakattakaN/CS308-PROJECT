@@ -27,6 +27,7 @@ const ProductPage = () => {
     displayType: ''
   });
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('newest');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -117,7 +118,11 @@ const ProductPage = () => {
   };
 
   const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     const filtered = products.filter((product) => {
+      const matchSearch = !query ||
+        product.name.toLowerCase().includes(query) ||
+        product.brand.toLowerCase().includes(query);
       const matchGender = !filters.gender || product.gender === filters.gender;
       const matchStrapColor = !filters.strapColor || product.strapColor === filters.strapColor;
       const matchStrapMaterial =
@@ -127,6 +132,7 @@ const ProductPage = () => {
         !filters.displayType || product.displayType === filters.displayType;
 
       return (
+        matchSearch &&
         matchGender &&
         matchStrapColor &&
         matchStrapMaterial &&
@@ -165,6 +171,18 @@ const ProductPage = () => {
         <p>
           Explore our curated marketplace and find the perfect watch for your collection.
         </p>
+        <div className="search-bar-wrapper">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by name or brand..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="search-clear-btn" onClick={() => setSearchQuery('')}>×</button>
+          )}
+        </div>
       </section>
 
       <section className="top-controls">

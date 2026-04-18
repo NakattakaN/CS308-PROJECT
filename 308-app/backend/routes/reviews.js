@@ -4,6 +4,7 @@ const router = express.Router();
 const Review = require('../models/Review');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 const { requireAuth, attachAuth, requireAdmin } = require('../middleware/auth');
 
 const { REVIEW_STATUS } = Review;
@@ -44,6 +45,15 @@ router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
 
     const product = await Product.findById(productId).select('_id');
     if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Purchase gate: user must have bought this product
+    const hasPurchased = await Order.findOne({
+      userId: req.userId,
+      'items.productId': productId
+    });
+    if (!hasPurchased) {
+      return res.status(403).json({ message: 'You can only review products you have purchased.' });
+    }
 
     const rawRating = Number.parseInt(req.body.rating, 10);
     if (!Number.isFinite(rawRating) || rawRating < 1 || rawRating > 5) {

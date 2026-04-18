@@ -14,6 +14,9 @@ app.use('/api', require('./routes/products'));
 app.use('/api', require('./routes/cart'));
 app.use('/api', require('./routes/reviews'));
 app.use('/api', require('./routes/seed'));
+app.use('/api', require('./routes/offers'));
+app.use('/api', require('./routes/orders'));
+app.use('/api', require('./routes/admin'));
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`🚀 Sunucu http://localhost:${PORT} adresinde ayaklandı!`));
