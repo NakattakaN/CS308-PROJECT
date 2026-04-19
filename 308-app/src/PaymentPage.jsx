@@ -1,12 +1,122 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 import './PaymentPage.css';
+
+// ---- Card network detection ----
+// Based on real IIN/BIN ranges: https://en.wikipedia.org/wiki/Payment_card_number
+
+const CARD_NETWORKS = [
+  { name: 'Visa',             pattern: /^4/,                         lengths: [13, 16, 19], icon: 'https://cdn.simpleicons.org/visa' },
+  { name: 'Mastercard',       pattern: /^(5[1-5]|2[2-7])/,          lengths: [16],         icon: 'https://cdn.simpleicons.org/mastercard' },
+  { name: 'American Express', pattern: /^3[47]/,                     lengths: [15],         icon: 'https://cdn.simpleicons.org/americanexpress' },
+  { name: 'Discover',         pattern: /^(6011|65|64[4-9]|622)/,     lengths: [16, 19],     icon: 'https://cdn.simpleicons.org/discover' },
+  { name: 'Diners Club',      pattern: /^(30[0-5]|36|38)/,           lengths: [14, 16],     icon: 'https://cdn.simpleicons.org/dinersclub' },
+  { name: 'JCB',              pattern: /^35(2[89]|[3-8])/,           lengths: [16, 19],     icon: 'https://cdn.simpleicons.org/jcb' },
+  { name: 'UnionPay',         pattern: /^62/,                        lengths: [16, 17, 18, 19], icon: 'https://cdn.simpleicons.org/unionpay' },
+  { name: 'Maestro',          pattern: /^(5018|5020|5038|6304|6759|676[1-3])/, lengths: [12, 13, 14, 15, 16, 17, 18, 19], icon: 'https://cdn.simpleicons.org/maestro' },
+  { name: 'Troy',             pattern: /^(9792)/,                    lengths: [16],         icon: null },
+];
+
+const detectNetwork = (digits) => {
+  if (!digits) return null;
+  return CARD_NETWORKS.find(n => n.pattern.test(digits)) || null;
+};
+
+// ---- Formatters ----
+
+const formatCardNumber = (val) => {
+  const digits = val.replace(/\D/g, '').slice(0, 19);
+  const network = detectNetwork(digits);
+  // Amex uses 4-6-5 grouping, everything else uses 4-4-4-4+
+  if (network?.name === 'American Express') {
+    return digits.replace(/(\d{4})(\d{0,6})(\d{0,5})/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' '));
+  }
+  return digits.replace(/(.{4})/g, '$1 ').trim();
+};
+
+const formatExpiry = (val) => {
+  const digits = val.replace(/\D/g, '').slice(0, 4);
+  if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
+  return digits;
+};
+
+const formatCVV = (val, network) => {
+  const max = network?.name === 'American Express' ? 4 : 3;
+  return val.replace(/\D/g, '').slice(0, max);
+};
+
+const formatZip = (val) => val.replace(/\D/g, '').slice(0, 5);
+
+// ---- Validators ----
+
+const luhn = (num) => {
+  const digits = num.replace(/\D/g, '');
+  let sum = 0;
+  let alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = parseInt(digits[i], 10);
+    if (alt) { n *= 2; if (n > 9) n -= 9; }
+    sum += n;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+};
+
+const validate = (form) => {
+  const errors = {};
+  if (form.fullName.trim().length < 2) errors.fullName = 'Enter your full name';
+  if (form.address.trim().length < 5) errors.address = 'Enter a valid street address';
+  if (form.city.trim().length < 2) errors.city = 'Enter a valid city';
+
+  const zip = form.zipCode.replace(/\D/g, '');
+  if (zip.length !== 5) errors.zipCode = 'ZIP code must be 5 digits';
+
+  if (form.cardName.trim().length < 2) errors.cardName = 'Enter the name on your card';
+
+  const cardDigits = form.cardNumber.replace(/\D/g, '');
+  const network = detectNetwork(cardDigits);
+
+  if (cardDigits.length === 0) {
+    errors.cardNumber = 'Enter your card number';
+  } else if (!network) {
+    errors.cardNumber = 'Unrecognized card network';
+  } else if (!network.lengths.includes(cardDigits.length)) {
+    errors.cardNumber = `${network.name} cards must be ${network.lengths.join(' or ')} digits`;
+  } else if (!luhn(cardDigits)) {
+    errors.cardNumber = 'Invalid card number';
+  }
+
+  const expiryParts = form.expiry.split('/');
+  if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+    errors.expiry = 'Use MM/YY format';
+  } else {
+    const month = parseInt(expiryParts[0], 10);
+    const year = parseInt(expiryParts[1], 10) + 2000;
+    if (month < 1 || month > 12) errors.expiry = 'Invalid month';
+    else {
+      const now = new Date();
+      const exp = new Date(year, month);
+      if (exp <= now) errors.expiry = 'Card has expired';
+    }
+  }
+
+  const cvvLen = network?.name === 'American Express' ? 4 : 3;
+  const cvv = form.cvv.replace(/\D/g, '');
+  if (cvv.length !== cvvLen) errors.cvv = `CVV must be ${cvvLen} digits`;
+
+  return errors;
+};
+
+// ---- Component ----
 
 const PaymentPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState({});
   const processingRef = useRef(false);
 
   const userId = localStorage.getItem('userId');
@@ -35,20 +145,18 @@ const PaymentPage = () => {
         const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
           headers: authHeaders
         });
-        if (!response.ok) {
-          throw new Error(`Cart fetch failed (${response.status})`);
-        }
+        if (!response.ok) throw new Error(`Cart fetch failed (${response.status})`);
         const data = await response.json();
         const items = Array.isArray(data) ? data : [];
         setCartItems(items);
         setLoading(false);
 
         if (items.length === 0) {
-          alert('Your cart is empty! Redirecting to marketplace.');
+          showToast('Your cart is empty! Redirecting to marketplace.', 'info');
           navigate('/home');
         }
       } catch (error) {
-        console.error("Error fetching cart:", error);
+        console.error('Error fetching cart:', error);
         setLoading(false);
       }
     };
@@ -56,16 +164,20 @@ const PaymentPage = () => {
     fetchCart();
   }, [userId, navigate]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const cardDigits = formData.cardNumber.replace(/\D/g, '');
+  const detectedNetwork = detectNetwork(cardDigits);
+
+  const handleField = (name, value) => {
+    let formatted = value;
+    if (name === 'cardNumber') formatted = formatCardNumber(value);
+    else if (name === 'expiry') formatted = formatExpiry(value);
+    else if (name === 'cvv') formatted = formatCVV(value, detectedNetwork);
+    else if (name === 'zipCode') formatted = formatZip(value);
+
+    setFormData(prev => ({ ...prev, [name]: formatted }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
-  // Clamp quantity defensively: server already validates, but corrupted cart
-  // data must not produce negative/NaN totals on the payment screen.
   const safeQty = (q) => {
     const n = Number.parseInt(q, 10);
     return Number.isFinite(n) && n > 0 ? Math.min(n, 1000) : 1;
@@ -88,8 +200,14 @@ const PaymentPage = () => {
 
   const handlePayment = async (e) => {
     e.preventDefault();
-    // Synchronous guard: React state updates are async, so two back-to-back
-    // invocations (e.g. submit + click bubble) would both see isProcessing=false.
+
+    const validationErrors = validate(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      showToast('Please fix the highlighted fields.', 'error');
+      return;
+    }
+
     if (processingRef.current) return;
     processingRef.current = true;
     setIsProcessing(true);
@@ -97,43 +215,43 @@ const PaymentPage = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Save order for purchase-gated reviews
-      await fetch('http://localhost:5000/api/orders', {
+      const orderRes = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           items: cartItems.map(item => ({
             productId: item.product._id,
-            name:      item.product.name,
-            brand:     item.product.brand,
-            price:     safePrice(item.product.price),
-            quantity:  safeQty(item.quantity)
+            name: item.product.name,
+            brand: item.product.brand,
+            price: safePrice(item.product.price),
+            quantity: safeQty(item.quantity)
           })),
           totalAmount: total,
           shippingAddress: {
             fullName: formData.fullName,
-            address:  formData.address,
-            city:     formData.city,
-            zipCode:  formData.zipCode
+            address: formData.address,
+            city: formData.city,
+            zipCode: formData.zipCode
           }
         })
       });
 
-      // Clear the cart
+      const order = await orderRes.json();
+
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'DELETE',
         headers: authHeaders
       });
 
       if (response.ok) {
-        alert(`Payment of $${total.toLocaleString()} was successful! Thank you for your purchase.`);
-        navigate('/home');
+        showToast(`Payment of $${total.toLocaleString()} was successful!`, 'success');
+        navigate(`/invoice/${order._id}`);
       } else {
-        alert("Something went wrong with the payment API.");
+        showToast('Something went wrong with the payment.', 'error');
       }
     } catch (error) {
-      console.error("Payment error:", error);
-      alert("Payment error occurred.");
+      console.error('Payment error:', error);
+      showToast('Payment error occurred. Please try again.', 'error');
     } finally {
       processingRef.current = false;
       setIsProcessing(false);
@@ -142,35 +260,47 @@ const PaymentPage = () => {
 
   if (loading) return <div className="payment-page-container"><h2>Loading Secure Checkout...</h2></div>;
 
+  const fieldProps = (name, placeholder, opts = {}) => ({
+    name,
+    value: formData[name],
+    onChange: (e) => handleField(name, e.target.value),
+    placeholder,
+    className: errors[name] ? 'input-error' : '',
+    ...opts
+  });
+
   return (
     <div className="payment-page-container">
       <div className="payment-layout">
-        
-        {/* Left Section: Forms */}
+
         <div className="payment-left-column">
           <button className="back-link" onClick={() => navigate('/cart')}>
             ← Return to Cart
           </button>
 
-          <form id="payment-form" onSubmit={handlePayment}>
+          <form id="payment-form" onSubmit={handlePayment} noValidate>
             <div className="payment-form-section" style={{ marginBottom: '2rem' }}>
               <h2>Shipping Address</h2>
               <div className="form-group">
                 <label>Full Name</label>
-                <input required type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="John Doe" />
+                <input type="text" {...fieldProps('fullName', 'John Doe')} />
+                {errors.fullName && <span className="form-error">{errors.fullName}</span>}
               </div>
               <div className="form-group">
                 <label>Street Address</label>
-                <input required type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="123 Watch St, Apt. 4B" />
+                <input type="text" {...fieldProps('address', '123 Watch St, Apt. 4B')} />
+                {errors.address && <span className="form-error">{errors.address}</span>}
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>City</label>
-                  <input required type="text" name="city" value={formData.city} onChange={handleInputChange} placeholder="New York" />
+                  <input type="text" {...fieldProps('city', 'New York')} />
+                  {errors.city && <span className="form-error">{errors.city}</span>}
                 </div>
                 <div className="form-group">
                   <label>ZIP Code</label>
-                  <input required type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} placeholder="10001" />
+                  <input type="text" {...fieldProps('zipCode', '10001', { maxLength: 5 })} />
+                  {errors.zipCode && <span className="form-error">{errors.zipCode}</span>}
                 </div>
               </div>
             </div>
@@ -179,29 +309,39 @@ const PaymentPage = () => {
               <h2>Payment Details</h2>
               <div className="form-group">
                 <label>Name on Card</label>
-                <input required type="text" name="cardName" value={formData.cardName} onChange={handleInputChange} placeholder="JOHN DOE" />
+                <input type="text" {...fieldProps('cardName', 'JOHN DOE')} />
+                {errors.cardName && <span className="form-error">{errors.cardName}</span>}
               </div>
               <div className="form-group">
-                <label>Card Number</label>
-                <input required type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} placeholder="0000 0000 0000 0000" maxLength="19" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label>Card Number</label>
+                  {detectedNetwork && (
+                    <span className="card-network-badge">
+                      {detectedNetwork.icon
+                        ? <img src={detectedNetwork.icon} alt={detectedNetwork.name} className="card-network-icon" />
+                        : detectedNetwork.name}
+                    </span>
+                  )}
+                </div>
+                <input type="text" {...fieldProps('cardNumber', '0000 0000 0000 0000', { maxLength: 23 })} />
+                {errors.cardNumber && <span className="form-error">{errors.cardNumber}</span>}
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>Expiry Date</label>
-                  <input required type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} placeholder="MM/YY" maxLength="5" />
+                  <input type="text" {...fieldProps('expiry', 'MM/YY', { maxLength: 5 })} />
+                  {errors.expiry && <span className="form-error">{errors.expiry}</span>}
                 </div>
                 <div className="form-group">
                   <label>CVV</label>
-                  <input required type="password" name="cvv" value={formData.cvv} onChange={handleInputChange} placeholder="123" maxLength="4" />
+                  <input type="password" {...fieldProps('cvv', '123', { maxLength: 4 })} />
+                  {errors.cvv && <span className="form-error">{errors.cvv}</span>}
                 </div>
               </div>
             </div>
-            
-            {/* Mobile shows button below forms usually. We will put the button in the summary. */}
           </form>
         </div>
 
-        {/* Right Section: Order Summary */}
         <div className="payment-summary-section">
           <h2>Order Summary</h2>
           <div className="cart-items-preview">

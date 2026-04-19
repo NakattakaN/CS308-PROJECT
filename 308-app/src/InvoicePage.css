@@ -1,0 +1,82 @@
+.invoice-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.invoice-header h1 {
+  font-size: 1.75rem;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.invoice-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.invoice-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.invoice-btn {
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.invoice-btn:hover {
+  background: #1e293b;
+}
+
+.invoice-btn-secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.invoice-btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.invoice-embed {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 700px;
+}
+
+.invoice-embed iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 700px;
+  border: none;
+}

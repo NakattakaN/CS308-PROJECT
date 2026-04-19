@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 import './AdminPage.css';
 
 const TABS = ['Products', 'Users', 'Offers', 'Reviews'];
@@ -7,6 +8,7 @@ const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast();
   const authToken = localStorage.getItem('authToken');
 
   const [activeTab, setActiveTab] = useState('Products');
@@ -21,7 +23,7 @@ const AdminPage = () => {
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     if (role !== 'admin') {
-      alert('Access denied. Admins only.');
+      showToast('Access denied. Admins only.', 'error');
       navigate('/home');
     }
   }, [navigate]);
@@ -94,7 +96,7 @@ const AdminPage = () => {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.message || 'Moderation failed');
+        showToast(data.message || 'Moderation failed', 'error');
         return;
       }
       setReviews(prev => prev.filter(r => r._id !== id));
