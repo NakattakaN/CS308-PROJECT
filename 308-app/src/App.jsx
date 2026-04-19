@@ -9,11 +9,14 @@ import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
+import InvoicePage from './InvoicePage';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { ToastProvider } from './Toast';
 
 function App() {
   return (
+    <ToastProvider>
     <Router>
       <Navbar />
 
@@ -33,12 +36,16 @@ function App() {
         {/* ABOUT US */}
         <Route path="/about" element={<AboutUsPage />} />
 
+        {/* INVOICE */}
+        <Route path="/invoice/:orderId" element={<InvoicePage />} />
+
         {/* ADMIN */}
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
 
       <Footer />
     </Router>
+    </ToastProvider>
   );
 }
 

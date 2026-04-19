@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './RegisterPage.css'; // Updated to point to your new Register CSS
+import { useToast } from './Toast';
+import './RegisterPage.css';
 
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 const PASSWORD_HINT = '8+ characters, at least 1 letter and 1 number.';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -47,15 +49,15 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert("Registration Successful! Please login.");
+        showToast('Registration Successful! Please login.', 'success');
         navigate('/login');
       } else {
-        alert("Registration Failed: " + data.message);
+        showToast('Registration Failed: ' + data.message, 'error');
       }
 
     } catch (error) {
       console.error("Backend connection error:", error);
-      alert("Server unreachable. Please make sure the backend is running.");
+      showToast('Server unreachable. Please make sure the backend is running.', 'error');
     }
   };
 

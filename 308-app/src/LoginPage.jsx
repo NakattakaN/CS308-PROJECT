@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast();
 
   useEffect(() => {
     if (localStorage.getItem('isLoggedIn') === 'true') navigate('/home');
@@ -45,7 +47,7 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert("Login Successful! Welcome.");
+        showToast('Login Successful! Welcome.', 'success');
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.firstName);
@@ -55,12 +57,12 @@ const LoginPage = () => {
         navigate('/home');
       } else {
         // Incorrect password or user not found case
-        alert("Login Failed: " + data.message);
+        showToast('Login Failed: ' + data.message, 'error');
       }
 
     } catch (error) {
       console.error("Backend connection error:", error);
-      alert("Server unreachable. Please make sure the backend (Node.js) is running.");
+      showToast('Server unreachable. Please make sure the backend is running.', 'error');
     }
   };
 

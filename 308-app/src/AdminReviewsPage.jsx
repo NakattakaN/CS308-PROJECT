@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 import './AdminReviewsPage.css';
 
 const STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const AdminReviewsPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast();
   const authToken = localStorage.getItem('authToken');
   const userRole = localStorage.getItem('userRole');
 
@@ -60,7 +62,7 @@ const AdminReviewsPage = () => {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        alert(data.message || 'Moderation failed');
+        showToast(data.message || 'Moderation failed', 'error');
         return;
       }
       setReviews(prev => prev.filter(r => r._id !== id));

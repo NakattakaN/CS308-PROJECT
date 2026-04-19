@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 import './ProductDetailsPage.css';
 
 const Stars = ({ value, size = 18 }) => {
@@ -16,6 +17,7 @@ const Stars = ({ value, size = 18 }) => {
 const ProductDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const showToast = useToast();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -79,9 +81,9 @@ const ProductDetailsPage = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        alert(`${quantity} adet saat koleksiyonuna eklendi!`);
+        showToast(`${quantity} adet saat koleksiyonuna eklendi!`, 'success');
       } else {
-        alert('Could not add to cart: ' + data.message);
+        showToast('Could not add to cart: ' + data.message, 'error');
       }
     } catch (error) {
       console.error('Add to cart error:', error);
@@ -107,15 +109,15 @@ const ProductDetailsPage = () => {
       });
       const data = await response.json();
       if (!response.ok) {
-        alert(data.message || 'Could not submit review');
+        showToast(data.message || 'Could not submit review', 'error');
         return;
       }
       const wasRatingOnly = !draft.body.trim();
       setDraft({ rating: 5, body: '' });
       await fetchReviews();
-      alert(wasRatingOnly
+      showToast(wasRatingOnly
         ? 'Thanks! Your rating has been posted.'
-        : 'Thanks! Your review is pending admin approval.');
+        : 'Thanks! Your review is pending admin approval.', 'success');
     } catch (err) {
       console.error('Submit review error:', err);
     } finally {
@@ -126,7 +128,7 @@ const ProductDetailsPage = () => {
   const handleMakeOffer = async (e) => {
     e.preventDefault();
     if (!userId || !authToken) { navigate('/login'); return; }
-    if (!offerPrice || Number(offerPrice) <= 0) { alert('Please enter a valid offer price.'); return; }
+    if (!offerPrice || Number(offerPrice) <= 0) { showToast('Please enter a valid offer price.', 'error'); return; }
     setOfferSubmitting(true);
     try {
       const res = await fetch(`http://localhost:5000/api/products/${id}/offers`, {
@@ -136,15 +138,15 @@ const ProductDetailsPage = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Your offer has been submitted!');
+        showToast('Your offer has been submitted!', 'success');
         setOfferModalOpen(false);
         setOfferPrice('');
         setOfferMessage('');
       } else {
-        alert(data.message || 'Could not submit offer.');
+        showToast(data.message || 'Could not submit offer.', 'error');
       }
     } catch {
-      alert('Server error. Please try again.');
+      showToast('Server error. Please try again.', 'error');
     } finally {
       setOfferSubmitting(false);
     }
