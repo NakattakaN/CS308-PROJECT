@@ -1,32 +1,35 @@
 .admin-page {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 3rem;
   min-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .admin-header h1 {
   color: #0f172a;
   margin: 0;
+  font-size: 1.75rem;
 }
 
+/* Tabs — full-width underline style */
 .admin-tabs {
   display: flex;
-  gap: 8px;
+  gap: 0;
   margin-bottom: 1.5rem;
   border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0;
 }
 
 .admin-tab-btn {
-  padding: 10px 24px;
+  padding: 12px 32px;
   background: transparent;
   color: #475569;
   border: none;
@@ -40,6 +43,7 @@
 
 .admin-tab-btn:hover {
   color: #0f172a;
+  background: #f8fafc;
 }
 
 .admin-tab-btn.active {
@@ -47,19 +51,23 @@
   border-bottom-color: #0f172a;
 }
 
+/* Content area */
 .admin-content {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
   overflow: hidden;
+  flex: 1;
 }
 
 .admin-loading {
-  padding: 2rem;
+  padding: 3rem;
   text-align: center;
   color: #64748b;
+  font-size: 0.95rem;
 }
 
+/* Tables — spacious for desktop */
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -68,16 +76,17 @@
 .admin-table th {
   background: #f8fafc;
   color: #475569;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 12px 16px;
+  letter-spacing: 0.06em;
+  padding: 14px 20px;
   text-align: left;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .admin-table td {
-  padding: 12px 16px;
+  padding: 14px 20px;
   color: #0f172a;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.9rem;
@@ -91,12 +100,12 @@
   background: #f8fafc;
 }
 
-/* Buttons — never white on white */
+/* Buttons */
 .admin-btn-danger {
   background: #ef4444;
   color: #fff;
   border: none;
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -104,15 +113,13 @@
   transition: background 0.2s;
 }
 
-.admin-btn-danger:hover {
-  background: #dc2626;
-}
+.admin-btn-danger:hover { background: #dc2626; }
 
 .admin-btn-success {
   background: #22c55e;
   color: #fff;
   border: none;
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -120,15 +127,13 @@
   transition: background 0.2s;
 }
 
-.admin-btn-success:hover {
-  background: #16a34a;
-}
+.admin-btn-success:hover { background: #16a34a; }
 
 .admin-btn-secondary {
   background: #f1f5f9;
   color: #0f172a;
   border: 1px solid #e2e8f0;
-  padding: 8px 18px;
+  padding: 8px 20px;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -136,13 +141,12 @@
   transition: background 0.2s;
 }
 
-.admin-btn-secondary:hover {
-  background: #e2e8f0;
-}
+.admin-btn-secondary:hover { background: #e2e8f0; }
 
+/* Badges */
 .status-badge {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -156,7 +160,7 @@
 
 .role-badge {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -164,3 +168,123 @@
 
 .role-badge.admin { background: #ede9fe; color: #5b21b6; }
 .role-badge.user  { background: #f1f5f9; color: #475569; }
+
+/* ——— Reviews tab ——— */
+.admin-reviews-section {
+  padding: 1.25rem 1.5rem;
+}
+
+.admin-review-status-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-review-status-btn {
+  padding: 7px 18px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #334155;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.admin-review-status-btn:hover {
+  background: #e2e8f0;
+}
+
+.admin-review-status-btn.active {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+
+.admin-reviews-empty {
+  color: #777;
+  padding: 3rem;
+  text-align: center;
+  border: 1px dashed #ddd;
+  border-radius: 10px;
+}
+
+/* Desktop: 2-column grid for review cards */
+.admin-reviews-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .admin-reviews-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-review-card {
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.admin-review-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.admin-review-product {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-review-product img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f4f4f4;
+  flex-shrink: 0;
+}
+
+.admin-review-product-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.admin-review-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.admin-review-rating {
+  color: #f5a623;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+}
+
+.admin-review-body {
+  margin: 0;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.admin-review-body.muted {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.admin-review-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}

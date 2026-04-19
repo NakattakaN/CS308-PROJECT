@@ -38,10 +38,7 @@ const Navbar = () => {
           <>
             <span className="nav-welcome">Welcome, {userName}</span>
             {isAdmin && (
-              <>
-                <button className="nav-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
-                <button className="nav-btn" onClick={() => navigate('/admin/reviews')}>Moderation</button>
-              </>
+              <button className="nav-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
             )}
             <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
             <button className="nav-btn" onClick={handleLogout}>Logout</button>

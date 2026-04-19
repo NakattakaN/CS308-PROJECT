@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AdminPage.css';
 
-const TABS = ['Products', 'Users', 'Offers'];
+const TABS = ['Products', 'Users', 'Offers', 'Reviews'];
+const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  const authToken = localStorage.getItem('authToken');
+
   const [activeTab, setActiveTab] = useState('Products');
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewStatus, setReviewStatus] = useState('UNDER_REVIEW');
   const [loading, setLoading] = useState(false);
+  const [busyReviewId, setBusyReviewId] = useState(null);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -20,9 +26,30 @@ const AdminPage = () => {
     }
   }, [navigate]);
 
+  const fetchReviews = useCallback(async (status) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/reviews?status=${status}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      if (!res.ok) { setReviews([]); return; }
+      const data = await res.json();
+      setReviews(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [authToken]);
+
   useEffect(() => {
-    fetchTab(activeTab);
-  }, [activeTab]);
+    if (activeTab === 'Reviews') {
+      fetchReviews(reviewStatus);
+    } else {
+      fetchTab(activeTab);
+    }
+  }, [activeTab, reviewStatus, fetchReviews]);
 
   const fetchTab = async (tab) => {
     setLoading(true);
@@ -54,6 +81,28 @@ const AdminPage = () => {
     });
     const updated = await res.json();
     setOffers(prev => prev.map(o => o._id === id ? updated : o));
+  };
+
+  const moderateReview = async (id, nextStatus) => {
+    if (busyReviewId) return;
+    setBusyReviewId(id);
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/reviews/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || 'Moderation failed');
+        return;
+      }
+      setReviews(prev => prev.filter(r => r._id !== id));
+    } catch (err) {
+      console.error('Moderation error:', err);
+    } finally {
+      setBusyReviewId(null);
+    }
   };
 
   return (
@@ -143,6 +192,48 @@ const AdminPage = () => {
               ))}
             </tbody>
           </table>
+        )}
+
+        {!loading && activeTab === 'Reviews' && (
+          <div className="admin-reviews-section">
+            <div className="admin-review-status-tabs">
+              {REVIEW_STATUSES.map(s => (
+                <button
+                  key={s}
+                  className={`admin-review-status-btn ${s === reviewStatus ? 'active' : ''}`}
+                  onClick={() => setReviewStatus(s)}
+                >
+                  {s.replace('_', ' ')}
+                </button>
+              ))}
+            </div>
+
+            {reviews.length === 0 ? (
+              <p className="admin-reviews-empty">Nothing to show in this queue.</p>
+            ) : (
+              <ul className="admin-reviews-list">
+                {reviews.map(r => (
+                  <li key={r._id} className="admin-review-card">
+                    <div className="admin-review-product">
+                      {r.product?.image && <img src={r.product.image} alt={r.product?.name || ''} />}
+                      <div>
+                        <div className="admin-review-product-name">{r.product?.brand} {r.product?.name}</div>
+                        <div className="admin-review-meta">{r.reviewerName} · {new Date(r.createdAt).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div className="admin-review-rating">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                    {r.body ? <p className="admin-review-body">{r.body}</p> : <p className="admin-review-body muted">(no written review)</p>}
+                    {reviewStatus === 'UNDER_REVIEW' && (
+                      <div className="admin-review-actions">
+                        <button className="admin-btn-success" disabled={busyReviewId === r._id} onClick={() => moderateReview(r._id, 'APPROVED')}>Approve</button>
+                        <button className="admin-btn-danger" disabled={busyReviewId === r._id} onClick={() => moderateReview(r._id, 'REJECTED')}>Reject</button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </div>
     </div>

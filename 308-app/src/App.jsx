@@ -7,7 +7,6 @@ import CartPage from './CartPage';
 // IMPORTING THE NEW PAGE
 import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
-import AdminReviewsPage from './AdminReviewsPage';
 import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
 import Navbar from './Navbar';
@@ -35,7 +34,6 @@ function App() {
         <Route path="/about" element={<AboutUsPage />} />
 
         {/* ADMIN */}
-        <Route path="/admin/reviews" element={<AdminReviewsPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
 
