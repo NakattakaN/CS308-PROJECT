@@ -1,65 +1,61 @@
-# CS308-PROJECT
+# ⌚ Saatinden
 
-> A brief, catchy description of what this project does, the problem it solves, and who it's for.
+> Discover your next timepiece. Saatinden is a comprehensive e-commerce platform designed for browsing, purchasing, and managing a curated collection of premium and everyday watches. Developed for the CS 308 Software Engineering course.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
 ## 📑 Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
+* [About the Project](#-about-the-project)
+* [Core Features](#-core-features)
+* [Tech Stack](#-tech-stack)
+* [Database Schema Outline](#-database-schema-outline)
+* [Installation & Setup](#-installation--setup)
+* [Development Lifecycle](#-development-lifecycle)
 
 ---
 
-## ✨ Features
+## 🚀 About the Project
+**Saatinden** is a full-stack digital storefront dedicated to horology enthusiasts and casual buyers alike. The platform provides a seamless shopping experience, allowing users to browse watches by brand, movement type (automatic, manual, quartz), and style. 
 
-- **Feature 1:** Briefly describe the main functionality.
-- **Feature 2:** Highlight another key aspect of the project.
-- **Feature 3:** Mention performance, security, or usability benefits.
+Beyond the customer-facing storefront, Saatinden includes a robust administrative backend for inventory management, order tracking, and dynamic pricing adjustments, fulfilling the complex requirements of a modern software engineering architecture.
+
+## ✨ Core Features
+
+### For Customers (Frontend)
+* **Advanced Product Filtering:** Sort and filter watches by brand, price range, movement type, case material, and water resistance.
+* **Shopping Cart & Checkout:** Persistent cart sessions with a simulated secure payment gateway.
+* **User Profiles:** Customers can create accounts, save their shipping details, and view their order history.
+* **Wishlist:** Save favorite timepieces for future reference or purchase.
+
+### For Administrators (Backend/Dashboard)
+* **Inventory Management:** Add, edit, or remove watch listings, including uploading high-resolution images and updating stock counts.
+* **Order Fulfillment:** Track user orders from placement to delivery status.
+* **Sales Analytics:** View basic metrics on total revenue and best-selling watch models.
 
 ## 🛠 Tech Stack
+The application is built using a modern JavaScript ecosystem to ensure high performance and responsive design:
+* **Frontend:** HTML5, CSS3, JavaScript (ES6+), [React/Vue]
+* **Backend:** Node.js, Express.js
+* **Database:** [MongoDB]
+* **Authentication:** JSON Web Tokens (JWT) & bcrypt for secure password hashing
+* **Tools:** Git, GitHub Actions (CI/CD), Postman
 
-- **Language:** [e.g., C++, Python, JavaScript]
-- **Framework/Library:** [e.g., OpenMP, PyTorch, React]
-- **Database:** [MongoDB]
-- **Frontend** [React or Vue]
-- **Backend** [Nodejs]
-- **Tools:** [e.g., Docker, CMake]
-
----
-
-## ⚙️ Prerequisites
-
-Before you begin, ensure you have the following installed:
-* [Requirement 1] (e.g., Node.js v18+)
-* [Requirement 2] (e.g., CUDA Toolkit 11.8+)
+## 🗄️ Database Schema Outline
+The data architecture relies on three primary models:
+1. **Users:** Handles authentication credentials, shipping addresses, and role-based access (Customer vs. Admin).
+2. **Products (Watches):** Stores SKU, brand, model name, price, stock quantity, specifications (movement, dial color, strap), and image URLs.
+3. **Orders:** Links Users to Products, tracking total cost, payment status, and shipping milestones.
 
 ---
 
-## 💻 Installation
+## 💻 Installation & Setup
 
-Provide step-by-step instructions on how to get the development environment running.
+Because this is a full-stack application, you will need to run both the backend API and the frontend development server simultaneously in separate terminal windows.
 
+### 1. Clone the repository
 ```bash
-# 1. Clone the repository
-git clone [https://github.com/yourusername/project-name.git](https://github.com/yourusername/project-name.git)
-
-# 2. Navigate to the project directory
-cd project-name
-
-# 3. Install dependencies
-npm install  # or pip install -r requirements.txt, or make, etc.
-
-# 4. Set up environment variables
-cp .env.example .env
-
-# 5. Run the application
-npm start    # or ./run.sh
+git clone [https://github.com/NakattakaN/CS308-PROJECT.git](https://github.com/NakattakaN/CS308-PROJECT.git)
+cd CS308-PROJECT/308-app
