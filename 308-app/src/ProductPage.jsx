@@ -9,7 +9,9 @@ const ProductPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [products, setProducts] = useState([]);
+  const [latestReviews, setLatestReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   const [filters, setFilters] = useState({
     gender: '',
@@ -58,7 +60,22 @@ const ProductPage = () => {
       }
     };
 
+    const fetchLatestReviews = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/reviews/latest');
+        const data = await response.json();
+        if (response.ok) {
+          setLatestReviews(data);
+        }
+      } catch (error) {
+        console.error('Error fetching latest reviews:', error);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
     fetchProducts();
+    fetchLatestReviews();
   }, []);
 
   useEffect(() => {
@@ -144,6 +161,20 @@ const ProductPage = () => {
     return [...filtered].sort((a, b) => {
       if (sortOption === 'price-asc') return a.price - b.price;
       if (sortOption === 'price-desc') return b.price - a.price;
+      
+      if (sortOption === 'rating-desc' || sortOption === 'rating-asc') {
+        const hasA = (a.reviewCount || 0) > 0;
+        const hasB = (b.reviewCount || 0) > 0;
+        if (hasA && !hasB) return -1;
+        if (!hasA && hasB) return 1;
+        if (!hasA && !hasB) return 0; // Both have no reviews, keep order
+        
+        // Both have reviews, sort by rating
+        return sortOption === 'rating-desc' 
+          ? b.averageRating - a.averageRating 
+          : a.averageRating - b.averageRating;
+      }
+
       if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
       return 0;
@@ -154,7 +185,9 @@ const ProductPage = () => {
     newest: 'New Arrivals',
     oldest: 'Oldest Arrivals',
     'price-asc': 'Price: Low to High',
-    'price-desc': 'Price: High to Low'
+    'price-desc': 'Price: High to Low',
+    'rating-desc': 'Rating: High to Low',
+    'rating-asc': 'Rating: Low to High'
   };
 
   if (loading) {
@@ -186,6 +219,44 @@ const ProductPage = () => {
           )}
         </div>
       </section>
+
+      {latestReviews.length > 0 && (
+        <section className="latest-reviews-section">
+          <h2>What Our Customers Say</h2>
+          <div className="reviews-grid">
+            {latestReviews.map((review) => (
+              <div key={review._id} className="review-card">
+                <div className="review-header">
+                  <span className="reviewer-name">{review.reviewerName}</span>
+                  <div className="product-rating-stars">
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <span key={n} style={{ color: n <= review.rating ? '#f5a623' : '#d4d4d4' }}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="review-body">"{review.body || 'No comment provided.'}"</p>
+                {review.product && (
+                  <div
+                    className="review-product-link"
+                    onClick={() => navigate(`/product/${review.product._id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <img
+                      src={review.product.image}
+                      alt={review.product.name}
+                      className="review-product-img"
+                    />
+                    <div className="review-product-info">
+                      <span className="review-product-name">{review.product.name}</span>
+                      <span className="review-product-brand">{review.product.brand}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="global-categories-bar">
         {[
@@ -261,6 +332,26 @@ const ProductPage = () => {
                   }}
                 >
                   Price: High to Low
+                </button>
+
+                <button
+                  className={`sort-option ${sortOption === 'rating-desc' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSortOption('rating-desc');
+                    setIsSortOpen(false);
+                  }}
+                >
+                  Rating: High to Low
+                </button>
+
+                <button
+                  className={`sort-option ${sortOption === 'rating-asc' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSortOption('rating-asc');
+                    setIsSortOpen(false);
+                  }}
+                >
+                  Rating: Low to High
                 </button>
               </div>
             )}

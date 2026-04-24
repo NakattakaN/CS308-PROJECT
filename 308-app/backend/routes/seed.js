@@ -108,10 +108,10 @@ router.post('/seed-reviews', async (req, res) => {
     await Review.deleteMany({});
 
     const template = [
-      { rating: 5, status: 'APPROVED', body: 'Absolutely stunning timepiece. Worth every cent.' },
-      { rating: 4, status: 'APPROVED', body: 'Great watch, only minor gripe is the strap.' },
+      { rating: 5, status: 'APPROVED',     body: 'Absolutely stunning timepiece. Worth every cent.' },
+      { rating: 4, status: 'APPROVED',     body: 'Great watch, only minor gripe is the strap.' },
       { rating: 3, status: 'UNDER_REVIEW', body: 'Decent, but I expected more for the price.' },
-      { rating: 1, status: 'REJECTED', body: 'visit shadylink.example.com for cheap fakes!!' }
+      { rating: 1, status: 'REJECTED',     body: 'visit shadylink.example.com for cheap fakes!!' }
     ];
 
     const docs = [];

@@ -521,3 +521,112 @@
     height: 220px;
   }
 }
+/* Reviews Section */
+.latest-reviews-section {
+  margin: 3rem 0 4rem;
+  padding: 0;
+}
+
+.latest-reviews-section h2 {
+  font-size: 2.25rem;
+  color: var(--primary-color);
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.review-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.review-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  border-color: var(--primary-color);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reviewer-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.review-body {
+  font-style: italic;
+  color: var(--text-main);
+  line-height: 1.6;
+  flex: 1;
+  font-size: 1.05rem;
+}
+
+.review-product-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  transition: opacity 0.2s;
+}
+
+.review-product-link:hover {
+  opacity: 0.8;
+}
+
+.review-product-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f1f5f9;
+}
+
+.review-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-product-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.review-product-brand {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .latest-reviews-section h2 {
+    font-size: 1.75rem;
+  }
+}

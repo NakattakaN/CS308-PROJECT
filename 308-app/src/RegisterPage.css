@@ -11,12 +11,7 @@
   --radius-md: 8px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-}
+/* No global reset here to avoid affecting other pages */
 
 .login-page-wrapper {
   background-color: var(--bg-main);
@@ -34,6 +29,7 @@
   display: flex;
   width: 100%;
   max-width: 1400px;
+  margin: 0 auto;
   min-height: 600px;
   background: #ffffff;
   border-radius: var(--radius-lg);

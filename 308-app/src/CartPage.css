@@ -7,12 +7,14 @@
   /* Light theme background */
   padding: 40px 20px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .cart-main-content {
   width: 100%;
   max-width: 1600px;
+  margin: 0 auto;
 }
 
 .cart-header-section {
@@ -154,4 +156,30 @@
   .cart-layout-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Empty Cart State */
+.empty-cart-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 100px 40px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-cart-message p {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 30px;
+}
+
+.empty-cart-message .checkout-action-btn {
+  max-width: 280px;
+  margin-top: 0;
 }

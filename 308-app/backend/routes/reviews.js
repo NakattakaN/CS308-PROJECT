@@ -34,6 +34,20 @@ router.get('/products/:productId/reviews', attachAuth, async (req, res) => {
   }
 });
 
+// ---- PUBLIC: list latest approved reviews for main page ----
+router.get('/reviews/latest', async (req, res) => {
+  try {
+    const reviews = await Review.find({ status: 'APPROVED' })
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .populate('product', 'name brand image')
+      .lean();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load latest reviews', details: err.message });
+  }
+});
+
 // ---- USER: create or update their review for a product ----
 // Upsert keyed on (product, user). Resubmitting resets status to UNDER_REVIEW.
 router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
