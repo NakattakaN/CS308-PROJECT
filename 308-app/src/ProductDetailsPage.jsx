@@ -31,6 +31,7 @@ const ProductDetailsPage = () => {
   const [offerMessage, setOfferMessage] = useState('');
   const [offerSubmitting, setOfferSubmitting] = useState(false);
 
+  const [imgError, setImgError] = useState(false);
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
   const userName = localStorage.getItem('userName') || '';
@@ -52,7 +53,10 @@ const ProductDetailsPage = () => {
     try {
       const response = await fetch(`http://localhost:5000/api/products/${id}`);
       const data = await response.json();
-      if (response.ok) setProduct(data);
+      if (response.ok) {
+        setProduct(data);
+        setImgError(!data.image);
+      }
     } catch (err) {
       console.error('An error occurred:', err);
     } finally {
@@ -177,18 +181,20 @@ const ProductDetailsPage = () => {
 
       <div className="details-card">
         <div className="details-image-wrapper">
-          <img
-            src={product.image}
-            alt={product.name}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.style.display = 'none';
-              const placeholder = document.createElement('div');
-              placeholder.className = 'details-image-placeholder';
-              placeholder.innerHTML = `<span style="font-size:5rem">⌚</span><span style="font-size:1rem;opacity:0.6;margin-top:1.5rem">${product.brand} — ${product.name}</span>`;
-              e.target.parentNode.insertBefore(placeholder, e.target);
-            }}
-          />
+          {imgError ? (
+            <div className="details-image-placeholder">
+              <span style={{ fontSize: '5rem' }}>⌚</span>
+              <span style={{ fontSize: '1rem', opacity: 0.6, marginTop: '1.5rem' }}>
+                {product.brand} — {product.name}
+              </span>
+            </div>
+          ) : (
+            <img
+              src={product.image}
+              alt={product.name}
+              onError={() => setImgError(true)}
+            />
+          )}
         </div>
 
         <div className="details-info-wrapper">

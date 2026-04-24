@@ -118,11 +118,11 @@ const ProductPage = () => {
   };
 
   const filteredProducts = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const queryTerms = searchQuery.trim().toLowerCase().split(' ').filter(Boolean);
     const filtered = products.filter((product) => {
-      const matchSearch = !query ||
-        product.name.toLowerCase().includes(query) ||
-        product.brand.toLowerCase().includes(query);
+      const searchString = `${product.brand} ${product.name} ${product.referenceNumber || ''}`.toLowerCase();
+      const matchSearch = queryTerms.length === 0 || queryTerms.every(term => searchString.includes(term));
+
       const matchGender = !filters.gender || product.gender === filters.gender;
       const matchStrapColor = !filters.strapColor || product.strapColor === filters.strapColor;
       const matchStrapMaterial =
@@ -145,12 +145,14 @@ const ProductPage = () => {
       if (sortOption === 'price-asc') return a.price - b.price;
       if (sortOption === 'price-desc') return b.price - a.price;
       if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
       return 0;
     });
-  }, [products, filters, sortOption]);
+  }, [products, filters, sortOption, searchQuery]);
 
   const sortLabelMap = {
     newest: 'New Arrivals',
+    oldest: 'Oldest Arrivals',
     'price-asc': 'Price: Low to High',
     'price-desc': 'Price: High to Low'
   };
@@ -185,6 +187,26 @@ const ProductPage = () => {
         </div>
       </section>
 
+      <div className="global-categories-bar">
+        {[
+          { label: 'All Watches', value: '' },
+          { label: "Men's", value: 'erkek' },
+          { label: "Women's", value: 'kadın' },
+          { label: 'Unisex', value: 'unisex' }
+        ].map((cat) => (
+          <button
+            key={cat.label}
+            className={`category-pill ${filters.gender === cat.value ? 'active' : ''}`}
+            onClick={() => {
+              setFilters(prev => ({ ...prev, gender: cat.value }));
+              setDraftFilters(prev => ({ ...prev, gender: cat.value }));
+            }}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       <section className="top-controls">
         <div className="main-actions">
           <button className="main-control-btn" onClick={openFilterModal}>
@@ -209,6 +231,16 @@ const ProductPage = () => {
                   }}
                 >
                   New Arrivals
+                </button>
+
+                <button
+                  className={`sort-option ${sortOption === 'oldest' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSortOption('oldest');
+                    setIsSortOpen(false);
+                  }}
+                >
+                  Oldest Arrivals
                 </button>
 
                 <button
@@ -247,56 +279,18 @@ const ProductPage = () => {
       <div className="results-info">
         <p>Showing {filteredProducts.length} items</p>
       </div>
-
       {filteredProducts.length > 0 ? (
         <section className="product-grid">
           {filteredProducts.map((product) => (
-            <div
-              key={product._id}
-              className="product-card"
-              onClick={() => navigate(`/product/${product._id}`)}
-              style={{ cursor: 'pointer' }}
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="product-image"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                  const placeholder = document.createElement('div');
-                  placeholder.className = 'product-image-placeholder';
-                  placeholder.innerHTML = `<span style="font-size:3rem">⌚</span><span style="font-size:1rem;opacity:0.6;margin-top:5rem">${product.brand}</span>`;
-                  e.target.parentNode.insertBefore(placeholder, e.target);
-                }}
-              />
-
-              <div className="product-info">
-                <p className="product-brand">{product.brand}</p>
-                <h3 className="product-name">{product.name}</h3>
-                <p className="product-price">${product.price.toLocaleString()}</p>
-                {product.reviewCount > 0 && (
-                  <div className="product-rating">
-                    <span className="product-rating-stars">
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <span key={n} style={{ color: n <= Math.round(product.averageRating) ? '#f5a623' : '#d4d4d4' }}>★</span>
-                      ))}
-                    </span>
-                    <span className="product-rating-text">
-                      {product.averageRating.toFixed(1)} ({product.reviewCount})
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ProductCard key={product._id} product={product} navigate={navigate} />
           ))}
         </section>
       ) : (
-        <div className="empty-results">
-          <p>No products found matching these filters.</p>
+        <div className="no-results">
+          <h3>No timepieces found</h3>
+          <p>Try adjusting your search or filters to find what you're looking for.</p>
         </div>
       )}
-
       {isFilterModalOpen && (
         <div className="filter-modal-overlay" onClick={closeFilterModal}>
           <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
@@ -308,20 +302,6 @@ const ProductPage = () => {
             </div>
 
             <div className="filter-groups">
-              <div className="filter-group">
-                <label>Gender</label>
-                <select
-                  name="gender"
-                  value={draftFilters.gender}
-                  onChange={handleDraftFilterChange}
-                >
-                  <option value="">All</option>
-                  <option value="kadın">Women</option>
-                  <option value="erkek">Men</option>
-                  <option value="unisex">Unisex</option>
-                </select>
-              </div>
-
               <div className="filter-group">
                 <label>Strap color</label>
                 <select
@@ -397,6 +377,58 @@ const ProductPage = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const ProductCard = ({ product, navigate }) => {
+  const [hasError, setHasError] = React.useState(!product.image);
+
+  const handleError = () => {
+    setHasError(true);
+  };
+
+  return (
+    <div
+      className="product-card"
+      onClick={() => navigate(`/product/${product._id}`)}
+      style={{ cursor: 'pointer', position: 'relative' }}
+    >
+      <div className={`product-status-badge ${product.status === 'available' ? 'status-available' : 'status-unavailable'}`}>
+        {product.status === 'available' ? 'Available' : 'Unavailable'}
+      </div>
+
+      {!hasError ? (
+        <img
+          src={product.image}
+          alt={product.name}
+          className="product-image"
+          onError={handleError}
+        />
+      ) : (
+        <div className="product-image-placeholder">
+          <span style={{ fontSize: '3rem' }}>⌚</span>
+          <span style={{ fontSize: '1rem', opacity: 0.6, marginTop: '1rem' }}>{product.brand}</span>
+        </div>
+      )}
+
+      <div className="product-info">
+        <p className="product-brand">{product.brand}</p>
+        <h3 className="product-name">{product.name}</h3>
+        <p className="product-price">${product.price.toLocaleString()}</p>
+        {product.reviewCount > 0 && (
+          <div className="product-rating">
+            <span className="product-rating-stars">
+              {[1, 2, 3, 4, 5].map(n => (
+                <span key={n} style={{ color: n <= Math.round(product.averageRating) ? '#f5a623' : '#d4d4d4' }}>★</span>
+              ))}
+            </span>
+            <span className="product-rating-text">
+              {product.averageRating.toFixed(1)} ({product.reviewCount})
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
