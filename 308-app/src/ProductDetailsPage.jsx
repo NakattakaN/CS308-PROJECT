@@ -177,7 +177,18 @@ const ProductDetailsPage = () => {
 
       <div className="details-card">
         <div className="details-image-wrapper">
-          <img src={product.image} alt={product.name} />
+          <img
+            src={product.image}
+            alt={product.name}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.style.display = 'none';
+              const placeholder = document.createElement('div');
+              placeholder.className = 'details-image-placeholder';
+              placeholder.innerHTML = `<span style="font-size:5rem">⌚</span><span style="font-size:1rem;opacity:0.6;margin-top:1.5rem">${product.brand} — ${product.name}</span>`;
+              e.target.parentNode.insertBefore(placeholder, e.target);
+            }}
+          />
         </div>
 
         <div className="details-info-wrapper">

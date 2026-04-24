@@ -257,7 +257,19 @@ const ProductPage = () => {
               onClick={() => navigate(`/product/${product._id}`)}
               style={{ cursor: 'pointer' }}
             >
-              <img src={product.image} alt={product.name} className="product-image" />
+              <img
+                src={product.image}
+                alt={product.name}
+                className="product-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  const placeholder = document.createElement('div');
+                  placeholder.className = 'product-image-placeholder';
+                  placeholder.innerHTML = `<span style="font-size:3rem">⌚</span><span style="font-size:1rem;opacity:0.6;margin-top:5rem">${product.brand}</span>`;
+                  e.target.parentNode.insertBefore(placeholder, e.target);
+                }}
+              />
 
               <div className="product-info">
                 <p className="product-brand">{product.brand}</p>

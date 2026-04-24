@@ -53,22 +53,14 @@ body {
   margin: 0;
   padding: 0;
   background-color: #f8fafc;
-  /* Centering the #root container on the page */
-  display: flex;
-  justify-content: center; 
 }
 
 #root {
-  width: 95%;
-  max-width: 1600px; /* Expanded for widescreen optimize */
-  margin: 0 auto;    /* Centers the content horizontally */
+  width: 100%;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centers children (like your Login box) horizontally */
-  text-align: center;
-  /* Removed border-inline to prevent those vertical side lines */
-  border-inline: none; 
+  align-items: stretch;
 }
 
 h1, h2 {
