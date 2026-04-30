@@ -488,6 +488,11 @@ const ProductCard = ({ product, navigate }) => {
       <div className={`product-status-badge ${product.status === 'available' ? 'status-available' : 'status-unavailable'}`}>
         {product.status === 'available' ? 'Available' : 'Unavailable'}
       </div>
+      {product.status === 'available' && product.stock != null && product.stock <= 10 && product.stock > 0 && (
+        <div className="product-low-stock-badge">
+          Only {product.stock} left!
+        </div>
+      )}
 
       {!hasError ? (
         <img

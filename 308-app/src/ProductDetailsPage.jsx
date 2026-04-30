@@ -211,11 +211,16 @@ const ProductDetailsPage = () => {
             </div>
           )}
 
-          <div style={{ margin: '8px 0' }}>
+          <div style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {product.status === 'available' ? (
               <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>Available</span>
             ) : (
               <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>Unavailable</span>
+            )}
+            {product.status === 'available' && product.stock != null && product.stock <= 10 && product.stock > 0 && (
+              <span style={{ background: '#fff7ed', color: '#c2410c', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, border: '1px solid #fed7aa' }}>
+                Only {product.stock} left in stock!
+              </span>
             )}
           </div>
 

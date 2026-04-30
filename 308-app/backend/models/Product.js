@@ -67,6 +67,8 @@ const productSchema = new mongoose.Schema(
       default: 'analog'
     },
 
+    stock: { type: Number, default: 50, min: 0 },
+
     specs: {
       movement: { type: String, default: '', trim: true },
       condition: { type: String, default: '', trim: true },
