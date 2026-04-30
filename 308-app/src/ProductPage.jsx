@@ -137,7 +137,7 @@ const ProductPage = () => {
   const filteredProducts = useMemo(() => {
     const queryTerms = searchQuery.trim().toLowerCase().split(' ').filter(Boolean);
     const filtered = products.filter((product) => {
-      const searchString = `${product.brand} ${product.name} ${product.referenceNumber || ''}`.toLowerCase();
+      const searchString = `${product.brand} ${product.name} ${product.referenceNumber || ''} ${product.description || ''}`.toLowerCase();
       const matchSearch = queryTerms.length === 0 || queryTerms.every(term => searchString.includes(term));
 
       const matchGender = !filters.gender || product.gender === filters.gender;
