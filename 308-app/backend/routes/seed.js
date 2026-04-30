@@ -77,7 +77,17 @@ router.post('/seed-products', async (req, res) => {
   try {
     await Product.deleteMany({});
 
-    const docs = SAMPLE_PRODUCTS.map(p => ({ ...p, status: 'available' }));
+    const stockValues = [
+      3, 50, 8, 25, 5, 60, 40,  // 1-7
+      10, 30, 7, 45, 2, 20, 55, // 8-14
+      35, 9, 50, 6, 40, 15,     // 15-20
+      80, 4, 60, 12, 90, 1,     // 21-26 (actually 22-27 in comments)
+      25, 8, 50, 3, 70, 15,     // 28-33
+      30, 5, 45, 20, 10, 60,    // 34-39
+      35, 7, 50, 2, 40, 15,     // 40-45
+      90, 6, 50, 25, 80, 100    // 46-50 (extra)
+    ];
+    const docs = SAMPLE_PRODUCTS.map((p, i) => ({ ...p, status: 'available', stock: stockValues[i] ?? 50 }));
     await Product.insertMany(docs);
 
     res.status(201).json({
