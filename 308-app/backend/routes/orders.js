@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Product = require('../models/Product');
 const { requireAuth } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
@@ -10,6 +11,14 @@ const { sendInvoiceEmail } = require('../services/emailService');
 router.post('/orders', requireAuth, async (req, res) => {
   try {
     const { items, totalAmount, shippingAddress } = req.body;
+
+    // Decrement stock for each ordered item
+    await Promise.all(items.map(item =>
+      Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: -item.quantity }
+      })
+    ));
+
     const order = await Order.create({
       userId: req.userId,
       items,

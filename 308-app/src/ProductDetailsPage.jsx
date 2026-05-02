@@ -211,19 +211,6 @@ const ProductDetailsPage = () => {
             </div>
           )}
 
-          <div style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {product.status === 'available' ? (
-              <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>Available</span>
-            ) : (
-              <span style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>Unavailable</span>
-            )}
-            {product.status === 'available' && product.stock != null && product.stock <= 10 && product.stock > 0 && (
-              <span style={{ background: '#fff7ed', color: '#c2410c', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, border: '1px solid #fed7aa' }}>
-                Only {product.stock} left in stock!
-              </span>
-            )}
-          </div>
-
           <div className="details-divider"></div>
 
           <div className="details-description">
@@ -238,22 +225,28 @@ const ProductDetailsPage = () => {
             <div className="spec-item"><span className="spec-label">Year:</span><span className="spec-value">{product.specs?.year}</span></div>
             <div className="spec-item"><span className="spec-label">Box & Papers:</span><span className="spec-value">{product.specs?.boxAndPapers ? 'Yes' : 'No'}</span></div>
             <div className="spec-item"><span className="spec-label">Reference:</span><span className="spec-value">{product.referenceNumber}</span></div>
+            <div className="spec-item">
+              <span className="spec-label">Stock:</span>
+              <span className="spec-value" style={{ color: product.stock === 0 ? '#6b7280' : product.stock <= 10 ? '#dc2626' : 'inherit', fontWeight: product.stock <= 10 ? 700 : 'inherit' }}>
+                {product.stock == null ? '—' : product.stock === 0 ? 'Out of stock' : `${product.stock} units`}
+              </span>
+            </div>
           </div>
 
           <div className="action-buttons" style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px', overflow: 'hidden' }}>
-              <button onClick={decreaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>-</button>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px', overflow: 'hidden', opacity: (product.status !== 'available' || product.stock === 0) ? 0.4 : 1 }}>
+              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>-</button>
               <span style={{ padding: '10px 20px', fontWeight: 'bold' }}>{quantity}</span>
-              <button onClick={increaseQuantity} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '18px' }}>+</button>
+              <button onClick={() => setQuantity(q => Math.min(product.stock || 99, q + 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>+</button>
             </div>
 
             <button
               className="btn-add-cart"
-              style={{ flex: 1, opacity: product.status !== 'available' ? 0.5 : 1, cursor: product.status !== 'available' ? 'not-allowed' : 'pointer' }}
+              style={{ flex: 1, opacity: (product.status !== 'available' || product.stock === 0) ? 0.5 : 1, cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer' }}
               onClick={handleAddToCart}
-              disabled={product.status !== 'available'}
+              disabled={product.status !== 'available' || product.stock === 0}
             >
-              {product.status === 'available' ? 'Add to Cart' : 'Unavailable'}
+              {product.stock === 0 ? 'Out of Stock' : product.status === 'available' ? 'Add to Cart' : 'Unavailable'}
             </button>
 
             <button className="btn-make-offer" onClick={() => {

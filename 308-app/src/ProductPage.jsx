@@ -9,9 +9,7 @@ const ProductPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [products, setProducts] = useState([]);
-  const [latestReviews, setLatestReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   const [filters, setFilters] = useState({
     gender: '',
@@ -60,22 +58,7 @@ const ProductPage = () => {
       }
     };
 
-    const fetchLatestReviews = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/reviews/latest');
-        const data = await response.json();
-        if (response.ok) {
-          setLatestReviews(data);
-        }
-      } catch (error) {
-        console.error('Error fetching latest reviews:', error);
-      } finally {
-        setReviewsLoading(false);
-      }
-    };
-
     fetchProducts();
-    fetchLatestReviews();
   }, []);
 
   useEffect(() => {
@@ -220,43 +203,6 @@ const ProductPage = () => {
         </div>
       </section>
 
-      {latestReviews.length > 0 && (
-        <section className="latest-reviews-section">
-          <h2>What Our Customers Say</h2>
-          <div className="reviews-grid">
-            {latestReviews.map((review) => (
-              <div key={review._id} className="review-card">
-                <div className="review-header">
-                  <span className="reviewer-name">{review.reviewerName}</span>
-                  <div className="product-rating-stars">
-                    {[1, 2, 3, 4, 5].map(n => (
-                      <span key={n} style={{ color: n <= review.rating ? '#f5a623' : '#d4d4d4' }}>★</span>
-                    ))}
-                  </div>
-                </div>
-                <p className="review-body">"{review.body || 'No comment provided.'}"</p>
-                {review.product && (
-                  <div
-                    className="review-product-link"
-                    onClick={() => navigate(`/product/${review.product._id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <img
-                      src={review.product.image}
-                      alt={review.product.name}
-                      className="review-product-img"
-                    />
-                    <div className="review-product-info">
-                      <span className="review-product-name">{review.product.name}</span>
-                      <span className="review-product-brand">{review.product.brand}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <div className="global-categories-bar">
         {[
@@ -485,15 +431,6 @@ const ProductCard = ({ product, navigate }) => {
       onClick={() => navigate(`/product/${product._id}`)}
       style={{ cursor: 'pointer', position: 'relative' }}
     >
-      <div className={`product-status-badge ${product.status === 'available' ? 'status-available' : 'status-unavailable'}`}>
-        {product.status === 'available' ? 'Available' : 'Unavailable'}
-      </div>
-      {product.status === 'available' && product.stock != null && product.stock <= 10 && product.stock > 0 && (
-        <div className="product-low-stock-badge">
-          Only {product.stock} left!
-        </div>
-      )}
-
       {!hasError ? (
         <img
           src={product.image}
@@ -512,6 +449,12 @@ const ProductCard = ({ product, navigate }) => {
         <p className="product-brand">{product.brand}</p>
         <h3 className="product-name">{product.name}</h3>
         <p className="product-price">${product.price.toLocaleString()}</p>
+        {product.stock === 0 && (
+          <p className="product-out-of-stock">Stokta yok</p>
+        )}
+        {product.stock > 0 && product.stock <= 10 && (
+          <p className="product-low-stock">Stokta sadece {product.stock} tane kaldı!</p>
+        )}
         {product.reviewCount > 0 && (
           <div className="product-rating">
             <span className="product-rating-stars">

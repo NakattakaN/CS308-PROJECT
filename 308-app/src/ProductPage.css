@@ -241,20 +241,20 @@
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-.product-low-stock-badge {
-  position: absolute;
-  top: 210px;
-  right: 12px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 0.72rem;
+.product-low-stock {
+  font-size: 0.8rem;
   font-weight: 700;
-  background: rgba(255, 247, 237, 0.9);
-  color: #c2410c;
-  border: 1px solid rgba(254, 215, 170, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  color: #dc2626;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.product-out-of-stock {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
 }
 
 .product-image {
