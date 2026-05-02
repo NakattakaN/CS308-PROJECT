@@ -141,6 +141,45 @@
   font-weight: 700;
 }
 
+.side-menu-item-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.side-menu-arrow {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.side-menu-back {
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  cursor: pointer;
+  padding: 0;
+}
+
+.side-menu-back:hover {
+  color: var(--text-muted);
+}
+
+.side-menu-subheader {
+  padding: 0.5rem 1.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.side-menu-brand-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
 /* Filter Bar */
 .filter-bar {
   display: flex;
