@@ -77,7 +77,7 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
-    gender: '', brand: '', strapColor: [], strapMaterial: [], caseShape: [], displayType: [], dialColor: []
+    gender: '', brands: [], strapColor: [], strapMaterial: [], caseShape: [], displayType: [], dialColor: []
   });
   const [sortOption, setSortOption] = useState('newest');
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -112,7 +112,7 @@ const ProductPage = () => {
 
   const clearFilters = () => {
     setFilters(prev => ({
-      gender: prev.gender, brand: '', strapColor: [], strapMaterial: [], caseShape: [], displayType: [], dialColor: []
+      gender: prev.gender, brands: [], strapColor: [], strapMaterial: [], caseShape: [], displayType: [], dialColor: []
     }));
     setActiveDropdown(null);
   };
@@ -137,7 +137,7 @@ const ProductPage = () => {
       const searchString = `${product.brand} ${product.name} ${product.referenceNumber || ''} ${product.description || ''}`.toLowerCase();
       const matchSearch = queryTerms.length === 0 || queryTerms.every(term => searchString.includes(term));
       const matchGender = !filters.gender || product.gender === filters.gender;
-      const matchBrand = !filters.brand || product.brand === filters.brand;
+      const matchBrand = filters.brands.length === 0 || filters.brands.includes(product.brand);
       const matchStrapColor = filters.strapColor.length === 0 || filters.strapColor.includes(product.strapColor);
       const matchStrapMaterial = filters.strapMaterial.length === 0 || filters.strapMaterial.includes(product.strapMaterial);
       const matchCaseShape = filters.caseShape.length === 0 || filters.caseShape.includes(product.caseShape);
@@ -163,24 +163,22 @@ const ProductPage = () => {
     });
   }, [products, filters, sortOption, searchQuery]);
 
-  const sortedBrands = useMemo(() =>
-    [...new Set(products.map(p => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b))
-  , [products]);
-
   const availableValues = useMemo(() => {
     const result = {};
     for (const { key } of FILTER_CONFIG) {
       const candidates = products.filter(product => {
         const matchGender = !filters.gender || product.gender === filters.gender;
+        const matchBrands = filters.brands.length === 0 || filters.brands.includes(product.brand);
         const otherFiltersMatch = FILTER_CONFIG.filter(f => f.key !== key).every(({ key: otherKey }) =>
           filters[otherKey].length === 0 || filters[otherKey].includes(product[otherKey])
         );
-        return matchGender && otherFiltersMatch;
+        return matchGender && matchBrands && otherFiltersMatch;
       });
       result[key] = new Set(candidates.map(p => p[key]).filter(v => v != null));
     }
     return result;
   }, [products, filters]);
+
 
   const currentSortLabel = SORT_OPTIONS.find(o => o.value === sortOption)?.label || 'Sort';
 
@@ -314,9 +312,9 @@ const ProductPage = () => {
                 ].map(cat => (
                   <button
                     key={cat.label}
-                    className={`side-menu-item ${filters.gender === cat.value ? 'active' : ''}`}
+                    className={`side-menu-item ${filters.gender === cat.value && filters.brands.length === 0 ? 'active' : ''}`}
                     onClick={() => {
-                      setFilters(prev => ({ ...prev, gender: cat.value }));
+                      setFilters(prev => ({ ...prev, gender: cat.value, brands: [] }));
                       setIsSideMenuOpen(false);
                     }}
                   >
@@ -337,16 +335,16 @@ const ProductPage = () => {
                 <div className="side-menu-subheader">Brand</div>
                 <div className="side-menu-brand-list">
                   <button
-                    className={`side-menu-item ${!filters.brand ? 'active' : ''}`}
-                    onClick={() => { setFilters(prev => ({ ...prev, brand: '' })); setIsSideMenuOpen(false); setSideMenuPage('main'); }}
+                    className={`side-menu-item ${filters.brands.length === 0 ? 'active' : ''}`}
+                    onClick={() => { setFilters(prev => ({ ...prev, brands: [] })); setIsSideMenuOpen(false); setSideMenuPage('main'); }}
                   >
                     All Brands
                   </button>
-                  {sortedBrands.map(brand => (
+                  {[...new Set(products.map(p => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map(brand => (
                     <button
                       key={brand}
-                      className={`side-menu-item ${filters.brand === brand ? 'active' : ''}`}
-                      onClick={() => { setFilters(prev => ({ ...prev, brand })); setIsSideMenuOpen(false); setSideMenuPage('main'); }}
+                      className={`side-menu-item ${filters.brands.length === 1 && filters.brands[0] === brand ? 'active' : ''}`}
+                      onClick={() => { setFilters(prev => ({ ...prev, gender: '', brands: [brand] })); setIsSideMenuOpen(false); setSideMenuPage('main'); }}
                     >
                       {brand}
                     </button>
