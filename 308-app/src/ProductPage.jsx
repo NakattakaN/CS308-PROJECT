@@ -16,7 +16,8 @@ const ProductPage = () => {
     strapColor: '',
     strapMaterial: '',
     caseShape: '',
-    displayType: ''
+    displayType: '',
+    dialColor: ''
   });
 
   const [draftFilters, setDraftFilters] = useState({
@@ -24,7 +25,8 @@ const ProductPage = () => {
     strapColor: '',
     strapMaterial: '',
     caseShape: '',
-    displayType: ''
+    displayType: '',
+    dialColor: ''
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -111,7 +113,8 @@ const ProductPage = () => {
       strapColor: '',
       strapMaterial: '',
       caseShape: '',
-      displayType: ''
+      displayType: '',
+      dialColor: ''
     };
     setFilters(emptyFilters);
     setDraftFilters(emptyFilters);
@@ -130,6 +133,8 @@ const ProductPage = () => {
       const matchCaseShape = !filters.caseShape || product.caseShape === filters.caseShape;
       const matchDisplayType =
         !filters.displayType || product.displayType === filters.displayType;
+      const matchDialColor =
+        !filters.dialColor || product.dialColor === filters.dialColor;
 
       return (
         matchSearch &&
@@ -137,7 +142,8 @@ const ProductPage = () => {
         matchStrapColor &&
         matchStrapMaterial &&
         matchCaseShape &&
-        matchDisplayType
+        matchDisplayType &&
+        matchDialColor
       );
     });
 
@@ -400,6 +406,30 @@ const ProductPage = () => {
                   <option value="">All</option>
                   <option value="analog">Analog</option>
                   <option value="dijital">Digital</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Dial color</label>
+                <select
+                  name="dialColor"
+                  value={draftFilters.dialColor}
+                  onChange={handleDraftFilterChange}
+                >
+                  <option value="">All</option>
+                  <option value="gümüş">Silver</option>
+                  <option value="altın">Gold</option>
+                  <option value="mavi">Blue</option>
+                  <option value="yeşil">Green</option>
+                  <option value="sarı">Yellow</option>
+                  <option value="kırmızı">Red</option>
+                  <option value="turuncu">Orange</option>
+                  <option value="mor">Purple</option>
+                  <option value="kahverengi">Brown</option>
+                  <option value="pembe">Pink</option>
+                  <option value="siyah">Black</option>
+                  <option value="beyaz">White</option>
+                  <option value="krem">Cream</option>
                 </select>
               </div>
             </div>

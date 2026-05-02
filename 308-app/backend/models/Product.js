@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
 const GENDER_VALUES = ['kadın', 'erkek', 'unisex'];
-const STRAP_MATERIAL_VALUES = ['metal', 'deri', 'silikon'];
+const STRAP_MATERIAL_VALUES = ['metal', 'deri', 'silikon', 'kumaş'];
+const DIAL_COLOR_VALUES = [
+  'gümüş', 'altın', 'mavi', 'yeşil', 'sarı', 'kırmızı',
+  'turuncu', 'mor', 'kahverengi', 'pembe', 'siyah', 'beyaz', 'krem'
+];
 const CASE_SHAPE_VALUES = ['oval', 'köşeli'];
 const DISPLAY_TYPE_VALUES = ['analog', 'dijital'];
 const STRAP_COLOR_VALUES = [
@@ -65,6 +69,13 @@ const productSchema = new mongoose.Schema(
       type: String,
       enum: DISPLAY_TYPE_VALUES,
       default: 'analog'
+    },
+
+    dialColor: {
+      type: String,
+      enum: [...DIAL_COLOR_VALUES, null],
+      default: null,
+      trim: true
     },
 
     stock: { type: Number, default: 50, min: 0 },
