@@ -373,6 +373,7 @@ const ProductPage = () => {
                   <option value="metal">Metal</option>
                   <option value="deri">Leather</option>
                   <option value="silikon">Silicon</option>
+                  <option value="kumaş">Fabric</option>
                 </select>
               </div>
 
