@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './ProductPage.css';
 
 const ProductPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
   const sortMenuRef = useRef(null);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,10 +31,10 @@ const ProductPage = () => {
     dialColor: ''
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('newest');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
   useEffect(() => {
     const userStatus = localStorage.getItem('isLoggedIn');
@@ -195,43 +197,15 @@ const ProductPage = () => {
         <p>
           Explore our curated marketplace and find the perfect watch for your collection.
         </p>
-        <div className="search-bar-wrapper">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by name or brand..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button className="search-clear-btn" onClick={() => setSearchQuery('')}>×</button>
-          )}
-        </div>
       </section>
 
 
-      <div className="global-categories-bar">
-        {[
-          { label: 'All Watches', value: '' },
-          { label: "Men's", value: 'erkek' },
-          { label: "Women's", value: 'kadın' },
-          { label: 'Unisex', value: 'unisex' }
-        ].map((cat) => (
-          <button
-            key={cat.label}
-            className={`category-pill ${filters.gender === cat.value ? 'active' : ''}`}
-            onClick={() => {
-              setFilters(prev => ({ ...prev, gender: cat.value }));
-              setDraftFilters(prev => ({ ...prev, gender: cat.value }));
-            }}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
       <section className="top-controls">
         <div className="main-actions">
+          <button className="hamburger-btn" onClick={() => setIsSideMenuOpen(true)}>
+            <span /><span /><span />
+          </button>
+
           <button className="main-control-btn" onClick={openFilterModal}>
             Filters
           </button>
@@ -334,6 +308,35 @@ const ProductPage = () => {
           <p>Try adjusting your search or filters to find what you're looking for.</p>
         </div>
       )}
+      {isSideMenuOpen && (
+        <div className="side-menu-overlay" onClick={() => setIsSideMenuOpen(false)}>
+          <div className="side-menu" onClick={e => e.stopPropagation()}>
+            <div className="side-menu-header">
+              <span>Categories</span>
+              <button className="side-menu-close" onClick={() => setIsSideMenuOpen(false)}>×</button>
+            </div>
+            {[
+              { label: 'All Watches', value: '' },
+              { label: "Men's", value: 'erkek' },
+              { label: "Women's", value: 'kadın' },
+              { label: 'Unisex', value: 'unisex' }
+            ].map(cat => (
+              <button
+                key={cat.label}
+                className={`side-menu-item ${filters.gender === cat.value ? 'active' : ''}`}
+                onClick={() => {
+                  setFilters(prev => ({ ...prev, gender: cat.value }));
+                  setDraftFilters(prev => ({ ...prev, gender: cat.value }));
+                  setIsSideMenuOpen(false);
+                }}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isFilterModalOpen && (
         <div className="filter-modal-overlay" onClick={closeFilterModal}>
           <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
