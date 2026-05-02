@@ -85,7 +85,7 @@ const ProductDetailsPage = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        showToast(`${quantity} adet saat koleksiyonuna eklendi!`, 'success');
+        showToast(`${quantity} ${quantity === 1 ? 'item' : 'items'} added to your cart!`, 'success');
       } else {
         showToast('Could not add to cart: ' + data.message, 'error');
       }

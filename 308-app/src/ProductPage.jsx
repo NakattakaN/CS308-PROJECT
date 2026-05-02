@@ -109,7 +109,7 @@ const ProductPage = () => {
 
   const clearFilters = () => {
     const emptyFilters = {
-      gender: '',
+      gender: filters.gender,
       strapColor: '',
       strapMaterial: '',
       caseShape: '',
@@ -481,10 +481,10 @@ const ProductCard = ({ product, navigate }) => {
         <h3 className="product-name">{product.name}</h3>
         <p className="product-price">${product.price.toLocaleString()}</p>
         {product.stock === 0 && (
-          <p className="product-out-of-stock">Stokta yok</p>
+          <p className="product-out-of-stock">Out of stock</p>
         )}
         {product.stock > 0 && product.stock <= 10 && (
-          <p className="product-low-stock">Stokta sadece {product.stock} tane kaldı!</p>
+          <p className="product-low-stock">Only {product.stock} left in stock!</p>
         )}
         {product.reviewCount > 0 && (
           <div className="product-rating">
