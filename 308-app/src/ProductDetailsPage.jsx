@@ -69,28 +69,36 @@ const ProductDetailsPage = () => {
     fetchReviews();
   }, [fetchProduct, fetchReviews]);
 
+ 
   const handleAddToCart = async () => {
-    if (!userId || !authToken) {
-      navigate('/login');
-      return;
-    }
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}` 
         },
-        body: JSON.stringify({ productId: product._id, quantity: quantity })
+        body: JSON.stringify({ 
+          productId: product._id, 
+          quantity: quantity      
+        })
       });
+
       const data = await response.json();
-      if (response.ok) {
-        showToast(`${quantity} ${quantity === 1 ? 'item' : 'items'} added to your cart!`, 'success');
-      } else {
-        showToast('Could not add to cart: ' + data.message, 'error');
+
+     
+      if (!response.ok) {
+        
+        showToast(data.message || "Stok yetersiz.", "error");
+        return; 
       }
+
+      
+      showToast("Ürün sepete eklendi!", "success");
+      
     } catch (error) {
-      console.error('Add to cart error:', error);
+      console.error("Sepete eklenirken hata oluştu:", error);
+      showToast("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
     }
   };
 
@@ -235,9 +243,9 @@ const ProductDetailsPage = () => {
 
           <div className="action-buttons" style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px', overflow: 'hidden', opacity: (product.status !== 'available' || product.stock === 0) ? 0.4 : 1 }}>
-              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>-</button>
+              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#1a1a1a', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>-</button>
               <span style={{ padding: '10px 20px', fontWeight: 'bold' }}>{quantity}</span>
-              <button onClick={() => setQuantity(q => Math.min(product.stock || 99, q + 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>+</button>
+              <button onClick={() => setQuantity(q => Math.min(product.stock || 99, q + 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#1a1a1a', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>+</button>
             </div>
 
             <button
