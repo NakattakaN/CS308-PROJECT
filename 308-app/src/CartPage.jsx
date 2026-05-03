@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast'; // Toast kütüphanesini içeri aktardık
 import './CartPage.css';
 
 const CartPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast(); // Toast bildirim sistemini tanımladık
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,15 +36,31 @@ const CartPage = () => {
     fetchCart();
   }, [userId, navigate]);
 
-  // Miktarı güncelleyen fonksiyon
-  const handleUpdateQuantity = async (itemId, currentQuantity, change) => {
+  // Miktarı güncelleyen fonksiyon (Optimistic UI - Anında Tepki)
+  const handleUpdateQuantity = async (itemId, currentQuantity, change, maxQuantity) => {
     const newQuantity = currentQuantity + change;
     
-    // EĞER MİKTAR 1'DEN KÜÇÜKSE (yani 0 oluyorsa) SİLME FONKSİYONUNU ÇALIŞTIR
+    // 1. STOK KONTROLÜ
+    if (change > 0 && maxQuantity && newQuantity > maxQuantity) {
+      showToast(`Stok sınırına ulaştınız! Bu üründen en fazla ${maxQuantity} adet alabilirsiniz.`, 'error');
+      return; 
+    }
+
+    // 2. SİLME KONTROLÜ
     if (newQuantity < 1) {
       return handleRemove(itemId);
     }
 
+   
+    const previousCart = [...cartItems];
+
+    setCartItems(prevItems => 
+      prevItems.map(item => 
+        item._id === itemId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+
+    
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
         method: 'PUT',
@@ -54,18 +72,21 @@ const CartPage = () => {
       });
       
       const data = await response.json();
-      if (response.ok) {
-        setCartItems(data.cart);
+      
+      // Eğer veritabanına kaydederken bir sorun çıkarsa (örn. internet koptu)
+      if (!response.ok) {
+        setCartItems(previousCart); // Ekranı bozmamak için eski yedeğe geri dön
+        showToast(data.message || "Miktar güncellenemedi, lütfen tekrar deneyin.", "error");
       }
+      
     } catch (error) {
-      console.error("Miktar güncellenemedi:", error);
+      console.error("Bağlantı hatası:", error);
+      setCartItems(previousCart); // Hata durumunda ekrandaki sayıyı eski haline getir
+      showToast("Sunucuya ulaşılamadı.", "error");
     }
   };
 
   const handleRemove = async (itemId) => {
-    // Silme işlemi öncesi kullanıcıya sormak istersen bu satırı açabilirsin:
-    // if (!window.confirm("Bu ürünü sepetten çıkarmak istediğinize emin misiniz?")) return;
-
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
         method: 'DELETE',
@@ -82,7 +103,7 @@ const CartPage = () => {
 
   const calculateTotal = () => {
     const sub = cartItems.reduce((acc, item) => {
-      const numPrice = item.product.price || 0;
+      const numPrice = item.product?.price || 0;
       return acc + (numPrice * (item.quantity || 1));
     }, 0);
     const ship = cartItems.length > 0 ? 50 : 0;
@@ -107,44 +128,58 @@ const CartPage = () => {
           {cartItems.length > 0 ? (
             <>
               <div className="items-column">
-                {cartItems.map((item) => (
-                  <div key={item._id} className="watch-cart-card">
-                    <img 
-                      src={item.product.image} 
-                      alt={item.product.name} 
-                      className="watch-img-small" 
-                    />
-                    <div className="watch-details">
-                      <h3>{item.product.name}</h3>
-                      <p>{item.product.brand}</p>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-                        <div style={{ display: 'flex', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
-                          <button 
-                            onClick={() => handleUpdateQuantity(item._id, (item.quantity || 1), -1)}
-                            style={{ padding: '4px 10px', background: '#1a1a1a', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-                            // disabled özelliğini kaldırdık, böylece 1'deyken basılabilir ve silme tetiklenir
-                          >
-                            -
-                          </button>
-                          <span style={{ padding: '4px 12px', background: '#fff', fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
-                            {item.quantity || 1}
-                          </span>
-                          <button 
-                            onClick={() => handleUpdateQuantity(item._id, (item.quantity || 1), 1)}
-                            style={{ padding: '4px 10px', background: '#1a1a1a', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-                          >
-                            +
-                          </button>
+                {cartItems.map((item) => {
+                  // Ürünün mağazadaki toplam stoğu (Veritabanında stock mu quantity mi diye ikisine de bakıyoruz)
+                  const productQuantity = item.product?.stock ?? item.product?.quantity; 
+                  const currentCartQuantity = item.quantity || 1; // Sepetteki miktar
+
+                  return (
+                    <div key={item._id} className="watch-cart-card">
+                      <img 
+                        src={item.product?.image} 
+                        alt={item.product?.name} 
+                        className="watch-img-small" 
+                      />
+                      <div className="watch-details">
+                        <h3>{item.product?.name}</h3>
+                        <p>{item.product?.brand}</p>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                          <div style={{ display: 'flex', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
+                            <button 
+                              onClick={() => handleUpdateQuantity(item._id, currentCartQuantity, -1, productQuantity)}
+                              style={{ padding: '4px 10px', background: '#1a1a1a', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                              -
+                            </button>
+                            <span style={{ padding: '4px 12px', background: '#fff', color: '#1a1a1a', fontSize: '0.9rem', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                              {currentCartQuantity}
+                            </span>
+                            {/* ARTIRMA BUTONU: disabled özelliği kaldırıldı, toast mesajını tetikleyebilmesi için tıklanabilir bırakıldı */}
+                            <button 
+                              onClick={() => handleUpdateQuantity(item._id, currentCartQuantity, 1, productQuantity)}
+                              style={{ 
+                                padding: '4px 10px', 
+                                background: '#1a1a1a', 
+                                color: '#fff', 
+                                border: 'none', 
+                                cursor: (productQuantity && currentCartQuantity >= productQuantity) ? 'not-allowed' : 'pointer', 
+                                fontWeight: 'bold',
+                                opacity: (productQuantity && currentCartQuantity >= productQuantity) ? 0.4 : 1
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
                       </div>
+                      <div className="watch-price">
+                        ${((item.product?.price || 0) * currentCartQuantity).toLocaleString()}
+                      </div>
+                      <button className="delete-item-btn" onClick={() => handleRemove(item._id)}>Remove</button>
                     </div>
-                    <div className="watch-price">
-                      ${((item.product.price || 0) * (item.quantity || 1)).toLocaleString()}
-                    </div>
-                    <button className="delete-item-btn" onClick={() => handleRemove(item._id)}>Remove</button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="summary-card-white">
