@@ -235,9 +235,9 @@ const ProductDetailsPage = () => {
 
           <div className="action-buttons" style={{ display: 'flex', gap: '15px', alignItems: 'center', marginTop: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px', overflow: 'hidden', opacity: (product.status !== 'available' || product.stock === 0) ? 0.4 : 1 }}>
-              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>-</button>
+              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#1a1a1a', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>-</button>
               <span style={{ padding: '10px 20px', fontWeight: 'bold' }}>{quantity}</span>
-              <button onClick={() => setQuantity(q => Math.min(product.stock || 99, q + 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#f5f5f5', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>+</button>
+              <button onClick={() => setQuantity(q => Math.min(product.stock || 99, q + 1))} disabled={product.status !== 'available' || product.stock === 0} style={{ padding: '10px 15px', border: 'none', background: '#1a1a1a', cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer', fontSize: '18px' }}>+</button>
             </div>
 
             <button

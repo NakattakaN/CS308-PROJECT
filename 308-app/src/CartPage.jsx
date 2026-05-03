@@ -122,7 +122,7 @@ const CartPage = () => {
                         <div style={{ display: 'flex', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
                           <button 
                             onClick={() => handleUpdateQuantity(item._id, (item.quantity || 1), -1)}
-                            style={{ padding: '4px 10px', background: '#f5f5f5', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                            style={{ padding: '4px 10px', background: '#1a1a1a', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                             // disabled özelliğini kaldırdık, böylece 1'deyken basılabilir ve silme tetiklenir
                           >
                             -
@@ -132,7 +132,7 @@ const CartPage = () => {
                           </span>
                           <button 
                             onClick={() => handleUpdateQuantity(item._id, (item.quantity || 1), 1)}
-                            style={{ padding: '4px 10px', background: '#f5f5f5', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                            style={{ padding: '4px 10px', background: '#1a1a1a', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                           >
                             +
                           </button>
