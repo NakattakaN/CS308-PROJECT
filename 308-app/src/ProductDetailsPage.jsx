@@ -69,28 +69,36 @@ const ProductDetailsPage = () => {
     fetchReviews();
   }, [fetchProduct, fetchReviews]);
 
+ 
   const handleAddToCart = async () => {
-    if (!userId || !authToken) {
-      navigate('/login');
-      return;
-    }
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}` 
         },
-        body: JSON.stringify({ productId: product._id, quantity: quantity })
+        body: JSON.stringify({ 
+          productId: product._id, 
+          quantity: quantity      
+        })
       });
+
       const data = await response.json();
-      if (response.ok) {
-        showToast(`${quantity} ${quantity === 1 ? 'item' : 'items'} added to your cart!`, 'success');
-      } else {
-        showToast('Could not add to cart: ' + data.message, 'error');
+
+     
+      if (!response.ok) {
+        
+        showToast(data.message || "Stok yetersiz.", "error");
+        return; 
       }
+
+      
+      showToast("Ürün sepete eklendi!", "success");
+      
     } catch (error) {
-      console.error('Add to cart error:', error);
+      console.error("Sepete eklenirken hata oluştu:", error);
+      showToast("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
     }
   };
 

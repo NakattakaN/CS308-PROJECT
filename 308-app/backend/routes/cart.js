@@ -39,37 +39,48 @@ router.get('/users/:userId/cart', async (req, res) => {
   }
 });
 
-// SEPETE SAAT EKLE (Miktar Kontrollü)
+// SEPETE SAAT EKLE (Miktar Kontrollü - Sıkı Denetim)
 router.post('/users/:userId/cart', async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     const user = await User.findById(req.params.userId);
-    const product = await Product.findById(productId).lean();
+    
+    // Ürünün en güncel stok bilgisini doğrudan Product koleksiyonundan çekiyoruz
+    const product = await Product.findById(productId);
 
     if (!product) return res.status(404).json({ message: "Saat bulunamadı!" });
 
     const safeQty = Number.parseInt(quantity) || 1;
+    const currentStock = product.stock || product.quantity || 0; // Veritabanındaki gerçek stok
 
+    // Ürün zaten sepette var mı?
     const existingIndex = user.cart.findIndex(item => item.product._id.toString() === productId);
 
     if (existingIndex > -1) {
-      if (user.cart[existingIndex].quantity + safeQty > product.quantity) {
-          return res.status(400).json({ message: "Bu üründen daha fazla ekleyemezsiniz. Stok sınırı aşıldı." });
+      // KRİTİK KONTROL: Sepetteki miktar + Yeni eklenen miktar > Gerçek Stok
+      const totalPlannedQuantity = user.cart[existingIndex].quantity + safeQty;
+      
+      if (totalPlannedQuantity > currentStock) {
+        return res.status(400).json({ 
+          message: `Stok sınırı aşıldı! Sepetinizde zaten ${user.cart[existingIndex].quantity} adet var. En fazla ${currentStock - user.cart[existingIndex].quantity} adet daha ekleyebilirsiniz.` 
+        });
       }
-      user.cart[existingIndex].quantity += safeQty;
+      user.cart[existingIndex].quantity = totalPlannedQuantity;
     } else {
-      if (safeQty > product.quantity) {
-          return res.status(400).json({ message: "Stokta yeterli ürün yok." });
+      // Ürün ilk kez ekleniyorsa sadece stok kontrolü yap
+      if (safeQty > currentStock) {
+        return res.status(400).json({ message: `Yetersiz stok! En fazla ${currentStock} adet ekleyebilirsiniz.` });
       }
       user.cart.push({ product, quantity: safeQty });
     }
 
     await user.save();
     
+    // Güncel sepeti (yeni yazdığımız populate fonksiyonuyla) döndür
     const cartWithStock = await populateCartWithStock(user.cart);
     res.status(200).json({ message: "Sepet güncellendi!", cart: cartWithStock });
   } catch (error) {
-    console.error("POST Ekleme Hatası:", error);
+    console.error("POST Hatası:", error);
     res.status(500).json({ error: error.message });
   }
 });
