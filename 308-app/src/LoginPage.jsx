@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from './Toast';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const showToast = useToast();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (localStorage.getItem('isLoggedIn') === 'true') navigate('/home');
@@ -53,8 +54,22 @@ const LoginPage = () => {
         localStorage.setItem('userName', data.firstName);
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userRole', data.role || 'user');
-        // REDIRECT TO HOME PAGE (ProductPage) AFTER SUCCESSFUL LOGIN
-        navigate('/home');
+
+        // Merge guest cart into server cart
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+        if (guestCart.length > 0) {
+          await Promise.all(guestCart.map(item =>
+            fetch(`http://localhost:5000/api/users/${data.userId}/cart`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
+              body: JSON.stringify({ productId: item.productId, quantity: item.quantity })
+            })
+          ));
+          localStorage.removeItem('guestCart');
+        }
+
+        const returnTo = searchParams.get('returnTo') || '/home';
+        navigate(returnTo);
       } else {
         // Incorrect password or user not found case
         showToast('Login Failed: ' + data.message, 'error');

@@ -32,6 +32,7 @@ const ProductDetailsPage = () => {
   const [offerSubmitting, setOfferSubmitting] = useState(false);
 
   const [imgError, setImgError] = useState(false);
+  const [canReview, setCanReview] = useState(false);
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
   const userName = localStorage.getItem('userName') || '';
@@ -69,9 +70,41 @@ const ProductDetailsPage = () => {
     fetchReviews();
   }, [fetchProduct, fetchReviews]);
 
+  useEffect(() => {
+    if (!userId || !authToken) { setCanReview(false); return; }
+    fetch(`http://localhost:5000/api/users/${userId}/orders`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(orders => {
+        const eligible = Array.isArray(orders) && orders.some(o =>
+          o.status === 'delivered' &&
+          o.items.some(item => String(item.productId) === id)
+        );
+        setCanReview(eligible);
+      })
+      .catch(() => setCanReview(false));
+  }, [userId, authToken, id]);
+
   const handleAddToCart = async () => {
     if (!userId || !authToken) {
-      navigate('/login');
+      // Guest: save to localStorage
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const existing = guestCart.find(i => i.productId === product._id);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        guestCart.push({
+          productId: product._id,
+          name: product.name,
+          brand: product.brand,
+          price: product.price,
+          image: product.image,
+          quantity
+        });
+      }
+      localStorage.setItem('guestCart', JSON.stringify(guestCart));
+      showToast(`${quantity} ${quantity === 1 ? 'item' : 'items'} added to your cart!`, 'success');
       return;
     }
     try {
@@ -300,53 +333,60 @@ const ProductDetailsPage = () => {
         <h2 style={{ marginTop: 0 }}>Reviews</h2>
 
         {authToken ? (
-          <form onSubmit={handleSubmitReview} style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
-            <h3 style={{ marginTop: 0 }}>{myReview ? 'Update your review' : 'Leave a review'}</h3>
-            <p style={{ color: '#666', marginTop: '-4px' }}>Ratings are posted instantly. Reviews with a comment need admin approval first.</p>
-            <div style={{ margin: '12px 0' }}>
-              <label style={{ marginRight: '10px' }}>Rating:</label>
-              {[1, 2, 3, 4, 5].map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setDraft(d => ({ ...d, rating: n }))}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '24px',
-                    color: n <= draft.rating ? '#f5a623' : '#d4d4d4',
-                    padding: '0 2px'
-                  }}
-                  aria-label={`${n} star${n === 1 ? '' : 's'}`}
-                >★</button>
-              ))}
-            </div>
-            <textarea
-              value={draft.body}
-              onChange={(e) => setDraft(d => ({ ...d, body: e.target.value }))}
-              placeholder="Share your thoughts (optional)"
-              rows={4}
-              maxLength={1000}
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontFamily: 'inherit' }}
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                marginTop: '10px',
-                padding: '10px 18px',
-                background: '#1a1a1a',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: submitting ? 'wait' : 'pointer',
-                fontWeight: 600
-              }}
-            >
-              {submitting ? 'Submitting…' : myReview ? 'Resubmit' : 'Submit review'}
-            </button>
-          </form>
+          canReview ? (
+            <form onSubmit={handleSubmitReview} style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
+              <h3 style={{ marginTop: 0 }}>{myReview ? 'Update your review' : 'Leave a review'}</h3>
+              <p style={{ color: '#666', marginTop: '-4px' }}>Ratings are posted instantly. Reviews with a comment need admin approval first.</p>
+              <div style={{ margin: '12px 0' }}>
+                <label style={{ marginRight: '10px' }}>Rating:</label>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setDraft(d => ({ ...d, rating: n }))}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '24px',
+                      color: n <= draft.rating ? '#f5a623' : '#d4d4d4',
+                      padding: '0 2px'
+                    }}
+                    aria-label={`${n} star${n === 1 ? '' : 's'}`}
+                  >★</button>
+                ))}
+              </div>
+              <textarea
+                value={draft.body}
+                onChange={(e) => setDraft(d => ({ ...d, body: e.target.value }))}
+                placeholder="Share your thoughts (optional)"
+                rows={4}
+                maxLength={1000}
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontFamily: 'inherit' }}
+              />
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  marginTop: '10px',
+                  padding: '10px 18px',
+                  background: '#1a1a1a',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: submitting ? 'wait' : 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                {submitting ? 'Submitting…' : myReview ? 'Resubmit' : 'Submit review'}
+              </button>
+            </form>
+          ) : (
+            <p style={{ color: '#64748b', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
+              You can only review products from a <strong>delivered order</strong>.{' '}
+              <button onClick={() => navigate('/orders')} style={{ background: 'none', border: 'none', color: '#0f172a', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>Track your orders →</button>
+            </p>
+          )
         ) : (
           <p style={{ color: '#64748b' }}>
             <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#0f172a', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>Sign in</button> to leave a review. Purchase required.

@@ -136,7 +136,7 @@ const PaymentPage = () => {
 
   useEffect(() => {
     if (!userId) {
-      navigate('/login');
+      navigate('/login?returnTo=/payment');
       return;
     }
 
