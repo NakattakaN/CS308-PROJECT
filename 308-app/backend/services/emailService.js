@@ -1,19 +1,43 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+let transporter = null;
 
-// Sends the invoice PDF as an email attachment to the buyer
+async function getTransporter() {
+  if (transporter) return transporter;
+
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+    console.log('📧 Email: using Gmail SMTP');
+  } else {
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
+    console.log('📧 Email: no SMTP credentials — using Ethereal test account');
+    console.log('   View sent emails at: https://ethereal.email');
+  }
+
+  return transporter;
+}
+
 async function sendInvoiceEmail(to, name, orderId, total, pdfBuffer) {
+  const transport = await getTransporter();
   const shortId = orderId.slice(-8).toUpperCase();
 
-  await transporter.sendMail({
-    from: `"Saatinden" <${process.env.SMTP_USER}>`,
+  const info = await transport.sendMail({
+    from: `"Saatinden" <${process.env.SMTP_USER || 'noreply@saatinden.com'}>`,
     to,
     subject: `Your Saatinden Invoice #${shortId}`,
     html: `
@@ -32,6 +56,11 @@ async function sendInvoiceEmail(to, name, orderId, total, pdfBuffer) {
       contentType: 'application/pdf'
     }]
   });
+
+  const previewUrl = nodemailer.getTestMessageUrl(info);
+  if (previewUrl) {
+    console.log(`📧 Invoice preview (Ethereal): ${previewUrl}`);
+  }
 }
 
 module.exports = { sendInvoiceEmail };
