@@ -60,13 +60,14 @@ router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
     const product = await Product.findById(productId).select('_id');
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    // Purchase gate: user must have bought this product
+    // Purchase gate: user must have bought this product AND it must be delivered
     const hasPurchased = await Order.findOne({
       userId: req.userId,
-      'items.productId': productId
+      'items.productId': productId,
+      status: 'Delivered'
     });
     if (!hasPurchased) {
-      return res.status(403).json({ message: 'You can only review products you have purchased.' });
+      return res.status(403).json({ message: 'You can only review products after they have been delivered.' });
     }
 
     const rawRating = Number.parseInt(req.body.rating, 10);
