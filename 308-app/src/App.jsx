@@ -9,6 +9,7 @@ import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
+import OrdersPage from './OrdersPage';
 import InvoicePage from './InvoicePage';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -38,6 +39,9 @@ function App() {
 
         {/* INVOICE */}
         <Route path="/invoice/:orderId" element={<InvoicePage />} />
+
+        {/* ORDERS */}
+        <Route path="/orders" element={<OrdersPage />} />
 
         {/* ADMIN */}
         <Route path="/admin" element={<AdminPage />} />

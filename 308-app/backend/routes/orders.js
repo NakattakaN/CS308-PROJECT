@@ -3,7 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
 
@@ -72,6 +72,37 @@ router.get('/users/:userId/orders', requireAuth, async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 });
     res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: get all orders with user info
+router.get('/admin/orders', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate('userId', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: update order status
+router.patch('/admin/orders/:id/status', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['processing', 'in_transit', 'delivered'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

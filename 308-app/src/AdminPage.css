@@ -288,3 +288,17 @@
   gap: 0.5rem;
   margin-top: 0.25rem;
 }
+
+
+.order-status-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+.order-status-select.status-processing { background: #fef9c3; color: #854d0e; }
+.order-status-select.status-in_transit { background: #dbeafe; color: #1e40af; }
+.order-status-select.status-delivered  { background: #dcfce7; color: #166534; }

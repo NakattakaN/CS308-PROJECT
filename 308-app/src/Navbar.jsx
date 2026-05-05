@@ -83,6 +83,7 @@ const Navbar = () => {
             {isAdmin && (
               <button className="nav-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
             )}
+            <button className="nav-btn" onClick={() => navigate('/orders')}>My Orders</button>
             <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
             <button className="nav-btn" onClick={handleLogout}>Logout</button>
           </>

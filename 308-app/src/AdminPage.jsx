@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import './AdminPage.css';
 
-const TABS = ['Products', 'Users', 'Offers', 'Reviews'];
+const TABS = ['Products', 'Users', 'Orders', 'Offers', 'Reviews'];
 const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
+const ORDER_STATUSES = ['processing', 'in_transit', 'delivered'];
+const ORDER_STATUS_LABELS = { processing: 'Processing', in_transit: 'In Transit', delivered: 'Delivered' };
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -12,13 +14,16 @@ const AdminPage = () => {
   const authToken = localStorage.getItem('authToken');
 
   const [activeTab, setActiveTab] = useState('Products');
+  const [refreshKey, setRefreshKey] = useState(0);
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [offers, setOffers] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [reviewStatus, setReviewStatus] = useState('UNDER_REVIEW');
   const [loading, setLoading] = useState(false);
   const [busyReviewId, setBusyReviewId] = useState(null);
+  const [busyOrderId, setBusyOrderId] = useState(null);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -51,21 +56,45 @@ const AdminPage = () => {
     } else {
       fetchTab(activeTab);
     }
-  }, [activeTab, reviewStatus, fetchReviews]);
+  }, [activeTab, reviewStatus, refreshKey, fetchReviews]);
 
   const fetchTab = async (tab) => {
     setLoading(true);
     try {
-      const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers' };
-      const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`);
+      const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers', Orders: '/admin/orders' };
+      const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      if (!res.ok) { console.error(`Fetch ${tab} failed: ${res.status}`); return; }
       const data = await res.json();
+      if (!Array.isArray(data)) { console.error(`Expected array for ${tab}`, data); return; }
       if (tab === 'Products') setProducts(data);
       else if (tab === 'Users') setUsers(data);
       else if (tab === 'Offers') setOffers(data);
+      else if (tab === 'Orders') setOrders(data);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (id, status) => {
+    if (busyOrderId) return;
+    setBusyOrderId(id);
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) { showToast('Failed to update order status', 'error'); return; }
+      const updated = await res.json();
+      setOrders(prev => prev.map(o => o._id === id ? { ...o, status: updated.status } : o));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBusyOrderId(null);
     }
   };
 
@@ -119,7 +148,7 @@ const AdminPage = () => {
           <button
             key={tab}
             className={`admin-tab-btn ${activeTab === tab ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => { setActiveTab(tab); setRefreshKey(k => k + 1); }}
           >
             {tab}
           </button>
@@ -162,6 +191,40 @@ const AdminPage = () => {
                   <td>{u.email}</td>
                   <td><span className={`role-badge ${u.role}`}>{u.role}</span></td>
                   <td>{new Date(u.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {!loading && activeTab === 'Orders' && (
+          <table className="admin-table">
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {orders.map(o => (
+                <tr key={o._id}>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>#{o._id.slice(-8).toUpperCase()}</td>
+                  <td>
+                    {o.userId ? `${o.userId.firstName || ''} ${o.userId.lastName || ''}`.trim() : '—'}
+                    {o.userId?.email && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{o.userId.email}</div>}
+                  </td>
+                  <td>{o.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}</td>
+                  <td>${(o.totalAmount || 0).toLocaleString()}</td>
+                  <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <select
+                      value={o.status || 'processing'}
+                      disabled={busyOrderId === o._id}
+                      onChange={e => updateOrderStatus(o._id, e.target.value)}
+                      className={`order-status-select status-${o.status || 'processing'}`}
+                    >
+                      {ORDER_STATUSES.map(s => (
+                        <option key={s} value={s}>{ORDER_STATUS_LABELS[s]}</option>
+                      ))}
+                    </select>
+                  </td>
                 </tr>
               ))}
             </tbody>
