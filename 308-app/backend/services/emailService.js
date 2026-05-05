@@ -1,21 +1,49 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
+let transporter;
+let isEthereal = false;
+
+async function initTransporter() {
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST ,
+      port: process.env.SMTP_PORT ,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+  } else {
+    // Use Ethereal Email for testing if no credentials are provided
+    const testAccount = await nodemailer.createTestAccount();
+    isEthereal = true;
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
+    console.log('Using Ethereal Email for testing. Emails will be logged to console.');
   }
-});
+}
 
 // Sends the invoice PDF as an email attachment to the buyer
 async function sendInvoiceEmail(to, name, orderId, total, pdfBuffer) {
+  if (!transporter) {
+    await initTransporter();
+  }
+
   const shortId = orderId.slice(-8).toUpperCase();
 
-  await transporter.sendMail({
-    from: `"Saatinden" <${process.env.SMTP_USER}>`,
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_USER ? `"Saatinden Store" <${process.env.SMTP_USER}>` : '"Saatinden Test" <test@saatinden.local>',
+    replyTo: process.env.SMTP_USER,
     to,
     subject: `Your Saatinden Invoice #${shortId}`,
+    text: `Thank you for your purchase, ${name}!\n\nYour order #${shortId} has been confirmed.\nTotal charged: $${total.toLocaleString()}\n\nYour invoice is attached as a PDF.\n\nSaatinden — Premium Watch Marketplace`,
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 500px; margin: 0 auto;">
         <h2 style="color: #0f172a;">Thank you for your purchase, ${name}!</h2>
@@ -32,6 +60,10 @@ async function sendInvoiceEmail(to, name, orderId, total, pdfBuffer) {
       contentType: 'application/pdf'
     }]
   });
+
+  if (isEthereal) {
+    console.log(`Invoice email sent via Ethereal: ${nodemailer.getTestMessageUrl(info)}`);
+  }
 }
 
 module.exports = { sendInvoiceEmail };

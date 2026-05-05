@@ -10,6 +10,7 @@ import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
 import InvoicePage from './InvoicePage';
+import OrdersPage from './OrdersPage';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { ToastProvider } from './Toast';
@@ -38,6 +39,9 @@ function App() {
 
         {/* INVOICE */}
         <Route path="/invoice/:orderId" element={<InvoicePage />} />
+
+        {/* ORDERS */}
+        <Route path="/orders" element={<OrdersPage />} />
 
         {/* ADMIN */}
         <Route path="/admin" element={<AdminPage />} />

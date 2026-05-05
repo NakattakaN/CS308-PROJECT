@@ -23,7 +23,8 @@ router.post('/orders', requireAuth, async (req, res) => {
       userId: req.userId,
       items,
       totalAmount,
-      shippingAddress
+      shippingAddress,
+      status: 'Processing'
     });
 
     // Generate PDF and send email in the background — don't block the response
@@ -70,7 +71,9 @@ router.get('/orders/:orderId/invoice', requireAuth, async (req, res) => {
 // Get orders for a user
 router.get('/users/:userId/orders', requireAuth, async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ userId: req.params.userId })
+      .populate('items.productId', 'image')
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
