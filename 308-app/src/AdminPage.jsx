@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import './AdminPage.css';
 
-const TABS = ['Products', 'Users', 'Offers', 'Reviews'];
+const TABS = ['Products', 'Users', 'Offers', 'Reviews', 'Orders'];
 const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const AdminPage = () => {
@@ -16,6 +16,7 @@ const AdminPage = () => {
   const [users, setUsers] = useState([]);
   const [offers, setOffers] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [reviewStatus, setReviewStatus] = useState('UNDER_REVIEW');
   const [loading, setLoading] = useState(false);
   const [busyReviewId, setBusyReviewId] = useState(null);
@@ -56,12 +57,13 @@ const AdminPage = () => {
   const fetchTab = async (tab) => {
     setLoading(true);
     try {
-      const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers' };
+      const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers', Orders: '/admin/orders' };
       const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`);
       const data = await res.json();
       if (tab === 'Products') setProducts(data);
       else if (tab === 'Users') setUsers(data);
       else if (tab === 'Offers') setOffers(data);
+      else if (tab === 'Orders') setOrders(data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -83,6 +85,16 @@ const AdminPage = () => {
     });
     const updated = await res.json();
     setOffers(prev => prev.map(o => o._id === id ? updated : o));
+  };
+
+  const updateAdminOrderStatus = async (id, status) => {
+    const res = await fetch(`http://localhost:5000/api/admin/orders/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const updated = await res.json();
+    setOrders(prev => prev.map(o => o._id === id ? { ...o, status: updated.status } : o));
   };
 
   const moderateReview = async (id, nextStatus) => {
@@ -189,6 +201,35 @@ const AdminPage = () => {
                       </>
                     )}
                     {o.status !== 'pending' && <span style={{ color: '#94a3b8' }}>—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {!loading && activeTab === 'Orders' && (
+          <table className="admin-table">
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {orders.map(o => (
+                <tr key={o._id}>
+                  <td>{o._id.toString().slice(-8).toUpperCase()}</td>
+                  <td>{o.userId?.firstName} {o.userId?.lastName}</td>
+                  <td>${o.totalAmount?.toLocaleString()}</td>
+                  <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <select 
+                      className={`status-select ${o.status?.toLowerCase() || 'processing'}`}
+                      value={o.status || 'Processing'}
+                      onChange={(e) => updateAdminOrderStatus(o._id, e.target.value)}
+                    >
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                    </select>
                   </td>
                 </tr>
               ))}

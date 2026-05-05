@@ -17,6 +17,11 @@ const orderSchema = new mongoose.Schema({
     address:  String,
     city:     String,
     zipCode:  String
+  },
+  status: { 
+    type: String, 
+    enum: ['Processing', 'Shipped', 'Delivered'], 
+    default: 'Processing' 
   }
 }, { timestamps: true });
 
