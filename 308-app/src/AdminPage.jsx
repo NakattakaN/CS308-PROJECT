@@ -211,13 +211,20 @@ const AdminPage = () => {
         {!loading && activeTab === 'Orders' && (
           <table className="admin-table">
             <thead>
-              <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+              <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Amount</th><th>Date</th><th>Status</th><th>Invoice</th></tr>
             </thead>
             <tbody>
               {orders.map(o => (
                 <tr key={o._id}>
                   <td>{o._id.toString().slice(-8).toUpperCase()}</td>
                   <td>{o.userId?.firstName} {o.userId?.lastName}</td>
+                  <td>
+                    <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {o.items?.map((item, idx) => (
+                        <span key={idx}>{item.quantity}x {item.name}</span>
+                      ))}
+                    </div>
+                  </td>
                   <td>${o.totalAmount?.toLocaleString()}</td>
                   <td>{new Date(o.createdAt).toLocaleDateString()}</td>
                   <td>
@@ -230,6 +237,9 @@ const AdminPage = () => {
                       <option value="Shipped">Shipped</option>
                       <option value="Delivered">Delivered</option>
                     </select>
+                  </td>
+                  <td>
+                    <button className="admin-btn-secondary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }} onClick={() => navigate(`/invoice/${o._id}`)}>Invoice</button>
                   </td>
                 </tr>
               ))}
