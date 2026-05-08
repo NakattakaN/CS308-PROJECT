@@ -70,33 +70,49 @@ router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
       return res.status(403).json({ message: 'You can only review products after they have been delivered.' });
     }
 
-    const rawRating = Number.parseInt(req.body.rating, 10);
-    if (!Number.isFinite(rawRating) || rawRating < 1 || rawRating > 5) {
-      return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
+    const hasRating = req.body.rating != null && req.body.rating !== '';
+    const hasBody = typeof req.body.body === 'string' && req.body.body.trim().length > 0;
+
+    if (!hasRating && !hasBody) {
+      return res.status(400).json({ message: 'Please provide a rating, a comment, or both.' });
     }
 
-    const body = typeof req.body.body === 'string' ? req.body.body.trim().slice(0, 1000) : '';
+    let rawRating;
+    if (hasRating) {
+      rawRating = Number.parseInt(req.body.rating, 10);
+      if (!Number.isFinite(rawRating) || rawRating < 1 || rawRating > 5) {
+        return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
+      }
+    }
+
+    const newBody = hasBody ? req.body.body.trim().slice(0, 1000) : null;
 
     const author = await User.findById(req.userId).select('firstName lastName');
     if (!author) return res.status(401).json({ message: 'Invalid auth token' });
     const reviewerName = [author.firstName, author.lastName].filter(Boolean).join(' ').trim() || 'Anonymous';
 
-    // Reviews with a comment need moderator approval; rating-only reviews are auto-approved.
-    const nextStatus = body.length > 0 ? 'UNDER_REVIEW' : 'APPROVED';
+    // Merge with existing review so rating-only and comment-only submissions don't erase each other
+    const existing = await Review.findOne({ product: productId, user: req.userId });
+    const finalRating = hasRating ? rawRating : existing?.rating;
+    const finalBody = newBody !== null ? newBody : (existing?.body ?? '');
+
+    // Body changes need moderation; rating-only is auto-approved
+    const bodyChanged = newBody !== null && newBody !== (existing?.body ?? '');
+    let nextStatus;
+    if (finalBody.length > 0) {
+      nextStatus = bodyChanged ? 'UNDER_REVIEW' : (existing?.status ?? 'UNDER_REVIEW');
+    } else {
+      nextStatus = 'APPROVED';
+    }
+
+    const setFields = { reviewerName, body: finalBody, status: nextStatus };
+    if (finalRating !== undefined) setFields.rating = finalRating;
+    if (bodyChanged) { setFields.moderatedBy = null; setFields.moderatedAt = null; }
 
     const review = await Review.findOneAndUpdate(
       { product: productId, user: req.userId },
-      {
-        product: productId,
-        user: req.userId,
-        reviewerName,
-        rating: rawRating,
-        body,
-        status: nextStatus,
-        moderatedBy: undefined,
-        moderatedAt: undefined
-      },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { $set: setFields, $setOnInsert: { product: productId, user: req.userId } },
+      { new: true, upsert: true }
     );
 
     res.status(201).json(review);
