@@ -119,10 +119,7 @@ const LoginPage = () => {
               </div>
 
               <div className="input-group">
-                <div className="label-flex">
-                  <label htmlFor="password">Password</label>
-                  <a href="#forgot" className="forgot-password">Forgot Password?</a>
-                </div>
+                <label htmlFor="password">Password</label>
                 <input
                   type="password"
                   id="password"
@@ -134,18 +131,7 @@ const LoginPage = () => {
                 />
               </div>
 
-              <div className="remember-me">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                />
-                <label htmlFor="rememberMe">Keep me signed in</label>
-              </div>
-
-              <button type="submit" className="btn-primary">Sign In</button>
+<button type="submit" className="btn-primary">Sign In</button>
             </form>
 
             <div className="divider">
