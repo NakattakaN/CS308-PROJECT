@@ -53,9 +53,12 @@ router.get('/orders/:orderId/invoice', requireAuth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.userId.toString() !== req.userId) return res.status(403).json({ message: 'Forbidden' });
+    if (order.userId.toString() !== req.userId && req.userRole !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
 
-    const user = await User.findById(req.userId).select('firstName lastName email');
+    const targetUserId = order.userId.toString() === req.userId ? req.userId : order.userId;
+    const user = await User.findById(targetUserId).select('firstName lastName email');
     const pdfBuffer = await generateInvoicePdf(order, user || {});
 
     res.set({
