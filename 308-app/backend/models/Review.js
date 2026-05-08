@@ -16,7 +16,7 @@ const reviewSchema = new mongoose.Schema({
     index: true
   },
   reviewerName: { type: String, required: true },
-  rating: { type: Number, required: true, min: 1, max: 5 },
+  rating: { type: Number, required: false, min: 1, max: 5 },
   body: { type: String, default: '', maxlength: 1000 },
   status: {
     type: String,
