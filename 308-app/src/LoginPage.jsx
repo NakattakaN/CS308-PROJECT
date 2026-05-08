@@ -53,7 +53,24 @@ const LoginPage = () => {
         localStorage.setItem('userName', data.firstName);
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userRole', data.role || 'user');
-        // REDIRECT TO HOME PAGE (ProductPage) AFTER SUCCESSFUL LOGIN
+
+        // Merge guest cart into server cart if any
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+        if (guestCart.length > 0) {
+          try {
+            await Promise.all(guestCart.map(item =>
+              fetch(`http://localhost:5000/api/users/${data.userId}/cart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.token}` },
+                body: JSON.stringify({ productId: item._id, quantity: item.quantity })
+              })
+            ));
+            localStorage.removeItem('guestCart');
+          } catch (err) {
+            console.error('Failed to merge guest cart:', err);
+          }
+        }
+
         navigate('/home');
       } else {
         // Incorrect password or user not found case
