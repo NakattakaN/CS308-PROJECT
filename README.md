@@ -1,4 +1,4 @@
-# ⌚ Saatinden
+#  Saatinden
 
 > Discover your next timepiece. Saatinden is a comprehensive e-commerce platform designed for browsing, purchasing, and managing a curated collection of premium and everyday watches. Developed for the CS 308 Software Engineering course.
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 📑 Table of Contents
+##  Table of Contents
 
 * [About the Project](#-about-the-project)
 * [Core Features](#-core-features)
@@ -17,12 +17,12 @@
 
 ---
 
-## 🚀 About the Project
+##  About the Project
 **Saatinden** is a full-stack digital storefront dedicated to horology enthusiasts and casual buyers alike. The platform provides a seamless shopping experience, allowing users to browse watches by brand, movement type (automatic, manual, quartz), and style. 
 
 Beyond the customer-facing storefront, Saatinden includes a robust administrative backend for inventory management, order tracking, and dynamic pricing adjustments, fulfilling the complex requirements of a modern software engineering architecture.
 
-## ✨ Core Features
+##  Core Features
 
 ### For Customers (Frontend)
 * **Advanced Product Filtering:** Sort and filter watches by brand, price range, movement type, case material, and water resistance.
@@ -35,7 +35,7 @@ Beyond the customer-facing storefront, Saatinden includes a robust administrativ
 * **Order Fulfillment:** Track user orders from placement to delivery status.
 * **Sales Analytics:** View basic metrics on total revenue and best-selling watch models.
 
-## 🛠 Tech Stack
+##  Tech Stack
 The application is built using a modern JavaScript ecosystem to ensure high performance and responsive design:
 * **Frontend:** HTML5, CSS3, JavaScript (ES6+), [React/Vue]
 * **Backend:** Node.js, Express.js
@@ -43,7 +43,7 @@ The application is built using a modern JavaScript ecosystem to ensure high perf
 * **Authentication:** JSON Web Tokens (JWT) & bcrypt for secure password hashing
 * **Tools:** Git, GitHub Actions (CI/CD), Postman
 
-## 🗄️ Database Schema Outline
+##  Database Schema Outline
 The data architecture relies on three primary models:
 1. **Users:** Handles authentication credentials, shipping addresses, and role-based access (Customer vs. Admin).
 2. **Products (Watches):** Stores SKU, brand, model name, price, stock quantity, specifications (movement, dial color, strap), and image URLs.
@@ -51,7 +51,7 @@ The data architecture relies on three primary models:
 
 ---
 
-## 💻 Installation & Setup
+##  Installation & Setup
 
 Because this is a full-stack application, you will need to run both the backend API and the frontend development server simultaneously in separate terminal windows.
 
