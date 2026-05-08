@@ -89,6 +89,7 @@ const Navbar = () => {
           </>
         ) : (
           <>
+            <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
             <NavLink to="/login" className="nav-btn">Login</NavLink>
             <NavLink to="/register" className="nav-btn-primary">Register</NavLink>
           </>

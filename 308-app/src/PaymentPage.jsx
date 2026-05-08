@@ -236,19 +236,21 @@ const PaymentPage = () => {
         })
       });
 
-      const order = await orderRes.json();
+      const order = await orderRes.json().catch(() => ({}));
 
-      const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
+      if (!orderRes.ok || !order?._id) {
+        showToast(order?.error || order?.message || 'Order could not be created.', 'error');
+        return;
+      }
+
+      // Fire-and-forget cart clear — order succeeded, don't block invoice navigation on it.
+      fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'DELETE',
         headers: authHeaders
-      });
+      }).catch(() => {});
 
-      if (response.ok) {
-        showToast(`Payment of $${total.toLocaleString()} was successful!`, 'success');
-        navigate(`/invoice/${order._id}`);
-      } else {
-        showToast('Something went wrong with the payment.', 'error');
-      }
+      showToast(`Payment of $${total.toLocaleString()} was successful!`, 'success');
+      navigate(`/invoice/${order._id}`);
     } catch (error) {
       console.error('Payment error:', error);
       showToast('Payment error occurred. Please try again.', 'error');
