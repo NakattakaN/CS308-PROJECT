@@ -22,8 +22,11 @@ const ProductDetailsPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
-  const [draft, setDraft] = useState({ rating: 5, body: '' });
-  const [submitting, setSubmitting] = useState(false);
+  const [ratingDraft, setRatingDraft] = useState(0);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const reviewPrefilled = React.useRef(false);
   const [quantity, setQuantity] = useState(1);
 
   const [offerModalOpen, setOfferModalOpen] = useState(false);
@@ -71,69 +74,96 @@ const ProductDetailsPage = () => {
 
  
   const handleAddToCart = async () => {
+    // Guest user — save to localStorage, login required only at checkout
+    if (!userId || !authToken) {
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const existingIdx = guestCart.findIndex(item => item._id === product._id);
+      if (existingIdx >= 0) {
+        guestCart[existingIdx].quantity = Math.min(
+          guestCart[existingIdx].quantity + quantity,
+          product.stock || 99
+        );
+      } else {
+        guestCart.push({
+          _id: product._id,
+          product: { _id: product._id, name: product.name, brand: product.brand, image: product.image, price: product.price, stock: product.stock },
+          quantity
+        });
+      }
+      localStorage.setItem('guestCart', JSON.stringify(guestCart));
+      showToast('Added to cart! Sign in to checkout.', 'success');
+      return;
+    }
+
+    // Logged-in user — save to server
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}` 
-        },
-        body: JSON.stringify({ 
-          productId: product._id, 
-          quantity: quantity      
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ productId: product._id, quantity })
       });
-
       const data = await response.json();
-
-     
       if (!response.ok) {
-        
-        showToast(data.message || "Stok yetersiz.", "error");
-        return; 
+        showToast(data.message || 'Could not add to cart.', 'error');
+        return;
       }
-
-      
-      showToast("Ürün sepete eklendi!", "success");
-      
+      showToast('Added to cart!', 'success');
     } catch (error) {
-      console.error("Sepete eklenirken hata oluştu:", error);
-      showToast("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
+      console.error('Add to cart error:', error);
+      showToast('Something went wrong. Please try again.', 'error');
     }
   };
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    if (!authToken) {
-      navigate('/login');
-      return;
+  // Pre-fill drafts from existing review (only once on first load)
+  useEffect(() => {
+    if (reviewPrefilled.current) return;
+    const myRev = reviews.find(r => r.user === userId);
+    if (myRev) {
+      reviewPrefilled.current = true;
+      setRatingDraft(myRev.rating || 0);
+      setCommentDraft(myRev.body || '');
     }
-    if (submitting) return;
-    setSubmitting(true);
+  }, [reviews, userId]);
+
+  const handleSubmitRating = async () => {
+    if (!authToken) { navigate('/login'); return; }
+    if (ratingDraft === 0) { showToast('Please select a star rating.', 'error'); return; }
+    setRatingSubmitting(true);
     try {
       const response = await fetch(`http://localhost:5000/api/products/${id}/reviews`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ rating: draft.rating, body: draft.body })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ rating: ratingDraft })
       });
       const data = await response.json();
-      if (!response.ok) {
-        showToast(data.message || 'Could not submit review', 'error');
-        return;
-      }
-      const wasRatingOnly = !draft.body.trim();
-      setDraft({ rating: 5, body: '' });
+      if (!response.ok) { showToast(data.message || 'Could not submit rating', 'error'); return; }
       await fetchReviews();
-      showToast(wasRatingOnly
-        ? 'Thanks! Your rating has been posted.'
-        : 'Thanks! Your review is pending admin approval.', 'success');
+      showToast('Thanks! Your rating has been posted.', 'success');
     } catch (err) {
-      console.error('Submit review error:', err);
+      console.error('Submit rating error:', err);
     } finally {
-      setSubmitting(false);
+      setRatingSubmitting(false);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!authToken) { navigate('/login'); return; }
+    if (!commentDraft.trim()) { showToast('Please write a comment before submitting.', 'error'); return; }
+    setCommentSubmitting(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/${id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ body: commentDraft })
+      });
+      const data = await response.json();
+      if (!response.ok) { showToast(data.message || 'Could not submit comment', 'error'); return; }
+      await fetchReviews();
+      showToast('Thanks! Your comment is pending admin approval.', 'success');
+    } catch (err) {
+      console.error('Submit comment error:', err);
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -308,53 +338,65 @@ const ProductDetailsPage = () => {
         <h2 style={{ marginTop: 0 }}>Reviews</h2>
 
         {authToken ? (
-          <form onSubmit={handleSubmitReview} style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
-            <h3 style={{ marginTop: 0 }}>{myReview ? 'Update your review' : 'Leave a review'}</h3>
-            <p style={{ color: '#666', marginTop: '-4px' }}>Ratings are posted instantly. Reviews with a comment need admin approval first.</p>
-            <div style={{ margin: '12px 0' }}>
-              <label style={{ marginRight: '10px' }}>Rating:</label>
-              {[1, 2, 3, 4, 5].map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setDraft(d => ({ ...d, rating: n }))}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '24px',
-                    color: n <= draft.rating ? '#f5a623' : '#d4d4d4',
-                    padding: '0 2px'
-                  }}
-                  aria-label={`${n} star${n === 1 ? '' : 's'}`}
-                >★</button>
-              ))}
+          <div style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
+
+            {/* ── Rate this watch ── */}
+            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #f0f0f0' }}>
+              <h3 style={{ marginTop: 0 }}>{myReview?.rating ? 'Update your rating' : 'Rate this watch'}</h3>
+              <p style={{ color: '#666', marginTop: '-4px', fontSize: '0.9rem' }}>Ratings are posted instantly.</p>
+              {myReview?.rating && (
+                <p style={{ color: '#888', fontSize: '0.85rem', margin: '4px 0 8px' }}>
+                  Your current rating: {[1,2,3,4,5].map(n => <span key={n} style={{ color: n <= myReview.rating ? '#f5a623' : '#d4d4d4' }}>★</span>)}
+                </p>
+              )}
+              <div style={{ margin: '10px 0' }}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setRatingDraft(n)}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '28px', color: n <= ratingDraft ? '#f5a623' : '#d4d4d4', padding: '0 2px' }}
+                    aria-label={`${n} star${n === 1 ? '' : 's'}`}
+                  >★</button>
+                ))}
+              </div>
+              <button
+                onClick={handleSubmitRating}
+                disabled={ratingDraft === 0 || ratingSubmitting}
+                style={{ marginTop: '8px', padding: '10px 18px', background: ratingDraft === 0 ? '#ccc' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: ratingDraft === 0 || ratingSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+              >
+                {ratingSubmitting ? 'Submitting…' : myReview?.rating ? 'Update Rating' : 'Submit Rating'}
+              </button>
             </div>
-            <textarea
-              value={draft.body}
-              onChange={(e) => setDraft(d => ({ ...d, body: e.target.value }))}
-              placeholder="Share your thoughts (optional)"
-              rows={4}
-              maxLength={1000}
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontFamily: 'inherit' }}
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                marginTop: '10px',
-                padding: '10px 18px',
-                background: '#1a1a1a',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: submitting ? 'wait' : 'pointer',
-                fontWeight: 600
-              }}
-            >
-              {submitting ? 'Submitting…' : myReview ? 'Resubmit' : 'Submit review'}
-            </button>
-          </form>
+
+            {/* ── Write a comment ── */}
+            <div>
+              <h3 style={{ marginTop: 0 }}>{myReview?.body ? 'Update your comment' : 'Write a comment'}</h3>
+              <p style={{ color: '#666', marginTop: '-4px', fontSize: '0.9rem' }}>Comments need admin approval before they're visible.</p>
+              {myReview?.body && (
+                <p style={{ color: '#888', fontSize: '0.85rem', margin: '4px 0 8px' }}>
+                  Your current comment: "{myReview.body.length > 80 ? myReview.body.slice(0, 80) + '…' : myReview.body}"
+                  {myReview.status === 'UNDER_REVIEW' && <span style={{ marginLeft: '8px', color: '#b26b00' }}>· Pending approval</span>}
+                </p>
+              )}
+              <textarea
+                value={commentDraft}
+                onChange={e => setCommentDraft(e.target.value)}
+                placeholder="Share your thoughts about this watch..."
+                rows={4}
+                maxLength={1000}
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontFamily: 'inherit', boxSizing: 'border-box' }}
+              />
+              <button
+                onClick={handleSubmitComment}
+                disabled={!commentDraft.trim() || commentSubmitting}
+                style={{ marginTop: '8px', padding: '10px 18px', background: !commentDraft.trim() ? '#ccc' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: !commentDraft.trim() || commentSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+              >
+                {commentSubmitting ? 'Submitting…' : myReview?.body ? 'Update Comment' : 'Submit Comment'}
+              </button>
+            </div>
+
+          </div>
         ) : (
           <p style={{ color: '#64748b' }}>
             <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#0f172a', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>Sign in</button> to leave a review. Purchase required.

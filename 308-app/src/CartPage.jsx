@@ -15,12 +15,28 @@ const CartPage = () => {
 
   useEffect(() => {
     if (!userId) {
-      navigate('/login');
+      // Guest mode — load from localStorage
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      setCartItems(guestCart);
+      setLoading(false);
       return;
     }
 
     const fetchCart = async () => {
       try {
+        // Merge any guest cart items into server cart first
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+        if (guestCart.length > 0) {
+          await Promise.all(guestCart.map(item =>
+            fetch(`http://localhost:5000/api/users/${userId}/cart`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...authHeaders },
+              body: JSON.stringify({ productId: item._id, quantity: item.quantity })
+            })
+          ));
+          localStorage.removeItem('guestCart');
+        }
+
         const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
           headers: authHeaders
         });
@@ -34,21 +50,31 @@ const CartPage = () => {
     };
 
     fetchCart();
-  }, [userId, navigate]);
+  }, [userId]);
 
   // Miktarı güncelleyen fonksiyon (Optimistic UI - Anında Tepki)
   const handleUpdateQuantity = async (itemId, currentQuantity, change, maxQuantity) => {
     const newQuantity = currentQuantity + change;
-    
+
     // 1. STOK KONTROLÜ
     if (change > 0 && maxQuantity && newQuantity > maxQuantity) {
       showToast(`Stok sınırına ulaştınız! Bu üründen en fazla ${maxQuantity} adet alabilirsiniz.`, 'error');
-      return; 
+      return;
     }
 
     // 2. SİLME KONTROLÜ
     if (newQuantity < 1) {
       return handleRemove(itemId);
+    }
+
+    // Guest mode — update localStorage only
+    if (!userId) {
+      const updated = cartItems.map(item =>
+        item._id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(updated);
+      localStorage.setItem('guestCart', JSON.stringify(updated));
+      return;
     }
 
    
@@ -87,6 +113,14 @@ const CartPage = () => {
   };
 
   const handleRemove = async (itemId) => {
+    // Guest mode — remove from localStorage only
+    if (!userId) {
+      const updated = cartItems.filter(item => item._id !== itemId);
+      setCartItems(updated);
+      localStorage.setItem('guestCart', JSON.stringify(updated));
+      return;
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart/${itemId}`, {
         method: 'DELETE',
@@ -199,7 +233,9 @@ const CartPage = () => {
                     <span>${total.toLocaleString()}</span>
                   </div>
                 </div>
-                <button className="checkout-action-btn" onClick={() => navigate('/payment')}>Proceed to Checkout</button>
+                <button className="checkout-action-btn" onClick={() => userId ? navigate('/payment') : navigate('/login')}>
+                  {userId ? 'Proceed to Checkout' : 'Sign in to Checkout'}
+                </button>
               </div>
             </>
           ) : (
