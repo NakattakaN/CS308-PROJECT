@@ -2,8 +2,6 @@
 
 > Discover your next timepiece. Saatinden is a comprehensive e-commerce platform designed for browsing, purchasing, and managing a curated collection of premium and everyday watches. Developed for the CS 308 Software Engineering course.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
 ---
 
 ##  Table of Contents
