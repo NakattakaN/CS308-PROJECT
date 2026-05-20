@@ -83,4 +83,60 @@ router.get('/users/:userId/orders', requireAuth, async (req, res) => {
   }
 });
 
+// Cancel an order (only allowed while status is Processing)
+router.put('/orders/:orderId/cancel', requireAuth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.userId.toString() !== req.userId) return res.status(403).json({ message: 'Forbidden' });
+    if (order.status !== 'Processing') {
+      return res.status(400).json({ message: 'Only orders in Processing status can be cancelled' });
+    }
+
+    await Promise.all(order.items.map(item =>
+      Product.findByIdAndUpdate(item.productId, {
+        $inc: { stock: -item.quantity }
+      })
+    ));
+
+    order.status = 'Cancelled';
+    order.cancelledAt = new Date();
+    await order.save();
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Request a return for a delivered order (within 30 days of delivery)
+router.post('/orders/:orderId/return', requireAuth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.userId.toString() !== req.userId) return res.status(403).json({ message: 'Forbidden' });
+    if (order.status !== 'Delivered') {
+      return res.status(400).json({ message: 'Only delivered orders can be returned' });
+    }
+    if (order.returnStatus !== 'none') {
+      return res.status(400).json({ message: 'A return has already been requested for this order' });
+    }
+
+    const deliveredDate = order.deliveredAt || order.updatedAt;
+    const diffInDays = (Date.now() - new Date(deliveredDate).getTime()) / (1000 * 60 * 60 * 24);
+
+    if (diffInDays >= 30) {
+      return res.status(400).json({ message: 'Return window has expired (must be within 30 days of delivery)' });
+    }
+
+    order.returnStatus = 'requested';
+    order.returnRequestedAt = new Date();
+    await order.save();
+
+    res.json({ message: 'Return request submitted successfully', order });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

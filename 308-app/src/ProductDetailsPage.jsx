@@ -34,6 +34,9 @@ const ProductDetailsPage = () => {
   const [offerMessage, setOfferMessage] = useState('');
   const [offerSubmitting, setOfferSubmitting] = useState(false);
 
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
   const [imgError, setImgError] = useState(false);
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -71,6 +74,47 @@ const ProductDetailsPage = () => {
     fetchProduct();
     fetchReviews();
   }, [fetchProduct, fetchReviews]);
+
+  useEffect(() => {
+    if (!userId || !authToken || !id) return;
+    fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    })
+      .then(r => r.json())
+      .then(list => {
+        if (Array.isArray(list)) {
+          setIsInWishlist(list.some(p => p._id === id || p._id?.toString() === id));
+        }
+      })
+      .catch(() => {});
+  }, [userId, authToken, id]);
+
+  const handleToggleWishlist = async () => {
+    if (!userId || !authToken) { navigate('/login'); return; }
+    setWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        await fetch(`http://localhost:5000/api/users/${userId}/wishlist/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        setIsInWishlist(false);
+        showToast('Removed from wishlist', 'success');
+      } else {
+        await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify({ productId: id })
+        });
+        setIsInWishlist(true);
+        showToast('Added to wishlist!', 'success');
+      }
+    } catch {
+      showToast('Something went wrong', 'error');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
  
   const handleAddToCart = async () => {
@@ -292,6 +336,25 @@ const ProductDetailsPage = () => {
               setOfferModalOpen(true);
             }}>
               Make an Offer
+            </button>
+
+            <button
+              onClick={handleToggleWishlist}
+              disabled={wishlistLoading}
+              title={isInWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+              style={{
+                padding: '10px 18px',
+                border: `2px solid ${isInWishlist ? '#dc2626' : '#cbd5e1'}`,
+                borderRadius: '8px',
+                background: isInWishlist ? '#fee2e2' : 'transparent',
+                color: isInWishlist ? '#dc2626' : '#64748b',
+                cursor: wishlistLoading ? 'not-allowed' : 'pointer',
+                fontSize: '1.2rem',
+                lineHeight: 1,
+                transition: 'all 0.2s'
+              }}
+            >
+              {isInWishlist ? '♥' : '♡'}
             </button>
           </div>
 

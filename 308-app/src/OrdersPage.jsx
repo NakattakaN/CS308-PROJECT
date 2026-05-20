@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 import './OrdersPage.css';
 
 const OrdersPage = () => {
   const navigate = useNavigate();
+  const showToast = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionBusy, setActionBusy] = useState(null);
 
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -37,6 +40,44 @@ const OrdersPage = () => {
 
     fetchOrders();
   }, [userId, navigate, authToken]);
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    setActionBusy(orderId + '-cancel');
+    try {
+      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: authHeaders
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.message || 'Could not cancel order.', 'error'); return; }
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o));
+      showToast('Order cancelled successfully.', 'success');
+    } catch {
+      showToast('Something went wrong.', 'error');
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
+  const handleReturnRequest = async (orderId) => {
+    if (!window.confirm('Request a return for this order?')) return;
+    setActionBusy(orderId + '-return');
+    try {
+      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/return`, {
+        method: 'POST',
+        headers: authHeaders
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.message || 'Could not submit return request.', 'error'); return; }
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, returnStatus: 'requested' } : o));
+      showToast('Return request submitted! We will review it shortly.', 'success');
+    } catch {
+      showToast('Something went wrong.', 'error');
+    } finally {
+      setActionBusy(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -92,12 +133,40 @@ const OrdersPage = () => {
                     </div>
                   </div>
                   <div className="order-actions">
-                    <button 
+                    <button
                       className="view-invoice-btn"
                       onClick={() => navigate(`/invoice/${order._id}`)}
                     >
                       View Invoice
                     </button>
+                    {order.status === 'Processing' && (
+                      <button
+                        className="cancel-order-btn"
+                        onClick={() => handleCancelOrder(order._id)}
+                        disabled={actionBusy === order._id + '-cancel'}
+                      >
+                        {actionBusy === order._id + '-cancel' ? 'Cancelling...' : 'Cancel Order'}
+                      </button>
+                    )}
+                    {order.status === 'Delivered' && order.returnStatus === 'none' && (
+                      <button
+                        className="return-order-btn"
+                        onClick={() => handleReturnRequest(order._id)}
+                        disabled={actionBusy === order._id + '-return'}
+                      >
+                        {actionBusy === order._id + '-return' ? 'Submitting...' : 'Request Return'}
+                      </button>
+                    )}
+                    {order.returnStatus && order.returnStatus !== 'none' && (
+                      <span className={`return-status-badge ${order.returnStatus}`}>
+                        Return: {order.returnStatus.charAt(0).toUpperCase() + order.returnStatus.slice(1)}
+                      </span>
+                    )}
+                    {order.returnStatus === 'approved' && order.refundAmount > 0 && (
+                      <span className="refund-badge">
+                        Refund: ${order.refundAmount?.toLocaleString()} credited to wallet
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -34,7 +34,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: 'user' },
   authToken: { type: String, index: true },
-  cart: [cartItemSchema]
+  cart: [cartItemSchema],
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+  walletBalance: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

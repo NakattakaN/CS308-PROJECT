@@ -18,11 +18,16 @@ const orderSchema = new mongoose.Schema({
     city:     String,
     zipCode:  String
   },
-  status: { 
-    type: String, 
-    enum: ['Processing', 'Shipped', 'Delivered'], 
-    default: 'Processing' 
-  }
+  status: {
+    type: String,
+    enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
+    default: 'Processing'
+  },
+  cancelledAt:        { type: Date },
+  deliveredAt:        { type: Date },
+  returnStatus:       { type: String, enum: ['none', 'requested', 'approved', 'rejected'], default: 'none' },
+  returnRequestedAt:  { type: Date },
+  refundAmount:       { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

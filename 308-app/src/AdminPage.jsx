@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import './AdminPage.css';
 
-const TABS = ['Products', 'Users', 'Offers', 'Reviews', 'Orders'];
+const TABS = ['Products', 'Users', 'Offers', 'Reviews', 'Orders', 'Returns'];
 const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const AdminPage = () => {
@@ -17,6 +17,7 @@ const AdminPage = () => {
   const [offers, setOffers] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [returns, setReturns] = useState([]);
   const [reviewStatus, setReviewStatus] = useState('UNDER_REVIEW');
   const [loading, setLoading] = useState(false);
   const [busyReviewId, setBusyReviewId] = useState(null);
@@ -57,13 +58,14 @@ const AdminPage = () => {
   const fetchTab = async (tab) => {
     setLoading(true);
     try {
-      const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers', Orders: '/admin/orders' };
+      const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers', Orders: '/admin/orders', Returns: '/admin/returns' };
       const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`);
       const data = await res.json();
       if (tab === 'Products') setProducts(data);
       else if (tab === 'Users') setUsers(data);
       else if (tab === 'Offers') setOffers(data);
       else if (tab === 'Orders') setOrders(data);
+      else if (tab === 'Returns') setReturns(data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -85,6 +87,22 @@ const AdminPage = () => {
     });
     const updated = await res.json();
     setOffers(prev => prev.map(o => o._id === id ? updated : o));
+  };
+
+  const handleReturnAction = async (orderId, action) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/return`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ action })
+      });
+      if (!res.ok) { showToast('Action failed', 'error'); return; }
+      const updated = await res.json();
+      setReturns(prev => prev.map(o => o._id === orderId ? { ...o, returnStatus: updated.returnStatus, refundAmount: updated.refundAmount } : o));
+      showToast(action === 'approve' ? 'Return approved & refund issued' : 'Return rejected', 'success');
+    } catch {
+      showToast('Something went wrong', 'error');
+    }
   };
 
   const updateAdminOrderStatus = async (id, status) => {
@@ -228,18 +246,61 @@ const AdminPage = () => {
                   <td>${o.totalAmount?.toLocaleString()}</td>
                   <td>{new Date(o.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <select 
-                      className={`status-select ${o.status?.toLowerCase() || 'processing'}`}
-                      value={o.status || 'Processing'}
-                      onChange={(e) => updateAdminOrderStatus(o._id, e.target.value)}
-                    >
-                      <option value="Processing">Processing</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Delivered">Delivered</option>
-                    </select>
+                    {o.status === 'Cancelled' ? (
+                      <span className="status-badge cancelled">Cancelled</span>
+                    ) : (
+                      <select
+                        className={`status-select ${o.status?.toLowerCase() || 'processing'}`}
+                        value={o.status || 'Processing'}
+                        onChange={(e) => updateAdminOrderStatus(o._id, e.target.value)}
+                      >
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                      </select>
+                    )}
                   </td>
                   <td>
                     <button className="admin-btn-secondary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }} onClick={() => navigate(`/invoice/${o._id}`)}>Invoice</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {!loading && activeTab === 'Returns' && (
+          <table className="admin-table">
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Requested</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              {returns.length === 0 && (
+                <tr><td colSpan="6" style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>No return requests found.</td></tr>
+              )}
+              {returns.map(o => (
+                <tr key={o._id}>
+                  <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
+                  <td>{o.userId?.firstName} {o.userId?.lastName}<br /><span style={{ fontSize: '0.8rem', color: '#64748b' }}>{o.userId?.email}</span></td>
+                  <td>${o.totalAmount?.toLocaleString()}</td>
+                  <td>{o.returnRequestedAt ? new Date(o.returnRequestedAt).toLocaleDateString() : '—'}</td>
+                  <td>
+                    <span className={`status-badge ${o.returnStatus}`}>{o.returnStatus}</span>
+                    {o.returnStatus === 'approved' && o.refundAmount > 0 && (
+                      <span style={{ display: 'block', fontSize: '0.8rem', color: '#15803d', marginTop: '4px' }}>
+                        Refunded ${o.refundAmount?.toLocaleString()}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    {o.returnStatus === 'requested' ? (
+                      <>
+                        <button className="admin-btn-success" onClick={() => handleReturnAction(o._id, 'approve')}>Approve</button>
+                        <button className="admin-btn-danger" style={{ marginLeft: '6px' }} onClick={() => handleReturnAction(o._id, 'reject')}>Reject</button>
+                      </>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>—</span>
+                    )}
                   </td>
                 </tr>
               ))}

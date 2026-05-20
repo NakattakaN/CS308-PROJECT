@@ -11,6 +11,7 @@ import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
 import InvoicePage from './InvoicePage';
 import OrdersPage from './OrdersPage';
+import WishlistPage from './WishlistPage';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { ToastProvider } from './Toast';
@@ -42,6 +43,9 @@ function App() {
 
         {/* ORDERS */}
         <Route path="/orders" element={<OrdersPage />} />
+
+        {/* WISHLIST */}
+        <Route path="/wishlist" element={<WishlistPage />} />
 
         {/* ADMIN */}
         <Route path="/admin" element={<AdminPage />} />
