@@ -94,18 +94,28 @@ const ProductDetailsPage = () => {
     setWishlistLoading(true);
     try {
       if (isInWishlist) {
-        await fetch(`http://localhost:5000/api/users/${userId}/wishlist/${id}`, {
+        const res = await fetch(`http://localhost:5000/api/users/${userId}/wishlist/${id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${authToken}` }
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showToast(err.message || 'Could not remove from wishlist', 'error');
+          return;
+        }
         setIsInWishlist(false);
         showToast('Removed from wishlist', 'success');
       } else {
-        await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
+        const res = await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
           body: JSON.stringify({ productId: id })
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showToast(err.message || 'Could not add to wishlist', 'error');
+          return;
+        }
         setIsInWishlist(true);
         showToast('Added to wishlist!', 'success');
       }

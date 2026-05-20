@@ -50,8 +50,12 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı!" });
     if (user.password !== password) return res.status(401).json({ success: false, message: "Hatalı şifre girdiniz!" });
 
-    user.authToken = crypto.randomBytes(32).toString('hex');
-    await user.save();
+    // Reuse existing token so other open sessions stay valid.
+    // Only generate a new token if there isn't one (e.g. first login after registration).
+    if (!user.authToken) {
+      user.authToken = crypto.randomBytes(32).toString('hex');
+      await user.save();
+    }
 
     res.status(200).json({
       success: true,

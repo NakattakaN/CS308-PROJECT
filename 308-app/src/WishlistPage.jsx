@@ -25,12 +25,16 @@ const WishlistPage = () => {
       const res = await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
-        setWishlist(data);
+        setWishlist(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Wishlist fetch failed:', data);
+        showToast(data.message || 'Could not load wishlist', 'error');
       }
     } catch (err) {
       console.error('Failed to fetch wishlist:', err);
+      showToast('Could not connect to server', 'error');
     } finally {
       setLoading(false);
     }
