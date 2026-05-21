@@ -141,4 +141,47 @@ router.put('/admin/orders/:id/return', async (req, res) => {
   }
 });
 
+// Revenue/loss data grouped by day for a given date range
+router.get('/admin/revenue', async (req, res) => {
+  try {
+    const fromDate = req.query.from ? new Date(req.query.from) : new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
+    const toDate = req.query.to ? new Date(req.query.to) : new Date();
+    fromDate.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
+
+    const orders = await Order.find({
+      createdAt: { $gte: fromDate, $lte: toDate },
+      status: { $ne: 'Cancelled' }
+    }).select('totalAmount createdAt refundAmount returnStatus');
+
+    // Group revenue and refunds by date
+    const byDate = {};
+    for (const order of orders) {
+      const key = order.createdAt.toISOString().split('T')[0];
+      if (!byDate[key]) byDate[key] = { revenue: 0, refunds: 0 };
+      byDate[key].revenue += order.totalAmount || 0;
+      if (order.returnStatus === 'approved') {
+        byDate[key].refunds += order.refundAmount || 0;
+      }
+    }
+
+    // Fill every day in range with 0 if no orders
+    const data = [];
+    const cursor = new Date(fromDate);
+    while (cursor <= toDate) {
+      const key = cursor.toISOString().split('T')[0];
+      const { revenue = 0, refunds = 0 } = byDate[key] || {};
+      data.push({ date: key, revenue, refunds, net: revenue - refunds });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const totalRevenue = data.reduce((s, d) => s + d.revenue, 0);
+    const totalRefunds = data.reduce((s, d) => s + d.refunds, 0);
+
+    res.json({ data, totalRevenue, totalRefunds, netProfit: totalRevenue - totalRefunds });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

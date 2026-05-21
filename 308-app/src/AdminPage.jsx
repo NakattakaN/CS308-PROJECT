@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
+import RevenueChart from './RevenueChart';
 import './AdminPage.css';
 
-const TABS = ['Products', 'Users', 'Offers', 'Reviews', 'Orders', 'Returns'];
+const TABS = ['Products', 'Users', 'Offers', 'Reviews', 'Orders', 'Returns', 'Revenue'];
 const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const AdminPage = () => {
@@ -346,6 +347,8 @@ const AdminPage = () => {
             </tbody>
           </table>
         )}
+
+        {activeTab === 'Revenue' && <RevenueChart />}
 
         {!loading && activeTab === 'Reviews' && (
           <div className="admin-reviews-section">
