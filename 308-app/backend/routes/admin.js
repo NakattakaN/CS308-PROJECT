@@ -26,11 +26,19 @@ router.get('/admin/products', async (req, res) => {
   }
 });
 
-// Delete a product
+// Delete a product and remove it from all user carts
 router.delete('/admin/products/:id', async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Product deleted.' });
+    const productId = req.params.id;
+    await Product.findByIdAndDelete(productId);
+
+    // Remove the deleted product from every user's cart
+    await User.updateMany(
+      { 'cart.product._id': productId },
+      { $pull: { cart: { 'product._id': productId } } }
+    );
+
+    res.json({ message: 'Product deleted and removed from all user carts.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
