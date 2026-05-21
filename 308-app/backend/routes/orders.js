@@ -93,9 +93,10 @@ router.put('/orders/:orderId/cancel', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Only orders in Processing status can be cancelled' });
     }
 
+    // Restore stock when order is cancelled
     await Promise.all(order.items.map(item =>
       Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity }
+        $inc: { stock: +item.quantity }
       })
     ));
 
