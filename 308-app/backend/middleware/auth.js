@@ -52,4 +52,13 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, attachAuth, requireSelf, requireAdmin };
+// Allows product_manager or admin. Run requireAuth before this.
+function requireProductManager(req, res, next) {
+  if (!req.userId) return res.status(401).json({ message: 'Missing auth token' });
+  if (req.userRole !== 'product_manager' && req.userRole !== 'admin') {
+    return res.status(403).json({ message: 'Product manager only' });
+  }
+  next();
+}
+
+module.exports = { requireAuth, attachAuth, requireSelf, requireAdmin, requireProductManager };
