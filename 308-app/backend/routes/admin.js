@@ -74,7 +74,7 @@ router.get('/admin/orders', async (req, res) => {
 router.put('/admin/orders/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
-    if (!['Processing', 'Shipped', 'Delivered'].includes(status)) {
+    if (!['Processing', 'In-Transit', 'Delivered'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
     const update = { status };
