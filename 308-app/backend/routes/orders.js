@@ -12,12 +12,17 @@ router.post('/orders', requireAuth, async (req, res) => {
   try {
     const { items, totalAmount, shippingAddress } = req.body;
 
-    // Decrement stock for each ordered item
-    await Promise.all(items.map(item =>
-      Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity }
-      })
-    ));
+    // Decrement stock for each ordered item and set status to out_of_stock if stock hits 0
+    await Promise.all(items.map(async item => {
+      const updated = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+      if (updated && updated.stock <= 0) {
+        await Product.findByIdAndUpdate(item.productId, { status: 'out_of_stock' });
+      }
+    }));
 
     const order = await Order.create({
       userId: req.userId,
@@ -93,12 +98,17 @@ router.put('/orders/:orderId/cancel', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Only orders in Processing status can be cancelled' });
     }
 
-    // Restore stock when order is cancelled
-    await Promise.all(order.items.map(item =>
-      Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: +item.quantity }
-      })
-    ));
+    // Restore stock when order is cancelled and set status back to available
+    await Promise.all(order.items.map(async item => {
+      const updated = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: +item.quantity } },
+        { new: true }
+      );
+      if (updated && updated.stock > 0) {
+        await Product.findByIdAndUpdate(item.productId, { status: 'available' });
+      }
+    }));
 
     order.status = 'Cancelled';
     order.cancelledAt = new Date();
