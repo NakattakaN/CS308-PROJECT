@@ -19,6 +19,7 @@ const AdminPage = () => {
   const [orders, setOrders] = useState([]);
   const [returns, setReturns] = useState([]);
   const [reviewStatus, setReviewStatus] = useState('UNDER_REVIEW');
+  const [deliveryFilter, setDeliveryFilter] = useState('All');
   const [loading, setLoading] = useState(false);
   const [busyReviewId, setBusyReviewId] = useState(null);
 
@@ -227,46 +228,84 @@ const AdminPage = () => {
         )}
 
         {!loading && activeTab === 'Orders' && (
-          <table className="admin-table">
-            <thead>
-              <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Amount</th><th>Date</th><th>Status</th><th>Invoice</th></tr>
-            </thead>
-            <tbody>
-              {orders.map(o => (
-                <tr key={o._id}>
-                  <td>{o._id.toString().slice(-8).toUpperCase()}</td>
-                  <td>{o.userId?.firstName} {o.userId?.lastName}</td>
-                  <td>
-                    <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      {o.items?.map((item, idx) => (
-                        <span key={idx}>{item.quantity}x {item.name}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td>${o.totalAmount?.toLocaleString()}</td>
-                  <td>{new Date(o.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    {o.status === 'Cancelled' ? (
-                      <span className="status-badge cancelled">Cancelled</span>
-                    ) : (
-                      <select
-                        className={`status-select ${o.status?.toLowerCase() || 'processing'}`}
-                        value={o.status || 'Processing'}
-                        onChange={(e) => updateAdminOrderStatus(o._id, e.target.value)}
-                      >
-                        <option value="Processing">Processing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                      </select>
-                    )}
-                  </td>
-                  <td>
-                    <button className="admin-btn-secondary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }} onClick={() => navigate(`/invoice/${o._id}`)}>Invoice</button>
-                  </td>
-                </tr>
+          <>
+            {/* Delivery filter tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              {['All', 'Processing', 'In-Transit', 'Delivered', 'Cancelled'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setDeliveryFilter(f)}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    background: deliveryFilter === f ? '#0f172a' : '#f1f5f9',
+                    color: deliveryFilter === f ? '#fff' : '#475569'
+                  }}
+                >
+                  {f}
+                  <span style={{ marginLeft: '6px', background: deliveryFilter === f ? 'rgba(255,255,255,0.2)' : '#e2e8f0', borderRadius: '10px', padding: '1px 7px', fontSize: '0.75rem' }}>
+                    {f === 'All' ? orders.length : orders.filter(o => o.status === f).length}
+                  </span>
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            <table className="admin-table">
+              <thead>
+                <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Amount</th><th>Date</th><th>Ship To</th><th>Status</th><th>Invoice</th></tr>
+              </thead>
+              <tbody>
+                {orders
+                  .filter(o => deliveryFilter === 'All' || o.status === deliveryFilter)
+                  .map(o => (
+                  <tr key={o._id}>
+                    <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
+                    <td>{o.userId?.firstName} {o.userId?.lastName}</td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {o.items?.map((item, idx) => (
+                          <span key={idx}>{item.quantity}× {item.name}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td>${o.totalAmount?.toLocaleString()}</td>
+                    <td>{new Date(o.createdAt).toLocaleDateString()}</td>
+                    <td style={{ fontSize: '0.82rem', color: '#475569' }}>
+                      {o.shippingAddress ? (
+                        <>
+                          {o.shippingAddress.fullName}<br />
+                          {o.shippingAddress.address}<br />
+                          {o.shippingAddress.city}, {o.shippingAddress.zipCode}
+                        </>
+                      ) : '—'}
+                    </td>
+                    <td>
+                      {o.status === 'Cancelled' ? (
+                        <span className="status-badge cancelled">Cancelled</span>
+                      ) : (
+                        <select
+                          className={`status-select ${o.status?.toLowerCase().replace('-', '') || 'processing'}`}
+                          value={o.status || 'Processing'}
+                          onChange={(e) => updateAdminOrderStatus(o._id, e.target.value)}
+                        >
+                          <option value="Processing">Processing</option>
+                          <option value="In-Transit">In-Transit</option>
+                          <option value="Delivered">Delivered</option>
+                        </select>
+                      )}
+                    </td>
+                    <td>
+                      <button className="admin-btn-secondary" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }} onClick={() => navigate(`/invoice/${o._id}`)}>Invoice</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
 
         {!loading && activeTab === 'Returns' && (

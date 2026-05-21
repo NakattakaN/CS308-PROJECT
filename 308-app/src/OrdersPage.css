@@ -237,6 +237,11 @@
   color: #4338ca;
 }
 
+.order-status-badge.in-transit {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
 .order-status-badge.delivered {
   background-color: #d1fae5;
   color: #047857;
