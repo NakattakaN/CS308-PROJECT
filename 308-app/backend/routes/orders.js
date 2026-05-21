@@ -3,7 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireProductManager } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
 
@@ -145,6 +145,27 @@ router.post('/orders/:orderId/return', requireAuth, async (req, res) => {
     await order.save();
 
     res.json({ message: 'Return request submitted successfully', order });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update order status — product manager (or admin) only
+router.put('/orders/:id/status', requireAuth, requireProductManager, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const allowed = ['Processing', 'In-Transit', 'Delivered'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${allowed.join(', ')}` });
+    }
+
+    const update = { status };
+    if (status === 'Delivered') update.deliveredAt = new Date();
+
+    const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
