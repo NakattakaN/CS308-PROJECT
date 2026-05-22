@@ -1,4 +1,9 @@
 :root {
+  --primary-color: #0f172a;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-main: #f8fafc;
+  --bg-input: #f1f5f9;
   --text: #6b6375;
   --text-h: #08060d;
   --bg: #fff;
@@ -52,7 +57,36 @@ input:focus {
 body {
   margin: 0;
   padding: 0;
-  background-color: #f8fafc;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --text: #cbd5e1;
+  --text-h: #e6eef8;
+  --bg: #0b1220;
+  --border: #1f2937;
+  --accent: #60a5fa;
+  --primary-color: #93c5fd;
+  --text-main: #e6eef8;
+  --text-muted: #94a3b8;
+  --bg-main: #071126;
+  --bg-input: #0f1724;
+}
+
+/* Yotsuba B - green theme */
+[data-theme="yotsuba"] {
+  --text: #0b3d0b;
+  --text-h: #062806;
+  --bg: #effaf0;
+  --border: #d6efd6;
+  --accent: #2f9a3a;
+  --primary-color: #2f9a3a;
+  --text-main: #0b3d0b;
+  --text-muted: #276b27;
+  --bg-main: #f4fbf5;
+  --bg-input: #eaf6ea;
 }
 
 #root {
