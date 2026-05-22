@@ -26,7 +26,7 @@ Beyond the customer-facing storefront, Saatinden includes a robust administrativ
 * **Advanced Product Filtering:** Sort and filter watches by brand, price range, movement type, case material, and water resistance.
 * **Shopping Cart & Checkout:** Persistent cart sessions with a simulated secure payment gateway.
 * **User Profiles:** Customers can create accounts, save their shipping details, and view their order history.
-* **Wishlist:** Save favorite timepieces for future reference or purchase.
+* **Wishlist:** Save favorite timepieces for future reference or purchase, with instant add/remove from any product page and a dedicated wishlist view.
 
 ### For Administrators (Backend/Dashboard)
 * **Inventory Management:** Add, edit, or remove watch listings, including uploading high-resolution images and updating stock counts.
