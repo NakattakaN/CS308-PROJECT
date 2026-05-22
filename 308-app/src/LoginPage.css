@@ -32,7 +32,7 @@
   margin: 0 auto;
   /* Slightly narrower for a more refined proportion */
   min-height: 600px;
-  background: #ffffff;
+  background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -70,7 +70,7 @@
   justify-content: center;
   align-items: center;
   padding: 3rem;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .form-wrapper {
@@ -135,13 +135,13 @@ input[type="password"] {
 
 input[type="email"]::placeholder,
 input[type="password"]::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 input[type="email"]:focus,
 input[type="password"]:focus {
   outline: none;
-  background-color: #ffffff;
+  background-color: var(--surface);
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px var(--focus-ring);
 }
@@ -201,7 +201,7 @@ button {
 
 .btn-primary {
   background-color: var(--primary-color);
-  color: #fff;
+  color: var(--text-invert);
   border: 1px solid var(--primary-color);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -213,7 +213,7 @@ button {
 }
 
 .btn-secondary {
-  background-color: #ffffff;
+  background-color: var(--surface);
   color: var(--primary-color);
   border: 1px solid var(--border-color);
 }
@@ -242,7 +242,7 @@ button {
 }
 
 .divider span {
-  background: #ffffff;
+  background: var(--surface);
   padding: 0 1rem;
   color: var(--text-muted);
   font-size: 0.85rem;

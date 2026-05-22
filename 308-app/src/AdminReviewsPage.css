@@ -2,6 +2,7 @@
   max-width: 900px;
   margin: 2rem auto;
   padding: 1.5rem;
+  color: var(--text-main);
 }
 
 .admin-reviews-header {
@@ -16,6 +17,7 @@
 .admin-reviews-header h1 {
   margin: 0;
   font-size: 1.75rem;
+  color: var(--text-h);
 }
 
 .admin-reviews-tabs {
@@ -25,9 +27,9 @@
 
 .admin-reviews-tabs .tab {
   padding: 8px 14px;
-  border: 1px solid #cbd5e1;
-  background: #f1f5f9;
-  color: #334155;
+  border: 1px solid var(--border-color);
+  background: var(--surface-soft);
+  color: var(--text-main);
   border-radius: 999px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -36,16 +38,16 @@
 }
 
 .admin-reviews-tabs .tab.active {
-  background: #1a1a1a;
-  color: #fff;
-  border-color: #1a1a1a;
+  background: var(--text-h);
+  color: var(--text-invert);
+  border-color: var(--text-h);
 }
 
 .admin-reviews-empty {
-  color: #777;
+  color: var(--text-muted);
   padding: 2rem;
   text-align: center;
-  border: 1px dashed #ddd;
+  border: 1px dashed var(--border-color);
   border-radius: 10px;
 }
 
@@ -60,9 +62,9 @@
 
 .admin-review-card {
   padding: 1rem 1.25rem;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -79,16 +81,17 @@
   height: 56px;
   object-fit: cover;
   border-radius: 8px;
-  background: #f4f4f4;
+  background: var(--surface-soft);
 }
 
 .admin-review-product-name {
   font-weight: 600;
+  color: var(--text-h);
 }
 
 .admin-review-meta {
   font-size: 0.8rem;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .admin-review-rating {
@@ -102,7 +105,7 @@
 }
 
 .admin-review-body.muted {
-  color: #999;
+  color: var(--text-muted);
   font-style: italic;
 }
 
