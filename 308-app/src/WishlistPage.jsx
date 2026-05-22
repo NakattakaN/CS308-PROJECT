@@ -51,7 +51,7 @@ const WishlistPage = () => {
         showToast('Removed from wishlist', 'success');
       }
     } catch (err) {
-      showToast('Something went wrong', 'error');
+      showToast('Could not remove from wishlist. Please try again.', 'error');
     }
   };
 
@@ -69,7 +69,7 @@ const WishlistPage = () => {
       }
       showToast('Added to cart!', 'success');
     } catch {
-      showToast('Something went wrong. Please try again.', 'error');
+      showToast('Could not add to cart. Please try again.', 'error');
     }
   };
 
