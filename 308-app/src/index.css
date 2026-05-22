@@ -2,18 +2,28 @@
   --primary-color: #0f172a;
   --text-main: #1e293b;
   --text-muted: #64748b;
+  --text-invert: #ffffff;
   --bg-main: #f8fafc;
   --bg-input: #f1f5f9;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --surface-muted: #f1f5f9;
   --text: #6b6375;
   --text-h: #08060d;
-  --bg: #fff;
+  --bg: #ffffff;
   --border: #e5e4e7;
+  --border-color: #e5e4e7;
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --shadow-soft: 0 4px 6px rgba(0,0,0,0.08);
+  --danger: #ef4444;
+  --danger-bg: rgba(254, 226, 226, 0.8);
+  --success: #10b981;
+  --focus-ring: rgba(15, 23, 42, 0.1);
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -59,6 +69,23 @@ body {
   padding: 0;
   background-color: var(--bg);
   color: var(--text);
+  font-family: var(--sans);
+}
+
+button,
+input,
+textarea,
+select {
+  color: inherit;
+  font: inherit;
+}
+
+a {
+  color: var(--primary-color);
+}
+
+a:hover {
+  opacity: 0.85;
 }
 
 /* Dark theme */
@@ -67,12 +94,16 @@ body {
   --text-h: #e6eef8;
   --bg: #0b1220;
   --border: #1f2937;
+  --border-color: #1f2937;
   --accent: #60a5fa;
   --primary-color: #93c5fd;
   --text-main: #e6eef8;
   --text-muted: #94a3b8;
   --bg-main: #071126;
   --bg-input: #0f1724;
+  --surface: #111827;
+  --surface-soft: #141d2d;
+  --surface-muted: #1f2937;
 }
 
 /* Yotsuba B - green theme */
@@ -81,12 +112,16 @@ body {
   --text-h: #062806;
   --bg: #effaf0;
   --border: #d6efd6;
+  --border-color: #d6efd6;
   --accent: #2f9a3a;
   --primary-color: #2f9a3a;
   --text-main: #0b3d0b;
   --text-muted: #276b27;
   --bg-main: #f4fbf5;
   --bg-input: #eaf6ea;
+  --surface: #ffffff;
+  --surface-soft: #f7fbf6;
+  --surface-muted: #ecf7ec;
 }
 
 #root {

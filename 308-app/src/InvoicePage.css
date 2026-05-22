@@ -5,6 +5,7 @@
   min-height: 85vh;
   display: flex;
   flex-direction: column;
+  color: var(--text-main);
 }
 
 .invoice-header {
@@ -18,12 +19,12 @@
 
 .invoice-header h1 {
   font-size: 1.75rem;
-  color: #0f172a;
+  color: var(--text-h);
   margin: 0 0 4px;
 }
 
 .invoice-subtitle {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.95rem;
   margin: 0;
 }
@@ -34,8 +35,8 @@
 }
 
 .invoice-btn {
-  background: #0f172a;
-  color: #fff;
+  background: var(--text-h);
+  color: var(--text-invert);
   border: none;
   padding: 10px 22px;
   border-radius: 8px;
@@ -50,9 +51,9 @@
 }
 
 .invoice-btn-secondary {
-  background: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-soft);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 10px 22px;
   border-radius: 8px;
   font-weight: 600;
@@ -62,13 +63,13 @@
 }
 
 .invoice-btn-secondary:hover {
-  background: #e2e8f0;
+  background: var(--surface-muted);
 }
 
 .invoice-embed {
   flex: 1;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
   min-height: 700px;

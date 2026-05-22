@@ -18,31 +18,31 @@
   gap: 4px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .rc-date-input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 0.9rem;
-  color: #0f172a;
-  background: #fff;
+  color: var(--text-main);
+  background: var(--surface);
   cursor: pointer;
 }
 
 .rc-date-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .rc-apply-btn {
   padding: 0.5rem 1.4rem;
-  background: #0f172a;
-  color: #fff;
+  background: var(--text-h);
+  color: var(--text-invert);
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -77,19 +77,21 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
 }
 
-.rc-stat-card.revenue  { background: #eef2ff; }
-.rc-stat-card.refunds  { background: #fef2f2; }
-.rc-stat-card.net.positive { background: #f0fdf4; }
-.rc-stat-card.net.negative { background: #fff7ed; }
+.rc-stat-card.revenue  { background: rgba(232, 240, 254, 0.6); }
+.rc-stat-card.refunds  { background: rgba(254, 226, 226, 0.6); }
+.rc-stat-card.net.positive { background: rgba(220, 252, 231, 0.6); }
+.rc-stat-card.net.negative { background: rgba(255, 247, 237, 0.6); }
 
 .rc-stat-label {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .rc-stat-value {
@@ -104,16 +106,16 @@
 
 /* ── Chart ── */
 .rc-chart-wrapper {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 1.25rem 1rem 0.5rem;
 }
 
 /* ── Tooltip ── */
 .rc-tooltip {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
   font-size: 0.85rem;
@@ -122,23 +124,23 @@
 
 .rc-tooltip-date {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-h);
   margin: 0 0 4px;
 }
 
 /* ── Empty / Error ── */
 .rc-empty {
-  color: #94a3b8;
+  color: var(--text-muted);
   text-align: center;
   padding: 3rem;
-  background: #fff;
+  background: var(--surface);
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .rc-error {
   color: #dc2626;
-  background: #fef2f2;
+  background: rgba(254, 226, 226, 0.25);
   border: 1px solid #fca5a5;
   border-radius: 8px;
   padding: 0.75rem 1rem;

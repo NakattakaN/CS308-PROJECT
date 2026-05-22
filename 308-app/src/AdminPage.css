@@ -5,6 +5,7 @@
   min-height: 90vh;
   display: flex;
   flex-direction: column;
+  color: var(--text-main);
 }
 
 .admin-header {
@@ -15,7 +16,7 @@
 }
 
 .admin-header h1 {
-  color: #0f172a;
+  color: var(--text-h);
   margin: 0;
   font-size: 1.75rem;
 }
@@ -25,13 +26,13 @@
   display: flex;
   gap: 0;
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .admin-tab-btn {
   padding: 12px 32px;
   background: transparent;
-  color: #475569;
+  color: var(--text-muted);
   border: none;
   border-bottom: 3px solid transparent;
   font-size: 0.95rem;
@@ -42,20 +43,20 @@
 }
 
 .admin-tab-btn:hover {
-  color: #0f172a;
-  background: #f8fafc;
+  color: var(--text-h);
+  background: var(--surface-soft);
 }
 
 .admin-tab-btn.active {
-  color: #0f172a;
-  border-bottom-color: #0f172a;
+  color: var(--text-h);
+  border-bottom-color: var(--text-h);
 }
 
 /* Content area */
 .admin-content {
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
   flex: 1;
 }
@@ -63,7 +64,7 @@
 .admin-loading {
   padding: 3rem;
   text-align: center;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -74,21 +75,21 @@
 }
 
 .admin-table th {
-  background: #f8fafc;
-  color: #475569;
+  background: var(--surface-soft);
+  color: var(--text-muted);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 14px 20px;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }
 
 .admin-table td {
   padding: 14px 20px;
-  color: #0f172a;
-  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--surface-muted);
   font-size: 0.9rem;
 }
 
@@ -97,13 +98,13 @@
 }
 
 .admin-table tr:hover td {
-  background: #f8fafc;
+  background: var(--surface-soft);
 }
 
 /* Buttons */
 .admin-btn-danger {
-  background: #ef4444;
-  color: #fff;
+  background: var(--danger);
+  color: var(--text-invert);
   border: none;
   padding: 7px 16px;
   border-radius: 6px;
@@ -116,8 +117,8 @@
 .admin-btn-danger:hover { background: #dc2626; }
 
 .admin-btn-success {
-  background: #22c55e;
-  color: #fff;
+  background: var(--success);
+  color: var(--text-invert);
   border: none;
   padding: 7px 16px;
   border-radius: 6px;
@@ -130,9 +131,9 @@
 .admin-btn-success:hover { background: #16a34a; }
 
 .admin-btn-secondary {
-  background: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-soft);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 8px 20px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -141,7 +142,7 @@
   transition: background 0.2s;
 }
 
-.admin-btn-secondary:hover { background: #e2e8f0; }
+.admin-btn-secondary:hover { background: var(--surface-muted); }
 
 /* Badges */
 .status-badge {
@@ -152,12 +153,12 @@
   font-weight: 600;
 }
 
-.status-badge.available { background: #dcfce7; color: #166534; }
-.status-badge.out_of_stock { background: #fee2e2; color: #991b1b; }
-.status-badge.pending { background: #fef9c3; color: #854d0e; }
-.status-badge.accepted { background: #dcfce7; color: #166534; }
-.status-badge.rejected { background: #fee2e2; color: #991b1b; }
-.status-badge.cancelled { background: #f1f5f9; color: #64748b; }
+.status-badge.available { background: rgba(16, 185, 129, 0.15); color: #166534; }
+.status-badge.out_of_stock { background: rgba(239, 68, 68, 0.15); color: #991b1b; }
+.status-badge.pending { background: rgba(245, 158, 11, 0.15); color: #854d0e; }
+.status-badge.accepted { background: rgba(16, 185, 129, 0.15); color: #166534; }
+.status-badge.rejected { background: rgba(239, 68, 68, 0.15); color: #991b1b; }
+.status-badge.cancelled { background: var(--surface-soft); color: var(--text-muted); }
 
 .role-badge {
   display: inline-block;
@@ -167,8 +168,8 @@
   font-weight: 600;
 }
 
-.role-badge.admin { background: #ede9fe; color: #5b21b6; }
-.role-badge.user  { background: #f1f5f9; color: #475569; }
+.role-badge.admin { background: rgba(168, 85, 247, 0.15); color: #5b21b6; }
+.role-badge.user  { background: var(--surface-soft); color: var(--text-muted); }
 
 /* ——— Reviews tab ——— */
 .admin-reviews-section {
@@ -183,9 +184,9 @@
 
 .admin-review-status-btn {
   padding: 7px 18px;
-  border: 1px solid #cbd5e1;
-  background: #f1f5f9;
-  color: #334155;
+  border: 1px solid var(--border-color);
+  background: var(--surface-soft);
+  color: var(--text-main);
   border-radius: 999px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -194,20 +195,20 @@
 }
 
 .admin-review-status-btn:hover {
-  background: #e2e8f0;
+  background: var(--surface-muted);
 }
 
 .admin-review-status-btn.active {
-  background: #0f172a;
-  color: #fff;
-  border-color: #0f172a;
+  background: var(--text-h);
+  color: var(--text-invert);
+  border-color: var(--text-h);
 }
 
 .admin-reviews-empty {
-  color: #777;
+  color: var(--text-muted);
   padding: 3rem;
   text-align: center;
-  border: 1px dashed #ddd;
+  border: 1px dashed var(--border-color);
   border-radius: 10px;
 }
 
@@ -229,7 +230,7 @@
 
 .admin-review-card {
   padding: 1.25rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -252,18 +253,18 @@
   height: 56px;
   object-fit: cover;
   border-radius: 8px;
-  background: #f4f4f4;
+  background: var(--surface-soft);
   flex-shrink: 0;
 }
 
 .admin-review-product-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .admin-review-meta {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .admin-review-rating {
@@ -274,13 +275,13 @@
 
 .admin-review-body {
   margin: 0;
-  color: #334155;
+  color: var(--text-main);
   font-size: 0.9rem;
   line-height: 1.5;
 }
 
 .admin-review-body.muted {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -331,20 +332,20 @@
 }
 
 .status-select.shipped {
-  background-color: #e0e7ff;
+  background-color: rgba(59, 130, 246, 0.15);
   color: #4338ca;
   border-color: #a5b4fc;
 }
 
 .status-select.delivered {
-  background-color: #d1fae5;
+  background-color: rgba(16, 185, 129, 0.15);
   color: #047857;
   border-color: #6ee7b7;
 }
 
 /* Colorize the dropdown options so they don't look broken in some browsers */
 .status-select option {
-  background-color: #fff;
-  color: #0f172a;
+  background-color: var(--surface);
+  color: var(--text-main);
   font-weight: 500;
 }

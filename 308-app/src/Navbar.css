@@ -9,7 +9,7 @@
 }
 
 .nav-brand {
-  color: var(--primary-color);
+  color: var(--text-h);
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -24,7 +24,7 @@
 }
 
 .center-link {
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 600;
   text-decoration: none;
   font-size: 1rem;
@@ -32,7 +32,7 @@
 }
 
 .center-link:hover, .center-link.active {
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .nav-search-wrapper {
@@ -63,7 +63,7 @@
 }
 
 .nav-search-wrapper:focus-within .nav-search-icon {
-  color: #0f172a;
+  color: var(--primary-color);
 }
 
 .nav-search-input {
@@ -89,7 +89,7 @@
 }
 
 .nav-search-clear:hover {
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .nav-actions-right {
@@ -107,7 +107,7 @@
 }
 
 .nav-welcome {
-  color: #475569;
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 0.95rem;
 }
@@ -115,7 +115,7 @@
 .nav-btn {
   background: none;
   border: none;
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -125,12 +125,12 @@
 }
 
 .nav-btn:hover {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .nav-btn-primary {
-  background-color: #0f172a;
-  color: #ffffff;
+  background-color: var(--primary-color);
+  color: var(--text-invert);
   border: none;
   padding: 0.6rem 1.25rem;
   border-radius: 8px;
@@ -142,5 +142,5 @@
 
 .nav-btn-primary:hover {
   background-color: #1e293b;
-  color: #ffffff;
+  color: var(--text-invert);
 }

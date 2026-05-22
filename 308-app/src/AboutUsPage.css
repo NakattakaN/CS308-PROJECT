@@ -46,8 +46,8 @@
 }
 
 .team-card {
-  background: #fff;
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
@@ -58,7 +58,7 @@
   height: 56px;
   border-radius: 50%;
   background: var(--text-h);
-  color: #fff;
+  color: var(--text-invert);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,8 +99,8 @@
 }
 
 .value-item {
-  background: #fff;
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
 }

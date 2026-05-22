@@ -1,7 +1,7 @@
 .global-footer {
   width: 100%;
-  border-top: 1px solid #e2e8f0;
-  background-color: #ffffff;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--surface);
   padding: 1.25rem 2rem;
   margin-top: auto;
 }
@@ -15,13 +15,13 @@
 }
 
 .footer-brand {
-  color: #0f172a;
+  color: var(--text-h);
   font-size: 1rem;
   font-weight: 700;
 }
 
 .footer-link {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
   text-decoration: none;
@@ -29,5 +29,5 @@
 }
 
 .footer-link:hover {
-  color: #0f172a;
+  color: var(--text-h);
 }
