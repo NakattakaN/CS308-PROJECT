@@ -83,6 +83,12 @@ const ProductPage = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
   const [sideMenuPage, setSideMenuPage] = useState('main');
+  const [itemsPerRow, setItemsPerRow] = useState(() => {
+    try {
+      const v = Number(localStorage.getItem('itemsPerRow'));
+      return Number.isInteger(v) && v > 0 ? v : 4;
+    } catch { return 4; }
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -282,7 +288,10 @@ const ProductPage = () => {
         </div>
 
         {filteredProducts.length > 0 ? (
-          <section className="product-grid">
+          <section
+            className="product-grid"
+            style={{ gridTemplateColumns: `repeat(${itemsPerRow}, minmax(200px, 1fr))` }}
+          >
             {filteredProducts.map((product) => (
               <ProductCard key={product._id} product={product} navigate={navigate} />
             ))}
@@ -294,6 +303,8 @@ const ProductPage = () => {
           </div>
         )}
       </div>
+
+      <RowControl itemsPerRow={itemsPerRow} setItemsPerRow={setItemsPerRow} />
 
       {isSideMenuOpen && (
         <div className="side-menu-overlay" onClick={() => { setIsSideMenuOpen(false); setSideMenuPage('main'); }}>
@@ -356,6 +367,26 @@ const ProductPage = () => {
         </div>
       )}
     </>
+  );
+};
+
+// Small control shown at bottom of ProductPage for choosing how many items per row
+const RowControl = ({ itemsPerRow, setItemsPerRow }) => {
+  const [local, setLocal] = React.useState(itemsPerRow);
+  useEffect(() => setLocal(itemsPerRow), [itemsPerRow]);
+  const apply = () => {
+    const v = Math.max(1, Math.min(8, Math.floor(Number(local) || 1)));
+    setItemsPerRow(v);
+    try { localStorage.setItem('itemsPerRow', String(v)); } catch {}
+  };
+  return (
+    <div className="row-control">
+      <label>Watches per row</label>
+      <div className="row-control-inputs">
+        <input type="number" min="1" max="8" value={local} onChange={e => setLocal(e.target.value)} />
+        <button onClick={apply}>Apply</button>
+      </div>
+    </div>
   );
 };
 
