@@ -394,6 +394,44 @@
   align-items: stretch;
 }
 
+/* Row control at bottom of page */
+.row-control {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.0), rgba(255,255,255,0.95));
+  border-top: 1px solid var(--border-color);
+}
+.row-control label {
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 0.5rem;
+}
+.row-control-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.row-control input[type="number"] {
+  width: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+.row-control button {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.row-control button:hover { opacity: 0.95; }
+
 .product-card {
   background: #fff;
   border-radius: var(--radius-lg);
