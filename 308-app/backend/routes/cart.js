@@ -30,7 +30,18 @@ router.get('/users/:userId/cart', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
-    
+
+    // Safety net: remove any cart items whose product no longer exists in DB
+    const validIds = [];
+    for (const item of user.cart) {
+      const exists = await Product.exists({ _id: item.product._id });
+      if (exists) validIds.push(item._id);
+    }
+    if (validIds.length !== user.cart.length) {
+      user.cart = user.cart.filter(item => validIds.some(id => id.equals(item._id)));
+      await user.save();
+    }
+
     const cartWithStock = await populateCartWithStock(user.cart);
     res.json(cartWithStock);
   } catch (error) {

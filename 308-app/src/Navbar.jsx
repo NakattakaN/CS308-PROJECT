@@ -17,6 +17,14 @@ const Navbar = () => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const userName = localStorage.getItem('userName') || '';
   const isAdmin = localStorage.getItem('userRole') === 'admin';
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('theme') || 'light'; } catch { return 'light'; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('theme', theme); } catch {}
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
@@ -77,6 +85,13 @@ const Navbar = () => {
       </div>
 
       <div className="nav-actions-right">
+        <div className="theme-select">
+          <select value={theme} onChange={e => setTheme(e.target.value)} aria-label="Theme selector">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="yotsuba">Yotsuba B</option>
+          </select>
+        </div>
         {isLoggedIn ? (
           <>
             <span className="nav-welcome">Welcome, {userName}</span>

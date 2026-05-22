@@ -31,7 +31,7 @@
   max-width: 1400px;
   margin: 0 auto;
   min-height: 600px;
-  background: #ffffff;
+  background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -68,7 +68,7 @@
   justify-content: center;
   align-items: center;
   padding: 3rem;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .form-wrapper {
@@ -132,14 +132,14 @@ input[type="password"] {
 input[type="text"]::placeholder,
 input[type="email"]::placeholder,
 input[type="password"]::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus {
   outline: none;
-  background-color: #ffffff;
+  background-color: var(--surface);
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px var(--focus-ring);
 }
@@ -170,7 +170,7 @@ input:-webkit-autofill:focus {
 
 .btn-primary {
   background-color: var(--primary-color);
-  color: #fff;
+  color: var(--text-invert);
   border: 1px solid var(--primary-color);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -182,7 +182,7 @@ input:-webkit-autofill:focus {
 }
 
 .btn-secondary {
-  background-color: #ffffff;
+  background-color: var(--surface);
   color: var(--primary-color);
   border: 1px solid var(--border-color);
   margin-top: 1rem;
@@ -212,7 +212,7 @@ input:-webkit-autofill:focus {
 }
 
 .divider span {
-  background: #ffffff;
+  background: var(--surface);
   padding: 0 1rem;
   color: var(--text-muted);
   font-size: 0.85rem;

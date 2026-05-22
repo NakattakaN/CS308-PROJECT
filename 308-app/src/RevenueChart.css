@@ -1,0 +1,148 @@
+.rc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Controls ── */
+.rc-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rc-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rc-date-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.rc-date-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.rc-apply-btn {
+  padding: 0.5rem 1.4rem;
+  background: var(--text-h);
+  color: var(--text-invert);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  height: 38px;
+  align-self: flex-end;
+}
+
+.rc-apply-btn:hover:not(:disabled) {
+  background: #1e293b;
+}
+
+.rc-apply-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Stat Cards ── */
+.rc-stat-cards {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rc-stat-card {
+  flex: 1;
+  min-width: 160px;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+}
+
+.rc-stat-card.revenue  { background: rgba(232, 240, 254, 0.6); }
+.rc-stat-card.refunds  { background: rgba(254, 226, 226, 0.6); }
+.rc-stat-card.net.positive { background: rgba(220, 252, 231, 0.6); }
+.rc-stat-card.net.negative { background: rgba(255, 247, 237, 0.6); }
+
+.rc-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.rc-stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.rc-stat-card.revenue  .rc-stat-value { color: #4338ca; }
+.rc-stat-card.refunds  .rc-stat-value { color: #dc2626; }
+.rc-stat-card.net.positive .rc-stat-value { color: #15803d; }
+.rc-stat-card.net.negative .rc-stat-value { color: #c2410c; }
+
+/* ── Chart ── */
+.rc-chart-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.25rem 1rem 0.5rem;
+}
+
+/* ── Tooltip ── */
+.rc-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.rc-tooltip-date {
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 4px;
+}
+
+/* ── Empty / Error ── */
+.rc-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 3rem;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.rc-error {
+  color: #dc2626;
+  background: rgba(254, 226, 226, 0.25);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}

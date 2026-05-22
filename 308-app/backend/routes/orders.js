@@ -3,7 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireProductManager } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
 
@@ -12,12 +12,17 @@ router.post('/orders', requireAuth, async (req, res) => {
   try {
     const { items, totalAmount, shippingAddress } = req.body;
 
-    // Decrement stock for each ordered item
-    await Promise.all(items.map(item =>
-      Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity }
-      })
-    ));
+    // Decrement stock for each ordered item and set status to out_of_stock if stock hits 0
+    await Promise.all(items.map(async item => {
+      const updated = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+      if (updated && updated.stock <= 0) {
+        await Product.findByIdAndUpdate(item.productId, { status: 'out_of_stock' });
+      }
+    }));
 
     const order = await Order.create({
       userId: req.userId,
@@ -93,11 +98,17 @@ router.put('/orders/:orderId/cancel', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Only orders in Processing status can be cancelled' });
     }
 
-    await Promise.all(order.items.map(item =>
-      Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity }
-      })
-    ));
+    // Restore stock when order is cancelled and set status back to available
+    await Promise.all(order.items.map(async item => {
+      const updated = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: +item.quantity } },
+        { new: true }
+      );
+      if (updated && updated.stock > 0) {
+        await Product.findByIdAndUpdate(item.productId, { status: 'available' });
+      }
+    }));
 
     order.status = 'Cancelled';
     order.cancelledAt = new Date();
@@ -134,6 +145,27 @@ router.post('/orders/:orderId/return', requireAuth, async (req, res) => {
     await order.save();
 
     res.json({ message: 'Return request submitted successfully', order });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update order status — product manager (or admin) only
+router.put('/orders/:id/status', requireAuth, requireProductManager, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const allowed = ['Processing', 'In-Transit', 'Delivered'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${allowed.join(', ')}` });
+    }
+
+    const update = { status };
+    if (status === 'Delivered') update.deliveredAt = new Date();
+
+    const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

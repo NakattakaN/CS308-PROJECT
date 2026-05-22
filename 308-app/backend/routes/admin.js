@@ -26,11 +26,19 @@ router.get('/admin/products', async (req, res) => {
   }
 });
 
-// Delete a product
+// Delete a product and remove it from all user carts
 router.delete('/admin/products/:id', async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Product deleted.' });
+    const productId = req.params.id;
+    await Product.findByIdAndDelete(productId);
+
+    // Remove the deleted product from every user's cart
+    await User.updateMany(
+      { 'cart.product._id': productId },
+      { $pull: { cart: { 'product._id': productId } } }
+    );
+
+    res.json({ message: 'Product deleted and removed from all user carts.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -74,7 +82,7 @@ router.get('/admin/orders', async (req, res) => {
 router.put('/admin/orders/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
-    if (!['Processing', 'Shipped', 'Delivered'].includes(status)) {
+    if (!['Processing', 'In-Transit', 'Delivered'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
     const update = { status };
@@ -128,6 +136,49 @@ router.put('/admin/orders/:id/return', async (req, res) => {
 
     await order.save();
     res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Revenue/loss data grouped by day for a given date range
+router.get('/admin/revenue', async (req, res) => {
+  try {
+    const fromDate = req.query.from ? new Date(req.query.from) : new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
+    const toDate = req.query.to ? new Date(req.query.to) : new Date();
+    fromDate.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
+
+    const orders = await Order.find({
+      createdAt: { $gte: fromDate, $lte: toDate },
+      status: { $ne: 'Cancelled' }
+    }).select('totalAmount createdAt refundAmount returnStatus');
+
+    // Group revenue and refunds by date
+    const byDate = {};
+    for (const order of orders) {
+      const key = order.createdAt.toISOString().split('T')[0];
+      if (!byDate[key]) byDate[key] = { revenue: 0, refunds: 0 };
+      byDate[key].revenue += order.totalAmount || 0;
+      if (order.returnStatus === 'approved') {
+        byDate[key].refunds += order.refundAmount || 0;
+      }
+    }
+
+    // Fill every day in range with 0 if no orders
+    const data = [];
+    const cursor = new Date(fromDate);
+    while (cursor <= toDate) {
+      const key = cursor.toISOString().split('T')[0];
+      const { revenue = 0, refunds = 0 } = byDate[key] || {};
+      data.push({ date: key, revenue, refunds, net: revenue - refunds });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const totalRevenue = data.reduce((s, d) => s + d.revenue, 0);
+    const totalRefunds = data.reduce((s, d) => s + d.refunds, 0);
+
+    res.json({ data, totalRevenue, totalRefunds, netProfit: totalRevenue - totalRefunds });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
