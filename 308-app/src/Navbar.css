@@ -144,3 +144,28 @@
   background-color: #1e293b;
   color: var(--text-invert);
 }
+
+/* Dark mode: Keep buttons light */
+[data-theme="dark"] .nav-btn {
+  color: #1e293b;
+}
+
+[data-theme="dark"] .nav-btn:hover {
+  color: #475569;
+}
+
+[data-theme="dark"] .nav-btn-primary {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .nav-btn-primary:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .theme-select select {
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+}

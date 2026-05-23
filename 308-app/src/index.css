@@ -88,22 +88,22 @@ a:hover {
   opacity: 0.85;
 }
 
-/* Dark theme */
+/* Dark theme - Gray sidebar, light buttons */
 [data-theme="dark"] {
   --text: #cbd5e1;
   --text-h: #e6eef8;
-  --bg: #0b1220;
-  --border: #1f2937;
-  --border-color: #1f2937;
+  --bg: #2d2d2d;
+  --border: #404040;
+  --border-color: #404040;
   --accent: #60a5fa;
   --primary-color: #93c5fd;
   --text-main: #e6eef8;
   --text-muted: #94a3b8;
-  --bg-main: #071126;
-  --bg-input: #0f1724;
-  --surface: #111827;
-  --surface-soft: #141d2d;
-  --surface-muted: #1f2937;
+  --bg-main: #3a3a3a;
+  --bg-input: #f1f5f9;
+  --surface: #f8fafc;
+  --surface-soft: #f8fafc;
+  --surface-muted: #f1f5f9;
 }
 
 /* Yotsuba B - green theme */
@@ -122,6 +122,34 @@ a:hover {
   --surface: #ffffff;
   --surface-soft: #f7fbf6;
   --surface-muted: #ecf7ec;
+}
+
+/* Dark mode button overrides - keep buttons light */
+[data-theme="dark"] button {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="dark"] button:hover:not(:disabled) {
+  background-color: #f1f5f9 !important;
+}
+
+/* Keep primary buttons dark */
+[data-theme="dark"] .admin-btn-primary,
+[data-theme="dark"] .browse-btn,
+[data-theme="dark"] .submit-btn,
+[data-theme="dark"] .primary-btn {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border: 1px solid #1e293b !important;
+}
+
+[data-theme="dark"] .admin-btn-primary:hover,
+[data-theme="dark"] .browse-btn:hover,
+[data-theme="dark"] .submit-btn:hover,
+[data-theme="dark"] .primary-btn:hover {
+  background-color: #1e293b !important;
 }
 
 #root {
