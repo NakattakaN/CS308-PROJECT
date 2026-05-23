@@ -338,3 +338,13 @@
   color: #15803d;
   border: 1px solid #86efac;
 }
+
+.return-expired-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
