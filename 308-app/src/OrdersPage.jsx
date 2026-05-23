@@ -60,6 +60,12 @@ const OrdersPage = () => {
     }
   };
 
+  const isReturnWindowExpired = (deliveredAt) => {
+    if (!deliveredAt) return true;
+    const daysElapsed = (Date.now() - new Date(deliveredAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysElapsed >= 30;
+  };
+
   const handleReturnRequest = async (orderId) => {
     if (!window.confirm('Request a return for this order?')) return;
     setActionBusy(orderId + '-return');
@@ -148,7 +154,7 @@ const OrdersPage = () => {
                         {actionBusy === order._id + '-cancel' ? 'Cancelling...' : 'Cancel Order'}
                       </button>
                     )}
-                    {order.status === 'Delivered' && order.returnStatus === 'none' && (
+                    {order.status === 'Delivered' && order.returnStatus === 'none' && !isReturnWindowExpired(order.deliveredAt) && (
                       <button
                         className="return-order-btn"
                         onClick={() => handleReturnRequest(order._id)}
@@ -156,6 +162,9 @@ const OrdersPage = () => {
                       >
                         {actionBusy === order._id + '-return' ? 'Submitting...' : 'Request Return'}
                       </button>
+                    )}
+                    {order.status === 'Delivered' && order.returnStatus === 'none' && isReturnWindowExpired(order.deliveredAt) && (
+                      <span className="return-expired-badge">Return window expired</span>
                     )}
                     {order.returnStatus && order.returnStatus !== 'none' && (
                       <span className={`return-status-badge ${order.returnStatus}`}>
