@@ -124,34 +124,6 @@ a:hover {
   --surface-muted: #ecf7ec;
 }
 
-/* Dark mode button overrides - keep buttons light */
-[data-theme="dark"] button {
-  background-color: #f8fafc !important;
-  color: #1e293b !important;
-  border: 1px solid #cbd5e1 !important;
-}
-
-[data-theme="dark"] button:hover:not(:disabled) {
-  background-color: #f1f5f9 !important;
-}
-
-/* Keep primary buttons dark */
-[data-theme="dark"] .admin-btn-primary,
-[data-theme="dark"] .browse-btn,
-[data-theme="dark"] .submit-btn,
-[data-theme="dark"] .primary-btn {
-  background-color: #0f172a !important;
-  color: #ffffff !important;
-  border: 1px solid #1e293b !important;
-}
-
-[data-theme="dark"] .admin-btn-primary:hover,
-[data-theme="dark"] .browse-btn:hover,
-[data-theme="dark"] .submit-btn:hover,
-[data-theme="dark"] .primary-btn:hover {
-  background-color: #1e293b !important;
-}
-
 #root {
   width: 100%;
   min-height: 100svh;

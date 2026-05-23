@@ -145,18 +145,19 @@
   color: var(--text-invert);
 }
 
-/* Dark mode: Keep buttons light */
+/* Dark mode: Clean navbar styling */
 [data-theme="dark"] .nav-btn {
-  color: #1e293b;
+  color: #cbd5e1;
 }
 
 [data-theme="dark"] .nav-btn:hover {
-  color: #475569;
+  color: #e6eef8;
 }
 
 [data-theme="dark"] .nav-btn-primary {
   background-color: #0f172a;
   color: #ffffff;
+  border: 1px solid #1e293b;
 }
 
 [data-theme="dark"] .nav-btn-primary:hover {
@@ -165,7 +166,11 @@
 }
 
 [data-theme="dark"] .theme-select select {
-  background: #f8fafc;
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
+  background: #3a3a3a;
+  color: #cbd5e1;
+  border: 1px solid #404040;
+}
+
+[data-theme="dark"] .nav-welcome {
+  color: #94a3b8;
 }
