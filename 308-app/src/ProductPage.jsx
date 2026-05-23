@@ -59,6 +59,8 @@ const SORT_OPTIONS = [
   { value: 'price-desc', label: 'Price: High to Low' },
   { value: 'rating-desc', label: 'Rating: High to Low' },
   { value: 'rating-asc', label: 'Rating: Low to High' },
+  { value: 'discount-desc', label: 'Discount: High to Low' },
+  { value: 'discount-asc', label: 'Discount: Low to High' },
 ];
 
 const Chevron = () => (
@@ -163,6 +165,8 @@ const ProductPage = () => {
         if (!hasA && !hasB) return 0;
         return sortOption === 'rating-desc' ? b.averageRating - a.averageRating : a.averageRating - b.averageRating;
       }
+      if (sortOption === 'discount-desc') return (b.discountRate || 0) - (a.discountRate || 0);
+      if (sortOption === 'discount-asc') return (a.discountRate || 0) - (b.discountRate || 0);
       if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
       return 0;
@@ -275,6 +279,24 @@ const ProductPage = () => {
             </div>
           )}
         </div>
+
+        <div className="filter-bar-divider" />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap' }}>Per row:</span>
+          <input
+            type="number"
+            min="1"
+            max="8"
+            value={itemsPerRow}
+            onChange={e => {
+              const v = Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1)));
+              setItemsPerRow(v);
+              try { localStorage.setItem('itemsPerRow', String(v)); } catch {}
+            }}
+            style={{ width: '48px', padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center' }}
+          />
+        </div>
       </div>
 
       <div className="product-page-container">
@@ -303,8 +325,6 @@ const ProductPage = () => {
           </div>
         )}
       </div>
-
-      <RowControl itemsPerRow={itemsPerRow} setItemsPerRow={setItemsPerRow} />
 
       {isSideMenuOpen && (
         <div className="side-menu-overlay" onClick={() => { setIsSideMenuOpen(false); setSideMenuPage('main'); }}>
@@ -393,11 +413,13 @@ const RowControl = ({ itemsPerRow, setItemsPerRow }) => {
 const ProductCard = ({ product, navigate }) => {
   const [hasError, setHasError] = React.useState(!product.image);
 
+  const isUnavailable = product.stock === 0 || product.status === 'out_of_stock';
+
   return (
     <div
       className="product-card"
       onClick={() => navigate(`/product/${product._id}`)}
-      style={{ cursor: 'pointer', position: 'relative' }}
+      style={{ cursor: 'pointer', position: 'relative', opacity: isUnavailable ? 0.75 : 1 }}
     >
       {!hasError ? (
         <img
@@ -412,12 +434,25 @@ const ProductCard = ({ product, navigate }) => {
           <span style={{ fontSize: '1rem', opacity: 0.6, marginTop: '1rem' }}>{product.brand}</span>
         </div>
       )}
+      {isUnavailable && (
+        <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.65)', color: '#fff', borderRadius: '6px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em' }}>
+          UNAVAILABLE
+        </div>
+      )}
 
       <div className="product-info">
         <p className="product-brand">{product.brand}</p>
         <h3 className="product-name">{product.name}</h3>
-        <p className="product-price">${product.price.toLocaleString()}</p>
-        {product.stock === 0 && (
+        {product.discountRate > 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.9rem' }}>${product.originalPrice?.toLocaleString()}</span>
+            <span className="product-price" style={{ margin: 0 }}>${product.price.toLocaleString()}</span>
+            <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: '4px', padding: '1px 6px', fontWeight: 700, fontSize: '0.75rem' }}>-{product.discountRate}%</span>
+          </div>
+        ) : (
+          <p className="product-price">${product.price.toLocaleString()}</p>
+        )}
+        {isUnavailable && (
           <p className="product-out-of-stock">Out of stock</p>
         )}
         {product.stock > 0 && product.stock <= 10 && (

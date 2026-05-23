@@ -292,7 +292,15 @@ const ProductDetailsPage = () => {
         <div className="details-info-wrapper">
           <span className="details-brand">{product.brand}</span>
           <h1 className="details-name">{product.name}</h1>
-          <p className="details-price">${product.price.toLocaleString()}</p>
+          {product.discountRate > 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '8px 0' }}>
+              <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '1.1rem' }}>${product.originalPrice?.toLocaleString()}</span>
+              <span className="details-price" style={{ margin: 0 }}>${product.price.toLocaleString()}</span>
+              <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: '6px', padding: '3px 10px', fontWeight: 700, fontSize: '0.9rem' }}>-{product.discountRate}%</span>
+            </div>
+          ) : (
+            <p className="details-price">${product.price.toLocaleString()}</p>
+          )}
 
           {product.reviewCount > 0 && (
             <div className="details-rating-summary" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>

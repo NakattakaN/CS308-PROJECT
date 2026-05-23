@@ -26,6 +26,34 @@ router.get('/admin/products', async (req, res) => {
   }
 });
 
+// Add a new product (product manager)
+router.post('/admin/products', async (req, res) => {
+  try {
+    const product = await Product.create(req.body);
+    res.status(201).json(product);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update product fields like stock, status (product manager)
+router.put('/admin/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    const allowed = ['name', 'brand', 'price', 'description', 'image', 'referenceNumber', 'stock'];
+    for (const field of allowed) {
+      if (req.body[field] !== undefined) product[field] = req.body[field];
+    }
+
+    await product.save(); // pre-save hook enforces stock >= 0 and syncs status
+    res.json(product);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Delete a product and remove it from all user carts
 router.delete('/admin/products/:id', async (req, res) => {
   try {

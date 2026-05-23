@@ -9,6 +9,8 @@ import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
+import ProductManagerPage from './ProductManagerPage';
+import SalesManagerPage from './SalesManagerPage';
 import InvoicePage from './InvoicePage';
 import OrdersPage from './OrdersPage';
 import WishlistPage from './WishlistPage';
@@ -49,6 +51,12 @@ function App() {
 
         {/* ADMIN */}
         <Route path="/admin" element={<AdminPage />} />
+
+        {/* PRODUCT MANAGER */}
+        <Route path="/product-manager" element={<ProductManagerPage />} />
+
+        {/* SALES MANAGER */}
+        <Route path="/sales-manager" element={<SalesManagerPage />} />
       </Routes>
 
       <Footer />

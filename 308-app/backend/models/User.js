@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   lastName: String,
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'product_manager', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'product_manager', 'sales_manager', 'admin'], default: 'user' },
   authToken: { type: String, index: true },
   cart: [cartItemSchema],
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],

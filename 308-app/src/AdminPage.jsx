@@ -172,7 +172,7 @@ const AdminPage = () => {
                   <td>{p.name}</td>
                   <td>{p.brand}</td>
                   <td>${p.price.toLocaleString()}</td>
-                  <td><span className={`status-badge ${p.status}`}>{p.status}</span></td>
+                  <td><span className={`status-badge ${p.stock === 0 ? 'out_of_stock' : 'available'}`}>{p.stock === 0 ? 'out_of_stock' : 'available'}</span></td>
                   <td>
                     <button className="admin-btn-danger" onClick={() => deleteProduct(p._id)}>Delete</button>
                   </td>

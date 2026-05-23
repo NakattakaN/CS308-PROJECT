@@ -31,7 +31,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -76,8 +76,9 @@ button,
 input,
 textarea,
 select {
-  color: inherit;
+  color: var(--text-main);
   font: inherit;
+  background-color: var(--bg-input);
 }
 
 a {
@@ -90,6 +91,7 @@ a:hover {
 
 /* Dark theme - Gray sidebar, light buttons */
 [data-theme="dark"] {
+  color-scheme: dark;
   --text: #cbd5e1;
   --text-h: #e6eef8;
   --bg: #2d2d2d;

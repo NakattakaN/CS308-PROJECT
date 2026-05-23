@@ -61,4 +61,13 @@ function requireProductManager(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, attachAuth, requireSelf, requireAdmin, requireProductManager };
+// Allows sales_manager or admin. Run requireAuth before this.
+function requireSalesManager(req, res, next) {
+  if (!req.userId) return res.status(401).json({ message: 'Missing auth token' });
+  if (req.userRole !== 'sales_manager' && req.userRole !== 'admin') {
+    return res.status(403).json({ message: 'Sales manager only' });
+  }
+  next();
+}
+
+module.exports = { requireAuth, attachAuth, requireSelf, requireAdmin, requireProductManager, requireSalesManager };

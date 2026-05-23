@@ -16,7 +16,10 @@ const Navbar = () => {
 
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const userName = localStorage.getItem('userName') || '';
-  const isAdmin = localStorage.getItem('userRole') === 'admin';
+  const userRole = localStorage.getItem('userRole');
+  const isAdmin = userRole === 'admin';
+  const isProductManager = userRole === 'product_manager';
+  const isSalesManager = userRole === 'sales_manager';
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem('theme') || 'light'; } catch { return 'light'; }
   });
@@ -96,11 +99,25 @@ const Navbar = () => {
           <>
             <span className="nav-welcome">Welcome, {userName}</span>
             {isAdmin && (
-              <button className="nav-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
+              <>
+                <button className="nav-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
+                <button className="nav-btn" onClick={() => navigate('/product-manager')}>Product Panel</button>
+                <button className="nav-btn" onClick={() => navigate('/sales-manager')}>Sales Panel</button>
+              </>
             )}
-            <button className="nav-btn" onClick={() => navigate('/orders')}>My Orders</button>
-            <button className="nav-btn" onClick={() => navigate('/wishlist')}>My Wishlist</button>
-            <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
+            {isProductManager && (
+              <button className="nav-btn" onClick={() => navigate('/product-manager')}>Manager Panel</button>
+            )}
+            {isSalesManager && (
+              <button className="nav-btn" onClick={() => navigate('/sales-manager')}>Manager Panel</button>
+            )}
+            {!isProductManager && !isSalesManager && (
+              <>
+                <button className="nav-btn" onClick={() => navigate('/orders')}>My Orders</button>
+                <button className="nav-btn" onClick={() => navigate('/wishlist')}>My Wishlist</button>
+                <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
+              </>
+            )}
             <button className="nav-btn" onClick={handleLogout}>Logout</button>
           </>
         ) : (
