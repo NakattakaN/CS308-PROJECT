@@ -158,6 +158,18 @@ router.put('/admin/orders/:id/return', async (req, res) => {
       await User.findByIdAndUpdate(order.userId, {
         $inc: { walletBalance: order.totalAmount }
       });
+
+      // Restore stock for each returned item
+      await Promise.all(order.items.map(async item => {
+        const updated = await Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { stock: item.quantity } },
+          { new: true }
+        );
+        if (updated && updated.stock > 0) {
+          await Product.findByIdAndUpdate(item.productId, { status: 'available' });
+        }
+      }));
     } else {
       order.returnStatus = 'rejected';
     }
