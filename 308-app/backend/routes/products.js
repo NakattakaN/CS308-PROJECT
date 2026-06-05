@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Review = require('../models/Review');
 const User = require('../models/User');
 const { requireAuth, requireSalesManager } = require('../middleware/auth');
+const { sendDiscountNotificationEmail } = require('../services/emailService');
 
 // Returns a Map<productIdString, { averageRating, reviewCount }> covering
 // every approved review. Products absent from the map have no approved reviews.
@@ -83,11 +84,19 @@ router.patch('/products/:id/discount', requireAuth, requireSalesManager, async (
 
     await product.save();
 
-    // Notify wishlist users — find users who have this product in their wishlist
-    const affectedUsers = await User.find({ wishlist: product._id }).select('_id');
-    // Notification stored in-app: for now just logged (email notifications out of scope)
-    if (affectedUsers.length > 0) {
-      console.log(`Discount applied: ${affectedUsers.length} wishlist user(s) would be notified for product ${product._id}`);
+    // Notify wishlist users by email when a discount is applied
+    if (rate > 0) {
+      const wishlistUsers = await User.find({ wishlist: product._id }).select('firstName email');
+      wishlistUsers.forEach(user => {
+        sendDiscountNotificationEmail(
+          user.email,
+          user.firstName || 'Customer',
+          `${product.brand} ${product.name}`,
+          product.originalPrice,
+          product.price,
+          rate
+        ).catch(err => console.error('Discount notification email failed:', err.message));
+      });
     }
 
     res.json(product);
