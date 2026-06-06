@@ -3,14 +3,35 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth, requireProductManager } = require('../middleware/auth');
+const { requireAuth, requireProductManager, requireSelf } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
+
+// Get wallet balance for a user
+router.get('/users/:userId/wallet', requireAuth, requireSelf, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('walletBalance');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ walletBalance: user.walletBalance || 0 });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Create an order after successful payment
 router.post('/orders', requireAuth, async (req, res) => {
   try {
-    const { items, totalAmount, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress, useWallet } = req.body;
+
+    // Deduct wallet balance if requested
+    let walletDeducted = 0;
+    if (useWallet) {
+      const user = await User.findById(req.userId).select('walletBalance');
+      walletDeducted = Math.min(user.walletBalance || 0, totalAmount);
+      if (walletDeducted > 0) {
+        await User.findByIdAndUpdate(req.userId, { $inc: { walletBalance: -walletDeducted } });
+      }
+    }
 
     // Decrement stock for each ordered item and set status to out_of_stock if stock hits 0
     await Promise.all(items.map(async item => {

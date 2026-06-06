@@ -118,6 +118,8 @@ const PaymentPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
   const processingRef = useRef(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWallet, setUseWallet] = useState(false);
 
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -161,7 +163,18 @@ const PaymentPage = () => {
       }
     };
 
+    const fetchWallet = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/users/${userId}/wallet`, { headers: authHeaders });
+        if (res.ok) {
+          const data = await res.json();
+          setWalletBalance(data.walletBalance || 0);
+        }
+      } catch {}
+    };
+
     fetchCart();
+    fetchWallet();
   }, [userId, navigate]);
 
   const cardDigits = formData.cardNumber.replace(/\D/g, '');
@@ -193,19 +206,37 @@ const PaymentPage = () => {
       return acc + safePrice(item?.product?.price) * safeQty(item?.quantity);
     }, 0);
     const ship = cartItems.length > 0 ? 50 : 0;
-    return { sub, ship, total: sub + ship };
+    const total = sub + ship;
+    const walletApplied = useWallet ? Math.min(walletBalance, total) : 0;
+    const cardTotal = total - walletApplied;
+    return { sub, ship, total, walletApplied, cardTotal };
   };
 
-  const { sub, ship, total } = calculateTotal();
+  const { sub, ship, total, walletApplied, cardTotal } = calculateTotal();
 
   const handlePayment = async (e) => {
     e.preventDefault();
 
-    const validationErrors = validate(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      showToast('Please fix the highlighted fields.', 'error');
-      return;
+    // Only validate card fields when the card is actually needed
+    if (cardTotal > 0) {
+      const validationErrors = validate(formData);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        showToast('Please fix the highlighted fields.', 'error');
+        return;
+      }
+    } else {
+      // Wallet covers everything — still validate shipping address fields
+      const addressErrors = {};
+      if (formData.fullName.trim().length < 2) addressErrors.fullName = 'Enter your full name';
+      if (formData.address.trim().length < 5) addressErrors.address = 'Enter a valid street address';
+      if (formData.city.trim().length < 2) addressErrors.city = 'Enter a valid city';
+      if (formData.zipCode.replace(/\D/g, '').length !== 5) addressErrors.zipCode = 'ZIP code must be 5 digits';
+      if (Object.keys(addressErrors).length > 0) {
+        setErrors(addressErrors);
+        showToast('Please fill in your shipping address.', 'error');
+        return;
+      }
     }
 
     if (processingRef.current) return;
@@ -232,7 +263,8 @@ const PaymentPage = () => {
             address: formData.address,
             city: formData.city,
             zipCode: formData.zipCode
-          }
+          },
+          useWallet: useWallet && walletApplied > 0
         })
       });
 
@@ -249,7 +281,10 @@ const PaymentPage = () => {
         headers: authHeaders
       }).catch(() => {});
 
-      showToast(`Payment of $${total.toLocaleString()} was successful!`, 'success');
+      const paidMsg = walletApplied > 0
+        ? `$${walletApplied.toLocaleString()} from wallet + $${cardTotal.toLocaleString()} by card`
+        : `$${total.toLocaleString()}`;
+      showToast(`Payment of ${paidMsg} was successful!`, 'success');
       navigate(`/invoice/${order._id}`);
     } catch (error) {
       console.error('Payment error:', error);
@@ -307,6 +342,7 @@ const PaymentPage = () => {
               </div>
             </div>
 
+            {cardTotal > 0 && (
             <div className="payment-form-section">
               <h2>Payment Details</h2>
               <div className="form-group">
@@ -341,6 +377,7 @@ const PaymentPage = () => {
                 </div>
               </div>
             </div>
+            )}
           </form>
         </div>
 
@@ -360,6 +397,27 @@ const PaymentPage = () => {
             ))}
           </div>
 
+          {walletBalance > 0 && (
+            <div style={{ margin: '1rem 0', padding: '1rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={useWallet}
+                  onChange={e => setUseWallet(e.target.checked)}
+                  style={{ width: '18px', height: '18px', accentColor: '#16a34a' }}
+                />
+                <span style={{ fontWeight: 600, color: '#15803d' }}>
+                  Use wallet balance (${walletBalance.toLocaleString()} available)
+                </span>
+              </label>
+              {useWallet && walletApplied > 0 && (
+                <p style={{ margin: '6px 0 0 28px', fontSize: '0.9rem', color: '#166534' }}>
+                  −${walletApplied.toLocaleString()} from wallet · {cardTotal === 0 ? 'No card needed' : `$${cardTotal.toLocaleString()} remaining by card`}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="summary-details">
             <div className="summary-row">
               <span>Subtotal</span>
@@ -369,9 +427,15 @@ const PaymentPage = () => {
               <span>Shipping (Insured)</span>
               <span>${ship.toLocaleString()}</span>
             </div>
+            {useWallet && walletApplied > 0 && (
+              <div className="summary-row" style={{ color: '#16a34a' }}>
+                <span>Wallet discount</span>
+                <span>−${walletApplied.toLocaleString()}</span>
+              </div>
+            )}
             <div className="summary-total">
               <span>Total</span>
-              <span>${total.toLocaleString()}</span>
+              <span>${(useWallet ? cardTotal : total).toLocaleString()}</span>
             </div>
           </div>
 
@@ -381,7 +445,7 @@ const PaymentPage = () => {
             className="pay-btn"
             disabled={isProcessing || cartItems.length === 0}
           >
-            {isProcessing ? 'Processing Securely...' : `Pay $${total.toLocaleString()}`}
+            {isProcessing ? 'Processing Securely...' : cardTotal === 0 ? 'Pay with Wallet' : `Pay $${cardTotal.toLocaleString()}`}
           </button>
         </div>
 

@@ -4,7 +4,7 @@ import { useToast } from './Toast';
 import RevenueChart from './RevenueChart';
 import './AdminPage.css';
 
-const TABS = ['Discounts', 'Invoices', 'Revenue'];
+const TABS = ['Discounts', 'Invoices', 'Returns', 'Revenue'];
 
 const SalesManagerPage = () => {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ const SalesManagerPage = () => {
   const [activeTab, setActiveTab] = useState('Discounts');
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [discountInputs, setDiscountInputs] = useState({});
   const [fromDate, setFromDate] = useState('');
@@ -30,6 +31,7 @@ const SalesManagerPage = () => {
   useEffect(() => {
     if (activeTab === 'Discounts') fetchProducts();
     else if (activeTab === 'Invoices') fetchOrders();
+    else if (activeTab === 'Returns') fetchReturns();
   }, [activeTab]);
 
   const fetchProducts = async () => {
@@ -55,6 +57,34 @@ const SalesManagerPage = () => {
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : []);
     } catch {} finally { setLoading(false); }
+  };
+
+  const fetchReturns = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/returns', {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      setReturns(Array.isArray(data) ? data : []);
+    } catch {} finally { setLoading(false); }
+  };
+
+  const handleReturnAction = async (orderId, action) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/return`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ action })
+      });
+      if (!res.ok) { showToast('Action failed', 'error'); return; }
+      const updated = await res.json();
+      setReturns(prev => prev.map(o => o._id === orderId
+        ? { ...o, returnStatus: updated.returnStatus, refundAmount: updated.refundAmount }
+        : o
+      ));
+      showToast(action === 'approve' ? 'Return approved — refund credited to wallet' : 'Return rejected', 'success');
+    } catch { showToast('Something went wrong', 'error'); }
   };
 
   const applyDiscount = async (productId, rate) => {
@@ -162,6 +192,41 @@ const SalesManagerPage = () => {
               </tbody>
             </table>
           </>
+        )}
+
+        {!loading && activeTab === 'Returns' && (
+          <table className="admin-table">
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Items</th><th>Requested</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              {returns.length === 0 && (
+                <tr><td colSpan="7" style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>No return requests.</td></tr>
+              )}
+              {returns.map(o => (
+                <tr key={o._id}>
+                  <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
+                  <td>{o.userId?.firstName} {o.userId?.lastName}<br /><span style={{ fontSize: '0.8rem', color: '#64748b' }}>{o.userId?.email}</span></td>
+                  <td>${o.totalAmount?.toLocaleString()}</td>
+                  <td style={{ fontSize: '0.85rem' }}>{o.items?.map((item, i) => <span key={i} style={{ display: 'block' }}>{item.quantity}× {item.name}</span>)}</td>
+                  <td>{o.returnRequestedAt ? new Date(o.returnRequestedAt).toLocaleDateString() : '—'}</td>
+                  <td><span className={`status-badge ${o.returnStatus}`}>{o.returnStatus}</span></td>
+                  <td>
+                    {o.returnStatus === 'requested' ? (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button className="admin-btn-success" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => handleReturnAction(o._id, 'approve')}>Approve</button>
+                        <button className="admin-btn-danger" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => handleReturnAction(o._id, 'reject')}>Reject</button>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                        {o.returnStatus === 'approved' ? `Refunded $${o.refundAmount?.toLocaleString()}` : 'Rejected'}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
         {activeTab === 'Revenue' && <RevenueChart />}
