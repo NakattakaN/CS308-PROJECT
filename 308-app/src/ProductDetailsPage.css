@@ -160,7 +160,7 @@
 }
 
 .btn-add-cart:hover {
-  background-color: #1e293b;
+  background-color: var(--primary-hover, #1e293b);
   transform: translateY(-2px);
 }
 

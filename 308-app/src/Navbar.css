@@ -43,16 +43,17 @@
   align-items: center;
   gap: 8px;
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border-color);
   border-radius: 40px;
   padding: 0 12px 0 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .nav-search-wrapper:focus-within {
   border-color: var(--primary-color);
-  background: var(--bg);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
 }
 
 .nav-search-icon {
@@ -68,16 +69,18 @@
 
 .nav-search-input {
   flex: 1;
-  border: none;
-  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
   padding: 9px 0;
   font-size: 0.95rem;
   color: var(--text-main);
-  outline: none;
   min-width: 0;
 }
 
-.nav-search-input:focus {
+.nav-search-input:focus,
+.nav-search-input:focus-visible {
   border: none !important;
   box-shadow: none !important;
   outline: none !important;
@@ -147,31 +150,8 @@
 }
 
 .nav-btn-primary:hover {
-  background-color: #1e293b;
+  background-color: var(--primary-hover, #1e293b);
   color: var(--text-invert);
 }
 
-/* Dark mode: Keep buttons light */
-[data-theme="dark"] .nav-btn {
-  color: #1e293b;
-}
 
-[data-theme="dark"] .nav-btn:hover {
-  color: #475569;
-}
-
-[data-theme="dark"] .nav-btn-primary {
-  background-color: #0f172a;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .nav-btn-primary:hover {
-  background-color: #1e293b;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .theme-select select {
-  background: #f8fafc;
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
-}

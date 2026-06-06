@@ -199,9 +199,9 @@
 }
 
 .admin-review-status-btn.active {
-  background: var(--text-h);
+  background: var(--primary-color);
   color: var(--text-invert);
-  border-color: var(--text-h);
+  border-color: var(--primary-color);
 }
 
 .admin-reviews-empty {
