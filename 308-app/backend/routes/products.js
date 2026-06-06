@@ -36,7 +36,7 @@ router.get('/products', async (req, res) => {
     res.status(200).json(enriched);
   } catch (error) {
     res.status(500).json({
-      error: 'Saatler getirilirken hata oluştu',
+      error: 'Error fetching products',
       details: error.message
     });
   }
@@ -47,14 +47,14 @@ router.get('/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).lean();
     if (!product) {
-      return res.status(404).json({ message: 'Saat bulunamadı!' });
+      return res.status(404).json({ message: 'Product not found!' });
     }
     const aggregates = await loadAggregates([product._id]);
     const agg = aggregates.get(product._id.toString()) || { averageRating: 0, reviewCount: 0 };
     res.status(200).json({ ...product, ...agg });
   } catch (error) {
     res.status(500).json({
-      error: 'Saat detayı getirilirken hata oluştu',
+      error: 'Error fetching product details',
       details: error.message
     });
   }

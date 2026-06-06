@@ -325,6 +325,9 @@ const ProductDetailsPage = () => {
             <div className="spec-item"><span className="spec-label">Year:</span><span className="spec-value">{product.specs?.year}</span></div>
             <div className="spec-item"><span className="spec-label">Box & Papers:</span><span className="spec-value">{product.specs?.boxAndPapers ? 'Yes' : 'No'}</span></div>
             <div className="spec-item"><span className="spec-label">Reference:</span><span className="spec-value">{product.referenceNumber}</span></div>
+            {product.serialNumber && <div className="spec-item"><span className="spec-label">Serial No:</span><span className="spec-value">{product.serialNumber}</span></div>}
+            {product.warrantyStatus && <div className="spec-item"><span className="spec-label">Warranty:</span><span className="spec-value">{product.warrantyStatus}</span></div>}
+            {product.distributorInfo && <div className="spec-item"><span className="spec-label">Distributor:</span><span className="spec-value">{product.distributorInfo}</span></div>}
             <div className="spec-item">
               <span className="spec-label">Stock:</span>
               <span className="spec-value" style={{ color: product.stock === 0 ? '#6b7280' : product.stock <= 10 ? '#dc2626' : 'inherit', fontWeight: product.stock <= 10 ? 700 : 'inherit' }}>

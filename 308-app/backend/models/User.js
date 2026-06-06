@@ -14,6 +14,9 @@ const cartItemSchema = new mongoose.Schema({
     image:          String,
     images:         [String],
     referenceNumber:String,
+    serialNumber:   String,
+    warrantyStatus: String,
+    distributorInfo: String,
     description:    String,
     specs: {
       movement:    String,
@@ -32,6 +35,8 @@ const userSchema = new mongoose.Schema({
   lastName: String,
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  taxId: String,
+  homeAddress: String,
   role: { type: String, enum: ['user', 'product_manager', 'sales_manager', 'admin'], default: 'user' },
   authToken: { type: String, index: true },
   cart: [cartItemSchema],

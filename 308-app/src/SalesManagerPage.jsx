@@ -70,21 +70,23 @@ const SalesManagerPage = () => {
     } catch {} finally { setLoading(false); }
   };
 
-  const handleReturnAction = async (orderId, action) => {
+  const handleReturnAction = async (orderId, itemId, action) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/return`, {
+      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/items/${itemId}/return`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
       });
-      if (!res.ok) { showToast('Action failed', 'error'); return; }
-      const updated = await res.json();
-      setReturns(prev => prev.map(o => o._id === orderId
-        ? { ...o, returnStatus: updated.returnStatus, refundAmount: updated.refundAmount }
-        : o
-      ));
-      showToast(action === 'approve' ? 'Return approved — refund credited to wallet' : 'Return rejected', 'success');
-    } catch { showToast('Something went wrong', 'error'); }
+      if (res.ok) {
+        showToast(`Return request ${action}d successfully.`, 'success');
+        fetchReturns();
+      } else {
+        const data = await res.json();
+        showToast(data.message || 'Error processing return.', 'error');
+      }
+    } catch {
+      showToast('Error processing return.', 'error');
+    }
   };
 
   const applyDiscount = async (productId, rate) => {
@@ -203,28 +205,30 @@ const SalesManagerPage = () => {
               {returns.length === 0 && (
                 <tr><td colSpan="7" style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>No return requests.</td></tr>
               )}
-              {returns.map(o => (
-                <tr key={o._id}>
-                  <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
-                  <td>{o.userId?.firstName} {o.userId?.lastName}<br /><span style={{ fontSize: '0.8rem', color: '#64748b' }}>{o.userId?.email}</span></td>
-                  <td>${o.totalAmount?.toLocaleString()}</td>
-                  <td style={{ fontSize: '0.85rem' }}>{o.items?.map((item, i) => <span key={i} style={{ display: 'block' }}>{item.quantity}× {item.name}</span>)}</td>
-                  <td>{o.returnRequestedAt ? new Date(o.returnRequestedAt).toLocaleDateString() : '—'}</td>
-                  <td><span className={`status-badge ${o.returnStatus}`}>{o.returnStatus}</span></td>
-                  <td>
-                    {o.returnStatus === 'requested' ? (
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button className="admin-btn-success" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => handleReturnAction(o._id, 'approve')}>Approve</button>
-                        <button className="admin-btn-danger" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => handleReturnAction(o._id, 'reject')}>Reject</button>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                        {o.returnStatus === 'approved' ? `Refunded $${o.refundAmount?.toLocaleString()}` : 'Rejected'}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {returns.flatMap(o => 
+                o.items.filter(i => ['requested', 'approved', 'rejected'].includes(i.returnStatus)).map(item => (
+                  <tr key={`${o._id}-${item._id}`}>
+                    <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
+                    <td>{o.userId?.firstName} {o.userId?.lastName}<br /><span style={{ fontSize: '0.8rem', color: '#64748b' }}>{o.userId?.email}</span></td>
+                    <td>${(item.price * item.quantity).toLocaleString()}</td>
+                    <td style={{ fontSize: '0.85rem' }}>{item.quantity}× {item.name}</td>
+                    <td>{item.returnRequestedAt ? new Date(item.returnRequestedAt).toLocaleDateString() : '—'}</td>
+                    <td><span className={`status-badge ${item.returnStatus}`}>{item.returnStatus}</span></td>
+                    <td>
+                      {item.returnStatus === 'requested' ? (
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button className="admin-btn-success" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => handleReturnAction(o._id, item._id, 'approve')}>Approve</button>
+                          <button className="admin-btn-danger" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => handleReturnAction(o._id, item._id, 'reject')}>Reject</button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                          {item.returnStatus === 'approved' ? `Refunded $${item.refundAmount?.toLocaleString()}` : 'Rejected'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         )}

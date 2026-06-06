@@ -47,6 +47,9 @@ function generateInvoicePdf(order, user) {
     doc.fontSize(11).font('Regular').fillColor('#000').text(fullName, 50, y);
     y += 15;
     doc.fontSize(10).fillColor('#555').text(user.email, 50, y);
+    y += 14;
+    if (user.taxId) { doc.text(`Tax ID: ${user.taxId}`, 50, y); y += 14; }
+    if (user.homeAddress) { doc.text(user.homeAddress, 50, y); }
 
     // ——— Ship To ———
     const addr = order.shippingAddress || {};

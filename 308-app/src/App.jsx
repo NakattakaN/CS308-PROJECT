@@ -14,6 +14,7 @@ import SalesManagerPage from './SalesManagerPage';
 import InvoicePage from './InvoicePage';
 import OrdersPage from './OrdersPage';
 import WishlistPage from './WishlistPage';
+import ProfilePage from './ProfilePage';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { ToastProvider } from './Toast';
@@ -45,6 +46,9 @@ function App() {
 
         {/* ORDERS */}
         <Route path="/orders" element={<OrdersPage />} />
+
+        {/* PROFILE */}
+        <Route path="/profile" element={<ProfilePage />} />
 
         {/* WISHLIST */}
         <Route path="/wishlist" element={<WishlistPage />} />

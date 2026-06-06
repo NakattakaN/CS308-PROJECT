@@ -66,17 +66,27 @@ const OrdersPage = () => {
     return daysElapsed >= 30;
   };
 
-  const handleReturnRequest = async (orderId) => {
-    if (!window.confirm('Request a return for this order?')) return;
-    setActionBusy(orderId + '-return');
+  const handleReturnRequest = async (orderId, itemId) => {
+    if (!window.confirm('Request a return for this specific item?')) return;
+    setActionBusy(`${orderId}-${itemId}-return`);
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/return`, {
+      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/items/${itemId}/return`, {
         method: 'POST',
         headers: authHeaders
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.message || 'Could not submit return request.', 'error'); return; }
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, returnStatus: 'requested' } : o));
+      
+      // Update state locally
+      setOrders(prev => prev.map(o => {
+        if (o._id === orderId) {
+          return {
+            ...o,
+            items: o.items.map(item => item._id === itemId ? { ...item, returnStatus: 'requested' } : item)
+          };
+        }
+        return o;
+      }));
       showToast('Return request submitted! We will review it shortly.', 'success');
     } catch {
       showToast('Something went wrong.', 'error');
@@ -154,28 +164,6 @@ const OrdersPage = () => {
                         {actionBusy === order._id + '-cancel' ? 'Cancelling...' : 'Cancel Order'}
                       </button>
                     )}
-                    {order.status === 'Delivered' && order.returnStatus === 'none' && !isReturnWindowExpired(order.deliveredAt) && (
-                      <button
-                        className="return-order-btn"
-                        onClick={() => handleReturnRequest(order._id)}
-                        disabled={actionBusy === order._id + '-return'}
-                      >
-                        {actionBusy === order._id + '-return' ? 'Submitting...' : 'Request Return'}
-                      </button>
-                    )}
-                    {order.status === 'Delivered' && order.returnStatus === 'none' && isReturnWindowExpired(order.deliveredAt) && (
-                      <span className="return-expired-badge">Return window expired</span>
-                    )}
-                    {order.returnStatus && order.returnStatus !== 'none' && (
-                      <span className={`return-status-badge ${order.returnStatus}`}>
-                        Return: {order.returnStatus.charAt(0).toUpperCase() + order.returnStatus.slice(1)}
-                      </span>
-                    )}
-                    {order.returnStatus === 'approved' && order.refundAmount > 0 && (
-                      <span className="refund-badge">
-                        Refund: ${order.refundAmount?.toLocaleString()} credited to wallet
-                      </span>
-                    )}
                   </div>
                 </div>
 
@@ -204,8 +192,31 @@ const OrdersPage = () => {
                           <p className="order-item-brand">{item.brand}</p>
                           <p className="order-item-qty">Qty: {item.quantity}</p>
                         </div>
-                        <div className="order-item-price">
-                          ${item.price?.toLocaleString()}
+                        <div className="order-item-price" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                          <span>${item.price?.toLocaleString()}</span>
+                          {order.status === 'Delivered' && (!item.returnStatus || item.returnStatus === 'none') && !isReturnWindowExpired(order.deliveredAt) && (
+                            <button
+                              className="return-order-btn"
+                              style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                              onClick={() => handleReturnRequest(order._id, item._id)}
+                              disabled={actionBusy === `${order._id}-${item._id}-return`}
+                            >
+                              {actionBusy === `${order._id}-${item._id}-return` ? 'Submitting...' : 'Return Item'}
+                            </button>
+                          )}
+                          {order.status === 'Delivered' && (!item.returnStatus || item.returnStatus === 'none') && isReturnWindowExpired(order.deliveredAt) && (
+                            <span className="return-expired-badge" style={{ fontSize: '0.75rem' }}>Expired</span>
+                          )}
+                          {item.returnStatus && item.returnStatus !== 'none' && (
+                            <span className={`return-status-badge ${item.returnStatus}`} style={{ fontSize: '0.75rem' }}>
+                              Return: {item.returnStatus.charAt(0).toUpperCase() + item.returnStatus.slice(1)}
+                            </span>
+                          )}
+                          {item.returnStatus === 'approved' && item.refundAmount > 0 && (
+                            <span className="refund-badge" style={{ fontSize: '0.75rem' }}>
+                              Refunded: ${item.refundAmount?.toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}

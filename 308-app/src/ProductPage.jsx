@@ -119,9 +119,9 @@ const ProductPage = () => {
   }, []);
 
   const clearFilters = () => {
-    setFilters(prev => ({
-      gender: prev.gender, brands: [], strapColor: [], strapMaterial: [], caseShape: [], displayType: [], dialColor: []
-    }));
+    setFilters({
+      gender: '', brands: [], strapColor: [], strapMaterial: [], caseShape: [], displayType: [], dialColor: []
+    });
     setActiveDropdown(null);
   };
 
@@ -202,111 +202,134 @@ const ProductPage = () => {
 
   return (
     <>
-      <div className="filter-bar" ref={filterBarRef}>
-        <button className="filter-bar-categories" onClick={() => setIsSideMenuOpen(true)}>
-          <span className="filter-bar-hamburger"><span /><span /><span /></span>
-          Categories
-        </button>
-
-        <div className="filter-bar-divider" />
-
-        {FILTER_CONFIG.map(({ key, label, options }) => {
-          const selected = filters[key];
-          const isOpen = activeDropdown === key;
-          return (
-            <div key={key} className="filter-bar-item">
-              <button
-                className={`filter-bar-btn ${isOpen ? 'open' : ''} ${selected.length > 0 ? 'selected' : ''}`}
-                onClick={() => toggleDropdown(key)}
-              >
-                {label}
-                {selected.length > 0 && <span className="filter-bar-count">{selected.length}</span>}
-                <Chevron />
-              </button>
-              {isOpen && (
-                <div className="filter-bar-dropdown">
-                  {options.filter(opt => availableValues[key]?.has(opt.value)).map(opt => {
-                    const checked = selected.includes(opt.value);
-                    return (
-                      <button
-                        key={opt.value}
-                        className={`filter-bar-dropdown-item ${checked ? 'active' : ''}`}
-                        onClick={() => toggleFilter(key, opt.value)}
-                      >
-                        <span className="filter-check">{checked ? '✓' : ''}</span>
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                  {selected.length > 0 && (
-                    <button className="filter-bar-dropdown-clear" onClick={() => clearFilter(key)}>
-                      Clear
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        <button className="filter-bar-clear" onClick={clearFilters}>
-          Clear filters
-        </button>
-
-        <div className="filter-bar-spacer" />
-
-        <div className="filter-bar-divider" />
-
-        <div className="filter-bar-item">
-          <button
-            className={`filter-bar-btn ${activeDropdown === 'sort' ? 'open' : ''}`}
-            onClick={() => toggleDropdown('sort')}
-          >
-            {currentSortLabel}
-            <Chevron />
-          </button>
-          {activeDropdown === 'sort' && (
-            <div className="filter-bar-dropdown filter-bar-dropdown-right">
-              {SORT_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  className={`filter-bar-dropdown-item ${sortOption === opt.value ? 'active' : ''}`}
-                  onClick={() => { setSortOption(opt.value); setActiveDropdown(null); }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="filter-bar-divider" />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <span style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap' }}>Per row:</span>
-          <input
-            type="number"
-            min="1"
-            max="8"
-            value={itemsPerRow}
-            onChange={e => {
-              const v = Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1)));
-              setItemsPerRow(v);
-              try { localStorage.setItem('itemsPerRow', String(v)); } catch {}
-            }}
-            style={{ width: '48px', padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center' }}
-          />
-        </div>
-      </div>
-
       <div className="product-page-container">
         <section className="hero-section">
-          <h1>Discover Exceptional Timepieces</h1>
-          <p>Explore our curated marketplace and find the perfect watch for your collection.</p>
+          <div className="hero-content">
+            <h1>Mastering Time</h1>
+            <p>Discover the pinnacle of horological excellence. Explore our curated selection of world-class luxury timepieces.</p>
+            <button className="hero-cta" onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}>Shop Collection</button>
+          </div>
+          <div className="hero-image-wrapper">
+            <img src="/luxury_watch_hero.png" alt="Luxury Watch" className="hero-watch-image" />
+          </div>
+        </section>
+
+        <section className="bento-categories">
+          <div className="bento-box bento-large" onClick={() => { setFilters(prev => ({ ...prev, gender: 'erkek', brands: [] })); setIsSideMenuOpen(false); }}>
+            <div className="bento-overlay bento-mens"></div>
+            <h3>Men's Collection</h3>
+          </div>
+          <div className="bento-box" onClick={() => { setFilters(prev => ({ ...prev, gender: 'kadın', brands: [] })); setIsSideMenuOpen(false); }}>
+            <div className="bento-overlay bento-womens"></div>
+            <h3>Women's</h3>
+          </div>
+          <div className="bento-box" onClick={() => { setFilters(prev => ({ ...prev, brands: ['Rolex'], gender: '' })); setIsSideMenuOpen(false); }}>
+            <div className="bento-overlay bento-rolex"></div>
+            <h3>Rolex Selection</h3>
+          </div>
         </section>
 
         <div className="results-info">
           <p>Showing {filteredProducts.length} items</p>
+        </div>
+
+        <div className="filter-bar" ref={filterBarRef}>
+          <button className="filter-bar-categories" onClick={() => setIsSideMenuOpen(true)}>
+            <span className="filter-bar-hamburger"><span /><span /><span /></span>
+            Categories
+          </button>
+
+          <div className="filter-bar-divider" />
+
+          {FILTER_CONFIG.map(({ key, label, options }) => {
+            const selected = filters[key];
+            const isOpen = activeDropdown === key;
+            return (
+              <div key={key} className="filter-bar-item">
+                <button
+                  className={`filter-bar-btn ${isOpen ? 'open' : ''} ${selected.length > 0 ? 'selected' : ''}`}
+                  onClick={() => toggleDropdown(key)}
+                >
+                  {label}
+                  {selected.length > 0 && <span className="filter-bar-count">{selected.length}</span>}
+                  <Chevron />
+                </button>
+                {isOpen && (
+                  <div className="filter-bar-dropdown">
+                    {options.filter(opt => availableValues[key]?.has(opt.value)).map(opt => {
+                      const checked = selected.includes(opt.value);
+                      return (
+                        <button
+                          key={opt.value}
+                          className={`filter-bar-dropdown-item ${checked ? 'active' : ''}`}
+                          onClick={() => toggleFilter(key, opt.value)}
+                        >
+                          <span className="filter-check">{checked ? '✓' : ''}</span>
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                    {selected.length > 0 && (
+                      <button className="filter-bar-dropdown-clear" onClick={() => clearFilter(key)}>
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="filter-bar-spacer" />
+
+          {Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : Boolean(v)) && (
+            <button className="clear-all-red-btn" onClick={clearFilters}>
+              Clear Filters
+            </button>
+          )}
+
+          <div className="filter-bar-divider" />
+
+          <div className="filter-bar-item">
+            <button
+              className={`filter-bar-btn ${activeDropdown === 'sort' ? 'open' : ''}`}
+              onClick={() => toggleDropdown('sort')}
+            >
+              {currentSortLabel}
+              <Chevron />
+            </button>
+            {activeDropdown === 'sort' && (
+              <div className="filter-bar-dropdown filter-bar-dropdown-right">
+                {SORT_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    className={`filter-bar-dropdown-item ${sortOption === opt.value ? 'active' : ''}`}
+                    onClick={() => { setSortOption(opt.value); setActiveDropdown(null); }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="filter-bar-divider" />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap' }}>Per row:</span>
+            <input
+              type="number"
+              min="1"
+              max="8"
+              value={itemsPerRow}
+              onChange={e => {
+                const v = Math.max(1, Math.min(8, Math.floor(Number(e.target.value) || 1)));
+                setItemsPerRow(v);
+                try { localStorage.setItem('itemsPerRow', String(v)); } catch {}
+              }}
+              style={{ width: '48px', padding: '4px 6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem', textAlign: 'center' }}
+            />
+          </div>
         </div>
 
         {filteredProducts.length > 0 ? (
@@ -343,7 +366,7 @@ const ProductPage = () => {
                 ].map(cat => (
                   <button
                     key={cat.label}
-                    className={`side-menu-item ${filters.gender === cat.value && filters.brands.length === 0 ? 'active' : ''}`}
+                    className={`side-menu-item ${filters.gender === cat.value ? 'active' : ''}`}
                     onClick={() => {
                       setFilters(prev => ({ ...prev, gender: cat.value, brands: [] }));
                       setIsSideMenuOpen(false);
@@ -374,7 +397,7 @@ const ProductPage = () => {
                   {[...new Set(products.map(p => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map(brand => (
                     <button
                       key={brand}
-                      className={`side-menu-item ${filters.brands.length === 1 && filters.brands[0] === brand ? 'active' : ''}`}
+                      className={`side-menu-item ${filters.brands.includes(brand) ? 'active' : ''}`}
                       onClick={() => { setFilters(prev => ({ ...prev, gender: '', brands: [brand] })); setIsSideMenuOpen(false); setSideMenuPage('main'); }}
                     >
                       {brand}
@@ -421,19 +444,21 @@ const ProductCard = ({ product, navigate }) => {
       onClick={() => navigate(`/product/${product._id}`)}
       style={{ cursor: 'pointer', position: 'relative', opacity: isUnavailable ? 0.75 : 1 }}
     >
-      {!hasError ? (
-        <img
-          src={product.image}
-          alt={product.name}
-          className="product-image"
-          onError={() => setHasError(true)}
-        />
-      ) : (
-        <div className="product-image-placeholder">
-          <span style={{ fontSize: '3rem' }}>⌚</span>
-          <span style={{ fontSize: '1rem', opacity: 0.6, marginTop: '1rem' }}>{product.brand}</span>
-        </div>
-      )}
+      <div className="product-image-wrapper">
+        {!hasError ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="product-image"
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <div className="product-image-placeholder">
+            <span style={{ fontSize: '3rem' }}>⌚</span>
+            <span style={{ fontSize: '1rem', opacity: 0.6, marginTop: '1rem' }}>{product.brand}</span>
+          </div>
+        )}
+      </div>
       {isUnavailable && (
         <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.65)', color: '#fff', borderRadius: '6px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em' }}>
           UNAVAILABLE

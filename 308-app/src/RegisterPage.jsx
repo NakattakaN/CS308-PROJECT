@@ -14,6 +14,8 @@ const RegisterPage = () => {
     fullName: '',
     email: '',
     password: '',
+    taxId: '',
+    homeAddress: '',
   });
   const [passwordError, setPasswordError] = useState('');
 
@@ -105,6 +107,31 @@ const RegisterPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="taxId">Tax ID (Optional)</label>
+                <input
+                  type="text"
+                  id="taxId"
+                  name="taxId"
+                  placeholder="e.g. 123456789"
+                  value={formData.taxId}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="homeAddress">Home Address (Optional)</label>
+                <textarea
+                  id="homeAddress"
+                  name="homeAddress"
+                  placeholder="123 Main St, City, Country"
+                  value={formData.homeAddress}
+                  onChange={handleChange}
+                  rows={2}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }}
                 />
               </div>
 

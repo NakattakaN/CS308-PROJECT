@@ -13,32 +13,32 @@ const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 // KAYIT OL (REGISTER) API'si
 router.post('/register', async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password, taxId, homeAddress } = req.body;
 
     if (!fullName || !email || !password) {
-      return res.status(400).json({ success: false, message: "Tüm alanlar zorunludur!" });
+      return res.status(400).json({ success: false, message: "All fields are required!" });
     }
     if (typeof email !== 'string' || !EMAIL_REGEX.test(email.trim())) {
-      return res.status(400).json({ success: false, message: "Geçerli bir e-posta adresi giriniz!" });
+      return res.status(400).json({ success: false, message: "Please enter a valid email address!" });
     }
     if (typeof password !== 'string' || !PASSWORD_REGEX.test(password)) {
-      return res.status(400).json({ success: false, message: "Şifre en az 8 karakter olmalı ve en az bir harf ile bir rakam içermelidir." });
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long and contain at least one letter and one number." });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) return res.status(400).json({ success: false, message: "Bu e-posta adresi zaten kullanımda!" });
+    if (existingUser) return res.status(400).json({ success: false, message: "This email address is already in use!" });
 
     const nameParts = fullName.split(' ');
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ');
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ firstName, lastName, email: normalizedEmail, password: hashedPassword, role: 'user', cart: [] });
+    const newUser = new User({ firstName, lastName, email: normalizedEmail, password: hashedPassword, taxId, homeAddress, role: 'user', cart: [] });
     await newUser.save();
-    res.status(201).json({ success: true, message: "Kayıt başarıyla oluşturuldu!" });
+    res.status(201).json({ success: true, message: "Registration successful!" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Sunucu hatası oluştu!" });
+    res.status(500).json({ success: false, message: "Server error occurred!" });
   }
 });
 
@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
     const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const user = await User.findOne({ email: normalizedEmail });
 
-    if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı!" });
+    if (!user) return res.status(404).json({ success: false, message: "User not found!" });
 
     // Backward-compatible: if password isn't a bcrypt hash (legacy plaintext),
     // verify plaintext and auto-upgrade to hash.
@@ -63,7 +63,7 @@ router.post('/login', async (req, res) => {
         await user.save();
       }
     }
-    if (!passwordMatch) return res.status(401).json({ success: false, message: "Hatalı şifre girdiniz!" });
+    if (!passwordMatch) return res.status(401).json({ success: false, message: "Incorrect password entered!" });
 
     // Reuse existing token so other open sessions stay valid.
     // Only generate a new token if there isn't one (e.g. first login after registration).
@@ -74,14 +74,48 @@ router.post('/login', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Giriş başarılı!",
+      message: "Login successful!",
       userId: user._id,
       firstName: user.firstName,
       role: user.role || 'user',
       token: user.authToken
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Sunucu hatası oluştu!" });
+    res.status(500).json({ success: false, message: "Server error occurred!" });
+  }
+});
+
+const { requireAuth } = require('../middleware/auth');
+
+// Get current user profile
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password -cart -wishlist');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update user profile (address, taxId)
+router.put('/profile', requireAuth, async (req, res) => {
+  try {
+    const { taxId, homeAddress, firstName, lastName } = req.body;
+    
+    // Allow updating only safe fields
+    const updates = {};
+    if (taxId !== undefined) updates.taxId = taxId;
+    if (homeAddress !== undefined) updates.homeAddress = homeAddress;
+    if (firstName !== undefined) updates.firstName = firstName;
+    if (lastName !== undefined) updates.lastName = lastName;
+
+    const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password -cart -wishlist');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

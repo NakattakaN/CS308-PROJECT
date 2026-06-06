@@ -113,6 +113,7 @@ const Navbar = () => {
             )}
             {!isProductManager && !isSalesManager && (
               <>
+                <button className="nav-btn" onClick={() => navigate('/profile')}>My Profile</button>
                 <button className="nav-btn" onClick={() => navigate('/orders')}>My Orders</button>
                 <button className="nav-btn" onClick={() => navigate('/wishlist')}>My Wishlist</button>
                 <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>

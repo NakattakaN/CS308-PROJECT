@@ -173,8 +173,23 @@ const PaymentPage = () => {
       } catch {}
     };
 
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/profile`, { headers: authHeaders });
+        if (res.ok) {
+          const data = await res.json();
+          setFormData(prev => ({
+            ...prev,
+            fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
+            address: data.homeAddress || ''
+          }));
+        }
+      } catch {}
+    };
+
     fetchCart();
     fetchWallet();
+    fetchProfile();
   }, [userId, navigate]);
 
   const cardDigits = formData.cardNumber.replace(/\D/g, '');

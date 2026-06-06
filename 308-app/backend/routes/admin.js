@@ -42,7 +42,7 @@ router.put('/admin/products/:id', requireAuth, requireProductManager, async (req
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const allowed = ['name', 'brand', 'price', 'description', 'image', 'referenceNumber', 'stock'];
+    const allowed = ['name', 'brand', 'price', 'description', 'image', 'referenceNumber', 'serialNumber', 'warrantyStatus', 'distributorInfo', 'stock'];
     for (const field of allowed) {
       if (req.body[field] !== undefined) product[field] = req.body[field];
     }
@@ -123,55 +123,57 @@ router.put('/admin/orders/:id/status', requireAuth, requireProductManager, async
   }
 });
 
-// Get all orders with pending return requests
+// Get all orders with pending return requests on any item
 router.get('/admin/returns', requireAuth, requireSalesManager, async (req, res) => {
   try {
-    const orders = await Order.find({ returnStatus: { $in: ['requested', 'approved', 'rejected'] } })
+    const orders = await Order.find({ 'items.returnStatus': { $in: ['requested', 'approved', 'rejected'] } })
       .populate('userId', 'firstName lastName email')
       .populate('items.productId', 'image')
-      .sort({ returnRequestedAt: -1 });
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Approve or reject a return request
-router.put('/admin/orders/:id/return', requireAuth, requireSalesManager, async (req, res) => {
+// Approve or reject a return request for a specific item
+router.put('/admin/orders/:orderId/items/:itemId/return', requireAuth, requireSalesManager, async (req, res) => {
   try {
     const { action } = req.body;
     if (!['approve', 'reject'].includes(action)) {
       return res.status(400).json({ message: 'action must be approve or reject' });
     }
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.returnStatus !== 'requested') {
-      return res.status(400).json({ message: 'No pending return request for this order' });
+
+    const item = order.items.id(req.params.itemId);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+
+    if (item.returnStatus !== 'requested') {
+      return res.status(400).json({ message: 'No pending return request for this item' });
     }
 
     if (action === 'approve') {
-      order.returnStatus = 'approved';
-      order.refundAmount = order.totalAmount;
+      item.returnStatus = 'approved';
+      item.refundAmount = item.price * item.quantity;
 
       // Credit refund to user's wallet balance
       await User.findByIdAndUpdate(order.userId, {
-        $inc: { walletBalance: order.totalAmount }
+        $inc: { walletBalance: item.refundAmount }
       });
 
-      // Restore stock for each returned item
-      await Promise.all(order.items.map(async item => {
-        const updated = await Product.findByIdAndUpdate(
-          item.productId,
-          { $inc: { stock: item.quantity } },
-          { new: true }
-        );
-        if (updated && updated.stock > 0) {
-          await Product.findByIdAndUpdate(item.productId, { status: 'available' });
-        }
-      }));
+      // Restore stock for the returned item
+      const updated = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: item.quantity } },
+        { new: true }
+      );
+      if (updated && updated.stock > 0) {
+        await Product.findByIdAndUpdate(item.productId, { status: 'available' });
+      }
     } else {
-      order.returnStatus = 'rejected';
+      item.returnStatus = 'rejected';
     }
 
     await order.save();

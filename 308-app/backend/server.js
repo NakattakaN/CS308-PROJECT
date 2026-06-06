@@ -1,7 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-require('./db');
+if (process.env.NODE_ENV !== 'test') {
+  require('./db');
+}
 
 const app = express();
 
@@ -22,4 +24,8 @@ app.use('/api', require('./routes/wishlist'));
 app.use('/api', require('./routes/admin'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Sunucu http://localhost:${PORT} adresinde ayaklandı!`));
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => console.log(`🚀 Sunucu http://localhost:${PORT} adresinde ayaklandı!`));
+}
+
+module.exports = { app };

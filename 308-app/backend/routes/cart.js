@@ -30,7 +30,7 @@ const populateCartWithStock = async (cart) => {
 router.get('/users/:userId/cart', requireAuth, requireSelf, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
+    if (!user) return res.status(404).json({ message: "User not found!" });
 
     // Safety net: remove any cart items whose product no longer exists in DB
     const validIds = [];
@@ -60,7 +60,7 @@ router.post('/users/:userId/cart', requireAuth, requireSelf, async (req, res) =>
     // Ürünün en güncel stok bilgisini doğrudan Product koleksiyonundan çekiyoruz
     const product = await Product.findById(productId);
 
-    if (!product) return res.status(404).json({ message: "Saat bulunamadı!" });
+    if (!product) return res.status(404).json({ message: "Product not found!" });
 
     const safeQty = Number.parseInt(quantity) || 1;
     const currentStock = product.stock || product.quantity || 0; // Veritabanındaki gerçek stok
@@ -69,19 +69,19 @@ router.post('/users/:userId/cart', requireAuth, requireSelf, async (req, res) =>
     const existingIndex = user.cart.findIndex(item => item.product._id.toString() === productId);
 
     if (existingIndex > -1) {
-      // KRİTİK KONTROL: Sepetteki miktar + Yeni eklenen miktar > Gerçek Stok
+      // CRITICAL CHECK: Cart quantity + New quantity > Actual Stock
       const totalPlannedQuantity = user.cart[existingIndex].quantity + safeQty;
       
       if (totalPlannedQuantity > currentStock) {
         return res.status(400).json({ 
-          message: `Stok sınırı aşıldı! Sepetinizde zaten ${user.cart[existingIndex].quantity} adet var. En fazla ${currentStock - user.cart[existingIndex].quantity} adet daha ekleyebilirsiniz.` 
+          message: `Insufficient stock! You already have ${user.cart[existingIndex].quantity} in cart. You can add at most ${currentStock - user.cart[existingIndex].quantity} more.` 
         });
       }
       user.cart[existingIndex].quantity = totalPlannedQuantity;
     } else {
-      // Ürün ilk kez ekleniyorsa sadece stok kontrolü yap
+      // If product is added for the first time, check stock
       if (safeQty > currentStock) {
-        return res.status(400).json({ message: `Yetersiz stok! En fazla ${currentStock} adet ekleyebilirsiniz.` });
+        return res.status(400).json({ message: `Insufficient stock! You can add at most ${currentStock} items.` });
       }
       user.cart.push({ product, quantity: safeQty });
     }
@@ -90,7 +90,7 @@ router.post('/users/:userId/cart', requireAuth, requireSelf, async (req, res) =>
     
     // Güncel sepeti (yeni yazdığımız populate fonksiyonuyla) döndür
     const cartWithStock = await populateCartWithStock(user.cart);
-    res.status(200).json({ message: "Sepet güncellendi!", cart: cartWithStock });
+    res.status(200).json({ message: "Cart updated!", cart: cartWithStock });
   } catch (error) {
     console.error("POST Hatası:", error);
     res.status(500).json({ error: error.message });
@@ -105,11 +105,11 @@ router.put('/users/:userId/cart/:itemId', requireAuth, requireSelf, async (req, 
     
     // Sepetteki ürünü bul
     const cartItem = user.cart.find(item => item._id.toString() === req.params.itemId);
-    if (!cartItem) return res.status(404).json({ message: "Ürün sepette bulunamadı" });
+    if (!cartItem) return res.status(404).json({ message: "Product not found in cart" });
 
     // Orijinal ürünü veritabanından bul
     const product = await Product.findById(cartItem.product._id);
-    if (!product) return res.status(404).json({ message: "Orijinal ürün bulunamadı" });
+    if (!product) return res.status(404).json({ message: "Original product not found" });
     
     // --- GÜVENLİK KALKANI (NaN Hatalarını Önler) ---
     
@@ -168,7 +168,7 @@ router.delete('/users/:userId/cart/:itemId', requireAuth, requireSelf, async (re
     await user.save();
     
     const cartWithStock = await populateCartWithStock(user.cart);
-    res.json({ message: "Silindi", cart: cartWithStock });
+    res.json({ message: "Deleted", cart: cartWithStock });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
