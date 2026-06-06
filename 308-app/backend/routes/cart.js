@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Product = require('../models/Product');
+const { requireAuth, requireSelf } = require('../middleware/auth');
 
 // YARDIMCI FONKSİYON: Sepet verisine güncel mağaza stoğunu ekler
 const populateCartWithStock = async (cart) => {
@@ -26,7 +27,7 @@ const populateCartWithStock = async (cart) => {
 };
 
 // KULLANICI SEPETİNİ GETİR
-router.get('/users/:userId/cart', async (req, res) => {
+router.get('/users/:userId/cart', requireAuth, requireSelf, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı!" });
@@ -51,7 +52,7 @@ router.get('/users/:userId/cart', async (req, res) => {
 });
 
 // SEPETE SAAT EKLE (Miktar Kontrollü - Sıkı Denetim)
-router.post('/users/:userId/cart', async (req, res) => {
+router.post('/users/:userId/cart', requireAuth, requireSelf, async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     const user = await User.findById(req.params.userId);
@@ -97,7 +98,7 @@ router.post('/users/:userId/cart', async (req, res) => {
 });
 
 // SEPETTEKİ MİKTARI GÜNCELLE (+/- Butonları için)
-router.put('/users/:userId/cart/:itemId', async (req, res) => {
+router.put('/users/:userId/cart/:itemId', requireAuth, requireSelf, async (req, res) => {
   try {
     const { quantity } = req.body;
     const user = await User.findById(req.params.userId);
@@ -147,7 +148,7 @@ router.put('/users/:userId/cart/:itemId', async (req, res) => {
 });
 
 // TÜM SEPETİ TEMİZLE (ödeme sonrası)
-router.delete('/users/:userId/cart', async (req, res) => {
+router.delete('/users/:userId/cart', requireAuth, requireSelf, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
@@ -160,7 +161,7 @@ router.delete('/users/:userId/cart', async (req, res) => {
 });
 
 // SEPETTEN ÜRÜN SİL
-router.delete('/users/:userId/cart/:itemId', async (req, res) => {
+router.delete('/users/:userId/cart/:itemId', requireAuth, requireSelf, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     user.cart = user.cart.filter(item => item._id.toString() !== req.params.itemId);

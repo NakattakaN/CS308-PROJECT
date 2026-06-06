@@ -35,7 +35,9 @@ const SalesManagerPage = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/products');
+      const res = await fetch('http://localhost:5000/api/admin/products', {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
       const data = await res.json();
       setProducts(Array.isArray(data) ? data : []);
     } catch {} finally { setLoading(false); }

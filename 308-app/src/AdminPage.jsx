@@ -61,7 +61,9 @@ const AdminPage = () => {
     setLoading(true);
     try {
       const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers', Orders: '/admin/orders', Returns: '/admin/returns' };
-      const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`);
+      const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
       const data = await res.json();
       if (tab === 'Products') setProducts(data);
       else if (tab === 'Users') setUsers(data);
@@ -77,14 +79,17 @@ const AdminPage = () => {
 
   const deleteProduct = async (id) => {
     if (!window.confirm('Delete this product?')) return;
-    await fetch(`http://localhost:5000/api/admin/products/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:5000/api/admin/products/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
     setProducts(prev => prev.filter(p => p._id !== id));
   };
 
   const updateOfferStatus = async (id, status) => {
     const res = await fetch(`http://localhost:5000/api/admin/offers/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({ status })
     });
     const updated = await res.json();
@@ -110,7 +115,7 @@ const AdminPage = () => {
   const updateAdminOrderStatus = async (id, status) => {
     const res = await fetch(`http://localhost:5000/api/admin/orders/${id}/status`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({ status })
     });
     const updated = await res.json();

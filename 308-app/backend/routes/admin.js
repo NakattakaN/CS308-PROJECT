@@ -4,10 +4,10 @@ const User = require('../models/User');
 const Product = require('../models/Product');
 const Offer = require('../models/Offer');
 const Order = require('../models/Order');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireProductManager, requireSalesManager, requireStaff } = require('../middleware/auth');
 
 // Get all users
-router.get('/admin/users', async (req, res) => {
+router.get('/admin/users', requireAuth, requireAdmin, async (req, res) => {
   try {
     const users = await User.find({}, '-password -authToken').sort({ createdAt: -1 });
     res.json(users);
@@ -17,7 +17,7 @@ router.get('/admin/users', async (req, res) => {
 });
 
 // Get all products
-router.get('/admin/products', async (req, res) => {
+router.get('/admin/products', requireAuth, requireStaff, async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
@@ -27,7 +27,7 @@ router.get('/admin/products', async (req, res) => {
 });
 
 // Add a new product (product manager)
-router.post('/admin/products', async (req, res) => {
+router.post('/admin/products', requireAuth, requireProductManager, async (req, res) => {
   try {
     const product = await Product.create(req.body);
     res.status(201).json(product);
@@ -37,7 +37,7 @@ router.post('/admin/products', async (req, res) => {
 });
 
 // Update product fields like stock, status (product manager)
-router.put('/admin/products/:id', async (req, res) => {
+router.put('/admin/products/:id', requireAuth, requireProductManager, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -55,7 +55,7 @@ router.put('/admin/products/:id', async (req, res) => {
 });
 
 // Delete a product and remove it from all user carts
-router.delete('/admin/products/:id', async (req, res) => {
+router.delete('/admin/products/:id', requireAuth, requireProductManager, async (req, res) => {
   try {
     const productId = req.params.id;
     await Product.findByIdAndDelete(productId);
@@ -73,7 +73,7 @@ router.delete('/admin/products/:id', async (req, res) => {
 });
 
 // Get all offers
-router.get('/admin/offers', async (req, res) => {
+router.get('/admin/offers', requireAuth, requireAdmin, async (req, res) => {
   try {
     const offers = await Offer.find().populate('productId', 'name brand').sort({ createdAt: -1 });
     res.json(offers);
@@ -83,7 +83,7 @@ router.get('/admin/offers', async (req, res) => {
 });
 
 // Update offer status
-router.put('/admin/offers/:id', async (req, res) => {
+router.put('/admin/offers/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body;
     const offer = await Offer.findByIdAndUpdate(req.params.id, { status }, { new: true });
@@ -94,7 +94,7 @@ router.put('/admin/offers/:id', async (req, res) => {
 });
 
 // Get all orders
-router.get('/admin/orders', async (req, res) => {
+router.get('/admin/orders', requireAuth, requireStaff, async (req, res) => {
   try {
     const orders = await Order.find()
       .populate('userId', 'firstName lastName email')
@@ -107,7 +107,7 @@ router.get('/admin/orders', async (req, res) => {
 });
 
 // Update order status
-router.put('/admin/orders/:id/status', async (req, res) => {
+router.put('/admin/orders/:id/status', requireAuth, requireProductManager, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['Processing', 'In-Transit', 'Delivered'].includes(status)) {
@@ -124,7 +124,7 @@ router.put('/admin/orders/:id/status', async (req, res) => {
 });
 
 // Get all orders with pending return requests
-router.get('/admin/returns', async (req, res) => {
+router.get('/admin/returns', requireAuth, requireSalesManager, async (req, res) => {
   try {
     const orders = await Order.find({ returnStatus: { $in: ['requested', 'approved', 'rejected'] } })
       .populate('userId', 'firstName lastName email')
@@ -137,7 +137,7 @@ router.get('/admin/returns', async (req, res) => {
 });
 
 // Approve or reject a return request
-router.put('/admin/orders/:id/return', async (req, res) => {
+router.put('/admin/orders/:id/return', requireAuth, requireSalesManager, async (req, res) => {
   try {
     const { action } = req.body;
     if (!['approve', 'reject'].includes(action)) {
@@ -182,7 +182,7 @@ router.put('/admin/orders/:id/return', async (req, res) => {
 });
 
 // Revenue/loss data grouped by day for a given date range
-router.get('/admin/revenue', async (req, res) => {
+router.get('/admin/revenue', requireAuth, requireSalesManager, async (req, res) => {
   try {
     const fromDate = req.query.from ? new Date(req.query.from) : new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
     const toDate = req.query.to ? new Date(req.query.to) : new Date();

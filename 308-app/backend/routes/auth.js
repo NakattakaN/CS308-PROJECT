@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const router = express.Router();
 const User = require('../models/User');
 
@@ -32,7 +33,8 @@ router.post('/register', async (req, res) => {
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ');
 
-    const newUser = new User({ firstName, lastName, email: normalizedEmail, password, role: 'user', cart: [] });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ firstName, lastName, email: normalizedEmail, password: hashedPassword, role: 'user', cart: [] });
     await newUser.save();
     res.status(201).json({ success: true, message: "Kayıt başarıyla oluşturuldu!" });
   } catch (error) {
@@ -48,7 +50,20 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı!" });
-    if (user.password !== password) return res.status(401).json({ success: false, message: "Hatalı şifre girdiniz!" });
+
+    // Backward-compatible: if password isn't a bcrypt hash (legacy plaintext),
+    // verify plaintext and auto-upgrade to hash.
+    let passwordMatch;
+    if (user.password.startsWith('$2')) {
+      passwordMatch = await bcrypt.compare(password, user.password);
+    } else {
+      passwordMatch = user.password === password;
+      if (passwordMatch) {
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+      }
+    }
+    if (!passwordMatch) return res.status(401).json({ success: false, message: "Hatalı şifre girdiniz!" });
 
     // Reuse existing token so other open sessions stay valid.
     // Only generate a new token if there isn't one (e.g. first login after registration).
