@@ -20,6 +20,60 @@ const Navbar = () => {
   const isAdmin = userRole === 'admin';
   const isProductManager = userRole === 'product_manager';
   const isSalesManager = userRole === 'sales_manager';
+  
+  const userId = localStorage.getItem('userId');
+  const authToken = localStorage.getItem('authToken');
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  const updateCounts = async () => {
+    if (!userId) {
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const count = guestCart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      setCartCount(count);
+      setWishlistCount(0);
+    } else {
+      try {
+        const cartRes = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        if (cartRes.ok) {
+          const cartData = await cartRes.json();
+          const count = cartData.reduce((sum, item) => sum + (item.quantity || 0), 0);
+          setCartCount(count);
+        }
+      } catch (err) {
+        console.error('Navbar cart fetch error:', err);
+      }
+
+      try {
+        const wishlistRes = await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        if (wishlistRes.ok) {
+          const wishlistData = await wishlistRes.json();
+          setWishlistCount(Array.isArray(wishlistData) ? wishlistData.length : 0);
+        }
+      } catch (err) {
+        console.error('Navbar wishlist fetch error:', err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    updateCounts();
+    const handleCartUpdated = () => updateCounts();
+    const handleWishlistUpdated = () => updateCounts();
+    window.addEventListener('cart-updated', handleCartUpdated);
+    window.addEventListener('wishlist-updated', handleWishlistUpdated);
+    window.addEventListener('focus', handleCartUpdated);
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdated);
+      window.removeEventListener('wishlist-updated', handleWishlistUpdated);
+      window.removeEventListener('focus', handleCartUpdated);
+    };
+  }, [userId, authToken]);
+
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem('theme') || 'light'; } catch { return 'light'; }
   });
@@ -35,6 +89,8 @@ const Navbar = () => {
     localStorage.removeItem('userId');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
+    setCartCount(0);
+    setWishlistCount(0);
     navigate('/home');
   };
 
@@ -115,15 +171,21 @@ const Navbar = () => {
               <>
                 <button className="nav-btn" onClick={() => navigate('/profile')}>My Profile</button>
                 <button className="nav-btn" onClick={() => navigate('/orders')}>My Orders</button>
-                <button className="nav-btn" onClick={() => navigate('/wishlist')}>My Wishlist</button>
-                <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
+                <button className="nav-btn nav-btn-badge-container" onClick={() => navigate('/wishlist')}>
+                  My Wishlist {wishlistCount > 0 && <span className="nav-badge">{wishlistCount}</span>}
+                </button>
+                <button className="nav-btn nav-btn-badge-container" onClick={() => navigate('/cart')}>
+                  My Cart {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
+                </button>
               </>
             )}
             <button className="nav-btn" onClick={handleLogout}>Logout</button>
           </>
         ) : (
           <>
-            <button className="nav-btn" onClick={() => navigate('/cart')}>My Cart</button>
+            <button className="nav-btn nav-btn-badge-container" onClick={() => navigate('/cart')}>
+              My Cart {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
+            </button>
             <NavLink to="/login" className="nav-btn">Login</NavLink>
             <NavLink to="/register" className="nav-btn-primary">Register</NavLink>
           </>

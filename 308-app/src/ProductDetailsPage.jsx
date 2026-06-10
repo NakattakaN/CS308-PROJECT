@@ -105,6 +105,7 @@ const ProductDetailsPage = () => {
         }
         setIsInWishlist(false);
         showToast('Removed from wishlist', 'success');
+        window.dispatchEvent(new Event('wishlist-updated'));
       } else {
         const res = await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
           method: 'POST',
@@ -118,6 +119,7 @@ const ProductDetailsPage = () => {
         }
         setIsInWishlist(true);
         showToast('Added to wishlist!', 'success');
+        window.dispatchEvent(new Event('wishlist-updated'));
       }
     } catch {
       showToast('Something went wrong', 'error');
@@ -146,6 +148,7 @@ const ProductDetailsPage = () => {
       }
       localStorage.setItem('guestCart', JSON.stringify(guestCart));
       showToast('Added to cart! Sign in to checkout.', 'success');
+      window.dispatchEvent(new Event('cart-updated'));
       return;
     }
 
@@ -162,6 +165,7 @@ const ProductDetailsPage = () => {
         return;
       }
       showToast('Added to cart!', 'success');
+      window.dispatchEvent(new Event('cart-updated'));
     } catch (error) {
       console.error('Add to cart error:', error);
       showToast('Something went wrong. Please try again.', 'error');
