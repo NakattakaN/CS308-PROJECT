@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireSelf } = require('../middleware/auth');
 
 // Get user's wishlist with full product details
-router.get('/users/:userId/wishlist', requireAuth, async (req, res) => {
+router.get('/users/:userId/wishlist', requireAuth, requireSelf, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).populate('wishlist');
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -16,7 +16,7 @@ router.get('/users/:userId/wishlist', requireAuth, async (req, res) => {
 });
 
 // Add a product to wishlist (idempotent)
-router.post('/users/:userId/wishlist', requireAuth, async (req, res) => {
+router.post('/users/:userId/wishlist', requireAuth, requireSelf, async (req, res) => {
   try {
     const { productId } = req.body;
     if (!productId) return res.status(400).json({ message: 'productId is required' });
@@ -37,7 +37,7 @@ router.post('/users/:userId/wishlist', requireAuth, async (req, res) => {
 });
 
 // Remove a product from wishlist
-router.delete('/users/:userId/wishlist/:productId', requireAuth, async (req, res) => {
+router.delete('/users/:userId/wishlist/:productId', requireAuth, requireSelf, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.userId,

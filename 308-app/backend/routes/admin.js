@@ -51,7 +51,7 @@ router.put('/admin/products/:id', requireAuth, requireProductManager, async (req
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const allowed = ['name', 'brand', 'price', 'description', 'image', 'referenceNumber', 'serialNumber', 'warrantyStatus', 'distributorInfo', 'stock'];
+    const allowed = ['name', 'brand', 'price', 'description', 'image', 'referenceNumber', 'serialNumber', 'warrantyStatus', 'distributorInfo', 'stock', 'category'];
     for (const field of allowed) {
       if (req.body[field] !== undefined) product[field] = req.body[field];
     }

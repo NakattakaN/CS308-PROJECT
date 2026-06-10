@@ -3,6 +3,7 @@ const router = express.Router();
 const Product = require('../models/Product');
 const Review = require('../models/Review');
 const User = require('../models/User');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 const SAMPLE_PRODUCTS = [
   // ——— 1-7: Original lineup ———
@@ -73,7 +74,7 @@ const SAMPLE_PRODUCTS = [
 ];
 
 // ---- DEV: seed products ----
-router.post('/seed-products', async (req, res) => {
+router.post('/seed-products', requireAuth, requireAdmin, async (req, res) => {
   try {
     await Product.deleteMany({});
 
@@ -103,7 +104,7 @@ router.post('/seed-products', async (req, res) => {
 });
 
 // ---- DEV: seed mixed-status reviews across all products ----
-router.post('/seed-reviews', async (req, res) => {
+router.post('/seed-reviews', requireAuth, requireAdmin, async (req, res) => {
   try {
     const users = await User.find().select('_id firstName lastName').lean();
     if (users.length === 0) {

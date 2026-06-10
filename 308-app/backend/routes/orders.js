@@ -40,13 +40,21 @@ router.post('/orders', requireAuth, async (req, res) => {
       calculatedTotal += product.price * item.quantity;
     }
 
-    // Deduct wallet balance if requested
+    // Deduct wallet balance if requested — atomic to prevent double-spend
     let walletDeducted = 0;
     if (useWallet) {
       const user = await User.findById(req.userId).select('walletBalance');
-      walletDeducted = Math.min(user.walletBalance || 0, calculatedTotal);
-      if (walletDeducted > 0) {
-        await User.findByIdAndUpdate(req.userId, { $inc: { walletBalance: -walletDeducted } });
+      const desired = Math.min(user.walletBalance || 0, calculatedTotal);
+      if (desired > 0) {
+        const updated = await User.findOneAndUpdate(
+          { _id: req.userId, walletBalance: { $gte: desired } },
+          { $inc: { walletBalance: -desired } },
+          { new: true }
+        );
+        if (!updated) {
+          return res.status(409).json({ error: 'Wallet balance changed — please try again' });
+        }
+        walletDeducted = desired;
       }
     }
 
@@ -119,7 +127,7 @@ router.get('/orders/:orderId/invoice', requireAuth, async (req, res) => {
 });
 
 // Get orders for a user
-router.get('/users/:userId/orders', requireAuth, async (req, res) => {
+router.get('/users/:userId/orders', requireAuth, requireSelf, async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.params.userId })
       .populate('items.productId', 'image')
@@ -151,6 +159,11 @@ router.put('/orders/:orderId/cancel', requireAuth, async (req, res) => {
         await Product.findByIdAndUpdate(item.productId, { status: 'available' });
       }
     }));
+
+    // Refund the full order amount to the customer's wallet
+    await User.findByIdAndUpdate(order.userId, {
+      $inc: { walletBalance: order.totalAmount }
+    });
 
     order.status = 'Cancelled';
     order.cancelledAt = new Date();

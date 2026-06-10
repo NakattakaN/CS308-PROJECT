@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import './AdminPage.css';
 
-const TABS = ['Products', 'Orders', 'Reviews'];
+const TABS = ['Products', 'Categories', 'Orders', 'Reviews'];
 const REVIEW_STATUSES = ['UNDER_REVIEW', 'APPROVED', 'REJECTED'];
 
 const ProductManagerPage = () => {
@@ -15,6 +15,8 @@ const ProductManagerPage = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [reviewStatus, setReviewStatus] = useState('UNDER_REVIEW');
   const [deliveryFilter, setDeliveryFilter] = useState('All');
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ const ProductManagerPage = () => {
     name: '', brand: '', price: '', image: '', description: '',
     referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available',
     gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah',
-    caseShape: 'oval', displayType: 'analog'
+    caseShape: 'oval', displayType: 'analog', category: ''
   });
 
   useEffect(() => {
@@ -48,10 +50,21 @@ const ProductManagerPage = () => {
     } catch { setReviews([]); } finally { setLoading(false); }
   }, [authToken]);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/categories');
+      const data = await res.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch { setCategories([]); }
+  }, []);
+
+  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+
   useEffect(() => {
     if (activeTab === 'Reviews') fetchReviews(reviewStatus);
+    else if (activeTab === 'Categories') fetchCategories();
     else fetchTab(activeTab);
-  }, [activeTab, reviewStatus, fetchReviews]);
+  }, [activeTab, reviewStatus, fetchReviews, fetchCategories]);
 
   const fetchTab = async (tab) => {
     setLoading(true);
@@ -85,13 +98,13 @@ const ProductManagerPage = () => {
       const res = await fetch('http://localhost:5000/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ ...newProduct, price: Number(newProduct.price), stock: Number(newProduct.stock) })
+        body: JSON.stringify({ ...newProduct, price: Number(newProduct.price), stock: Number(newProduct.stock), category: newProduct.category || null })
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error || 'Failed to add product', 'error'); return; }
       setProducts(prev => [data, ...prev]);
       setShowAddForm(false);
-      setNewProduct({ name: '', brand: '', price: '', image: '', description: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available', gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah', caseShape: 'oval', displayType: 'analog' });
+      setNewProduct({ name: '', brand: '', price: '', image: '', description: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available', gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah', caseShape: 'oval', displayType: 'analog', category: '' });
       showToast('Product added', 'success');
     } catch { showToast('Failed to add product', 'error'); }
   };
@@ -119,6 +132,37 @@ const ProductManagerPage = () => {
     });
     const updated = await res.json();
     setOrders(prev => prev.map(o => o._id === id ? { ...o, status: updated.status } : o));
+  };
+
+  const addCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) { showToast('Category name is required', 'error'); return; }
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.message || 'Failed to add category', 'error'); return; }
+      setCategories(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewCategoryName('');
+      showToast('Category added', 'success');
+    } catch { showToast('Failed to add category', 'error'); }
+  };
+
+  const deleteCategory = async (id) => {
+    if (!window.confirm('Delete this category? It will be removed from all products.')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/categories/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      if (!res.ok) { showToast('Failed to delete category', 'error'); return; }
+      setCategories(prev => prev.filter(c => c._id !== id));
+      setProducts(prev => prev.map(p => p.category === id ? { ...p, category: null } : p));
+      showToast('Category deleted', 'success');
+    } catch { showToast('Failed to delete category', 'error'); }
   };
 
   const moderateReview = async (id, nextStatus) => {
@@ -169,6 +213,13 @@ const ProductManagerPage = () => {
                       <input type={type} value={newProduct[key]} onChange={e => setNewProduct(p => ({ ...p, [key]: e.target.value }))} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box' }} />
                     </div>
                   ))}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '4px' }}>Category</label>
+                    <select value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box', background: '#fff' }}>
+                      <option value="">— None —</option>
+                      {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    </select>
+                  </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '4px' }}>Description</label>
                     <textarea value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} rows={2} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }} />
@@ -209,6 +260,37 @@ const ProductManagerPage = () => {
                 ))}
               </tbody>
             </table>
+          </>
+        )}
+
+        {!loading && activeTab === 'Categories' && (
+          <>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem' }}>
+              <input
+                type="text"
+                value={newCategoryName}
+                placeholder="New category name"
+                onChange={e => setNewCategoryName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') addCategory(); }}
+                style={{ flex: 1, maxWidth: 320, padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem' }}
+              />
+              <button className="admin-btn-success" onClick={addCategory}>+ Add Category</button>
+            </div>
+            {categories.length === 0 ? (
+              <p style={{ color: '#64748b' }}>No categories yet.</p>
+            ) : (
+              <table className="admin-table">
+                <thead><tr><th>Name</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {categories.map(c => (
+                    <tr key={c._id}>
+                      <td>{c.name}</td>
+                      <td><button className="admin-btn-danger" onClick={() => deleteCategory(c._id)}>Delete</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </>
         )}
 

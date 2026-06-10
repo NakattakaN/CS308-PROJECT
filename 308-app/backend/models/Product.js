@@ -86,6 +86,8 @@ const productSchema = new mongoose.Schema(
     discountRate: { type: Number, default: 0, min: 0, max: 100 },
     campaignEnd: { type: Date, default: null },
 
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
+
     specs: {
       movement: { type: String, default: '', trim: true },
       condition: { type: String, default: '', trim: true },
