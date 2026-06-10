@@ -252,6 +252,107 @@
   color: var(--text-muted);
 }
 
+.orders-filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.orders-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0 12px 0 14px;
+  flex: 1;
+  max-width: 400px;
+  min-width: 250px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.orders-search-wrapper:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+.orders-search-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.orders-search-input {
+  flex: 1;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+  padding: 10px 0;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.orders-search-clear {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.orders-search-clear:hover {
+  color: var(--text-h);
+}
+
+.orders-status-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.status-filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-filter-btn:hover {
+  background: var(--bg-input);
+  border-color: var(--text-muted);
+}
+
+.status-filter-btn.active {
+  background: var(--primary-color);
+  color: var(--text-invert);
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+  .orders-filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .orders-search-wrapper {
+    max-width: 100%;
+  }
+}
+
 .order-actions {
   display: flex;
   flex-wrap: wrap;

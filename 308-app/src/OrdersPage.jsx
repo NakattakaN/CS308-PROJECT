@@ -9,6 +9,26 @@ const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionBusy, setActionBusy] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredOrders = React.useMemo(() => {
+    return orders.filter(order => {
+      const matchStatus = statusFilter === 'All' || 
+        (order.status?.toLowerCase() === statusFilter.toLowerCase());
+
+      const query = searchQuery.trim().toLowerCase();
+      if (!query) return matchStatus;
+
+      const matchId = order._id.toString().toLowerCase().includes(query);
+      const matchItems = order.items && order.items.some(item => 
+        item.name?.toLowerCase().includes(query) || 
+        item.brand?.toLowerCase().includes(query)
+      );
+
+      return matchStatus && (matchId || matchItems);
+    });
+  }, [orders, statusFilter, searchQuery]);
 
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -109,17 +129,50 @@ const OrdersPage = () => {
     <div className="orders-page-container">
       <div className="orders-page-content">
         <h1>My Orders</h1>
+
+        <div className="orders-filter-container">
+          <div className="orders-search-wrapper">
+            <svg className="orders-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              className="orders-search-input"
+              placeholder="Search by Order ID, brand, or name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="orders-search-clear" onClick={() => setSearchQuery('')}>×</button>
+            )}
+          </div>
+
+          <div className="orders-status-filters">
+            {['All', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(status => (
+              <button
+                key={status}
+                className={`status-filter-btn ${statusFilter === status ? 'active' : ''}`}
+                onClick={() => setStatusFilter(status)}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
         
-        {orders.length === 0 ? (
+        {filteredOrders.length === 0 ? (
           <div className="no-orders-message">
-            <p>You haven't placed any orders yet.</p>
-            <button className="browse-btn" onClick={() => navigate('/home')}>
-              Browse Timepieces
-            </button>
+            <p>{orders.length === 0 ? "You haven't placed any orders yet." : "No orders match your search or filter criteria."}</p>
+            {orders.length === 0 && (
+              <button className="browse-btn" onClick={() => navigate('/home')}>
+                Browse Timepieces
+              </button>
+            )}
           </div>
         ) : (
           <div className="orders-list">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <div key={order._id} className="order-card">
                 <div className="order-header">
                   <div className="order-header-info">
