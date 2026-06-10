@@ -19,6 +19,15 @@ router.get('/admin/users', requireAuth, requireAdmin, async (req, res) => {
 // Get all products
 router.get('/admin/products', requireAuth, requireStaff, async (req, res) => {
   try {
+    const expiredProducts = await Product.find({ campaignEnd: { $lt: new Date() }, discountRate: { $gt: 0 } });
+    for (const p of expiredProducts) {
+      p.price = p.originalPrice || p.price;
+      p.originalPrice = null;
+      p.discountRate = 0;
+      p.campaignEnd = null;
+      await p.save();
+    }
+
     const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
@@ -96,7 +105,22 @@ router.put('/admin/offers/:id', requireAuth, requireAdmin, async (req, res) => {
 // Get all orders
 router.get('/admin/orders', requireAuth, requireStaff, async (req, res) => {
   try {
-    const orders = await Order.find()
+    let query = {};
+    if (req.query.from || req.query.to) {
+      query.createdAt = {};
+      if (req.query.from) {
+        const fromDate = new Date(req.query.from);
+        fromDate.setHours(0, 0, 0, 0);
+        query.createdAt.$gte = fromDate;
+      }
+      if (req.query.to) {
+        const toDate = new Date(req.query.to);
+        toDate.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = toDate;
+      }
+    }
+
+    const orders = await Order.find(query)
       .populate('userId', 'firstName lastName email')
       .populate('items.productId', 'image')
       .sort({ createdAt: -1 });
@@ -188,13 +212,13 @@ router.get('/admin/revenue', requireAuth, requireSalesManager, async (req, res) 
   try {
     const fromDate = req.query.from ? new Date(req.query.from) : new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
     const toDate = req.query.to ? new Date(req.query.to) : new Date();
-    fromDate.setHours(0, 0, 0, 0);
-    toDate.setHours(23, 59, 59, 999);
+    fromDate.setUTCHours(0, 0, 0, 0);
+    toDate.setUTCHours(23, 59, 59, 999);
 
     const orders = await Order.find({
       createdAt: { $gte: fromDate, $lte: toDate },
       status: { $ne: 'Cancelled' }
-    }).select('totalAmount createdAt refundAmount returnStatus');
+    }).select('totalAmount createdAt items');
 
     // Group revenue and refunds by date
     const byDate = {};
@@ -202,8 +226,14 @@ router.get('/admin/revenue', requireAuth, requireSalesManager, async (req, res) 
       const key = order.createdAt.toISOString().split('T')[0];
       if (!byDate[key]) byDate[key] = { revenue: 0, refunds: 0 };
       byDate[key].revenue += order.totalAmount || 0;
-      if (order.returnStatus === 'approved') {
-        byDate[key].refunds += order.refundAmount || 0;
+      
+      // Sum refunds from individual items
+      if (order.items && order.items.length > 0) {
+        for (const item of order.items) {
+          if (item.returnStatus === 'approved') {
+            byDate[key].refunds += item.refundAmount || 0;
+          }
+        }
       }
     }
 
@@ -214,7 +244,7 @@ router.get('/admin/revenue', requireAuth, requireSalesManager, async (req, res) 
       const key = cursor.toISOString().split('T')[0];
       const { revenue = 0, refunds = 0 } = byDate[key] || {};
       data.push({ date: key, revenue, refunds, net: revenue - refunds });
-      cursor.setDate(cursor.getDate() + 1);
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
 
     const totalRevenue = data.reduce((s, d) => s + d.revenue, 0);

@@ -248,12 +248,12 @@ const AdminPage = () => {
                     cursor: 'pointer',
                     fontWeight: 600,
                     fontSize: '0.85rem',
-                    background: deliveryFilter === f ? '#0f172a' : '#f1f5f9',
-                    color: deliveryFilter === f ? '#fff' : '#475569'
+                    background: deliveryFilter === f ? 'var(--primary-color)' : 'var(--bg-input)',
+                    color: deliveryFilter === f ? 'var(--text-invert)' : 'var(--text-muted)'
                   }}
                 >
                   {f}
-                  <span style={{ marginLeft: '6px', background: deliveryFilter === f ? 'rgba(255,255,255,0.2)' : '#e2e8f0', borderRadius: '10px', padding: '1px 7px', fontSize: '0.75rem' }}>
+                  <span style={{ marginLeft: '6px', background: deliveryFilter === f ? 'rgba(255,255,255,0.2)' : 'var(--border-color)', borderRadius: '10px', padding: '1px 7px', fontSize: '0.75rem' }}>
                     {f === 'All' ? orders.length : orders.filter(o => o.status === f).length}
                   </span>
                 </button>

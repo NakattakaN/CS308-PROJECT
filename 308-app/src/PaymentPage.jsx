@@ -181,7 +181,9 @@ const PaymentPage = () => {
           setFormData(prev => ({
             ...prev,
             fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim(),
-            address: data.homeAddress || ''
+            address: data.homeAddress || '',
+            city: data.city || '',
+            zipCode: data.zipCode || ''
           }));
         }
       } catch {}

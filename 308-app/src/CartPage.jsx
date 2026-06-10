@@ -184,23 +184,23 @@ const CartPage = () => {
                         <p>{item.product?.brand}</p>
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-                          <div style={{ display: 'flex', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
-                            <button 
+                          <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <button
                               onClick={() => handleUpdateQuantity(item._id, currentCartQuantity, -1, productQuantity)}
-                              style={{ padding: '4px 10px', background: '#1a1a1a', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                              style={{ padding: '4px 10px', background: 'var(--primary-color)', color: 'var(--text-invert)', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                             >
                               -
                             </button>
-                            <span style={{ padding: '4px 12px', background: '#fff', color: '#1a1a1a', fontSize: '0.9rem', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                            <span style={{ padding: '4px 12px', background: 'var(--surface)', color: 'var(--text-main)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', fontWeight: 'bold', borderLeft: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)' }}>
                               {currentCartQuantity}
                             </span>
                             {/* ARTIRMA BUTONU: disabled özelliği kaldırıldı, toast mesajını tetikleyebilmesi için tıklanabilir bırakıldı */}
-                            <button 
+                            <button
                               onClick={() => handleUpdateQuantity(item._id, currentCartQuantity, 1, productQuantity)}
-                              style={{ 
-                                padding: '4px 10px', 
-                                background: '#1a1a1a', 
-                                color: '#fff', 
+                              style={{
+                                padding: '4px 10px',
+                                background: 'var(--primary-color)',
+                                color: 'var(--text-invert)',
                                 border: 'none', 
                                 cursor: (productQuantity && currentCartQuantity >= productQuantity) ? 'not-allowed' : 'pointer', 
                                 fontWeight: 'bold',

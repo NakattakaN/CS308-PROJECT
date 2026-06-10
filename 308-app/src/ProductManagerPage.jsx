@@ -191,13 +191,13 @@ const ProductManagerPage = () => {
                     <td>
                       {editingStock[p._id] !== undefined ? (
                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                          <input type="number" value={editingStock[p._id]} onChange={e => setEditingStock(prev => ({ ...prev, [p._id]: e.target.value }))} style={{ width: '70px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} />
+                          <input type="number" value={editingStock[p._id]} onChange={e => setEditingStock(prev => ({ ...prev, [p._id]: e.target.value }))} style={{ width: '70px', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
                           <button className="admin-btn-success" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => updateStock(p._id, editingStock[p._id])}>✓</button>
                           <button className="admin-btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setEditingStock(prev => { const n = { ...prev }; delete n[p._id]; return n; })}>✕</button>
                         </div>
                       ) : (
-                        <span onClick={() => setEditingStock(prev => ({ ...prev, [p._id]: p.stock }))} style={{ cursor: 'pointer', padding: '4px 8px', background: '#f1f5f9', borderRadius: '4px' }}>
-                          {p.stock} <small style={{ color: '#94a3b8' }}>✎</small>
+                        <span onClick={() => setEditingStock(prev => ({ ...prev, [p._id]: p.stock }))} style={{ cursor: 'pointer', padding: '4px 8px', background: 'var(--bg-input)', color: 'var(--text-main)', borderRadius: '4px' }}>
+                          {p.stock} <small style={{ color: 'var(--text-muted)' }}>✎</small>
                         </span>
                       )}
                     </td>

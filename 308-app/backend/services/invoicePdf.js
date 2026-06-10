@@ -9,7 +9,20 @@ const FONT_BOLD = path.join(__dirname, '..', 'assets', 'fonts', 'Inter-Bold.ttf'
 // order = saved Order doc, user = { firstName, lastName, email }
 function generateInvoicePdf(order, user) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const doc = new PDFDocument({ 
+      size: 'A4', 
+      margin: 50,
+      info: {
+        Title: 'Invoice',
+        Author: 'Saatinden'
+      },
+      permissions: {
+        modifying: false,
+        copying: false,
+        annotating: false,
+        fillingForms: false
+      }
+    });
     const chunks = [];
 
     doc.on('data', (chunk) => chunks.push(chunk));
@@ -41,29 +54,25 @@ function generateInvoicePdf(order, user) {
     doc.moveTo(50, 110).lineTo(545, 110).strokeColor('#e2e8f0').stroke();
 
     // ——— Bill To ———
-    let y = 130;
-    doc.fontSize(10).font('Bold').fillColor('#999').text('BILL TO', 50, y);
-    y += 16;
-    doc.fontSize(11).font('Regular').fillColor('#000').text(fullName, 50, y);
-    y += 15;
-    doc.fontSize(10).fillColor('#555').text(user.email, 50, y);
-    y += 14;
-    if (user.taxId) { doc.text(`Tax ID: ${user.taxId}`, 50, y); y += 14; }
-    if (user.homeAddress) { doc.text(user.homeAddress, 50, y); }
+    doc.fontSize(10).font('Bold').fillColor('#999').text('BILL TO', 50, 130, { width: 220 });
+    doc.fontSize(11).font('Regular').fillColor('#000').text(fullName, 50, doc.y + 4, { width: 220 });
+    doc.fontSize(10).fillColor('#555').text(user.email, 50, doc.y + 2, { width: 220 });
+    if (user.taxId) { doc.text(`Tax ID: ${user.taxId}`, 50, doc.y + 2, { width: 220 }); }
+    if (user.homeAddress) { doc.text(user.homeAddress, 50, doc.y + 2, { width: 220 }); }
+    if (user.city || user.zipCode) { doc.text([user.city, user.zipCode].filter(Boolean).join(' '), 50, doc.y + 2, { width: 220 }); }
+    const billToY = doc.y;
 
     // ——— Ship To ———
     const addr = order.shippingAddress || {};
-    y = 130;
-    doc.fontSize(10).font('Bold').fillColor('#999').text('SHIP TO', 300, y);
-    y += 16;
-    doc.fontSize(11).font('Regular').fillColor('#000').text(addr.fullName || fullName, 300, y);
-    y += 15;
+    doc.fontSize(10).font('Bold').fillColor('#999').text('SHIP TO', 300, 130, { width: 220 });
+    doc.fontSize(11).font('Regular').fillColor('#000').text(addr.fullName || fullName, 300, doc.y + 4, { width: 220 });
     doc.fontSize(10).fillColor('#555');
-    if (addr.address) { doc.text(addr.address, 300, y); y += 14; }
-    if (addr.city || addr.zipCode) { doc.text([addr.city, addr.zipCode].filter(Boolean).join(' '), 300, y); }
+    if (addr.address) { doc.text(addr.address, 300, doc.y + 2, { width: 220 }); }
+    if (addr.city || addr.zipCode) { doc.text([addr.city, addr.zipCode].filter(Boolean).join(' '), 300, doc.y + 2, { width: 220 }); }
+    const shipToY = doc.y;
 
     // ——— Items Table ———
-    y = 220;
+    let y = Math.max(220, billToY + 30, shipToY + 30);
     doc.moveTo(50, y).lineTo(545, y).strokeColor('#e2e8f0').stroke();
     y += 8;
 

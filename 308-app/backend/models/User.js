@@ -37,6 +37,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   taxId: String,
   homeAddress: String,
+  city: String,
+  zipCode: String,
   role: { type: String, enum: ['user', 'product_manager', 'sales_manager', 'admin'], default: 'user' },
   authToken: { type: String, index: true },
   cart: [cartItemSchema],

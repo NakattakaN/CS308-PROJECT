@@ -74,7 +74,7 @@ router.post('/orders', requireAuth, async (req, res) => {
     });
 
     // Generate PDF and send email in the background — don't block the response
-    const user = await User.findById(req.userId).select('firstName lastName email taxId homeAddress');
+    const user = await User.findById(req.userId).select('firstName lastName email taxId homeAddress city zipCode');
     if (user?.email) {
       generateInvoicePdf(order, user)
         .then(pdfBuffer => sendInvoiceEmail(
@@ -99,12 +99,13 @@ router.get('/orders/:orderId/invoice', requireAuth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.userId.toString() !== req.userId && req.userRole !== 'admin') {
+    const staffRoles = ['admin', 'product_manager', 'sales_manager'];
+    if (order.userId.toString() !== req.userId && !staffRoles.includes(req.userRole)) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
     const targetUserId = order.userId.toString() === req.userId ? req.userId : order.userId;
-    const user = await User.findById(targetUserId).select('firstName lastName email taxId homeAddress');
+    const user = await User.findById(targetUserId).select('firstName lastName email taxId homeAddress city zipCode');
     const pdfBuffer = await generateInvoicePdf(order, user || {});
 
     res.set({

@@ -10,6 +10,8 @@ const ProfilePage = () => {
     email: '',
     taxId: '',
     homeAddress: '',
+    city: '',
+    zipCode: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,7 +35,9 @@ const ProfilePage = () => {
           lastName: data.lastName || '',
           email: data.email || '',
           taxId: data.taxId || '',
-          homeAddress: data.homeAddress || ''
+          homeAddress: data.homeAddress || '',
+          city: data.city || '',
+          zipCode: data.zipCode || ''
         });
       } else {
         showToast('Failed to load profile', 'error');
@@ -65,7 +69,9 @@ const ProfilePage = () => {
           firstName: formData.firstName,
           lastName: formData.lastName,
           taxId: formData.taxId,
-          homeAddress: formData.homeAddress
+          homeAddress: formData.homeAddress,
+          city: formData.city,
+          zipCode: formData.zipCode
         })
       });
       
@@ -117,15 +123,26 @@ const ProfilePage = () => {
         </div>
 
         <div className="profile-form-group">
-          <label htmlFor="homeAddress">Default Shipping Address (Optional)</label>
+          <label htmlFor="homeAddress">Default Street Address (Optional)</label>
           <textarea 
             id="homeAddress" 
             name="homeAddress" 
             value={formData.homeAddress} 
             onChange={handleChange} 
-            rows={3} 
-            placeholder="123 Main St, City, Country"
+            rows={2} 
+            placeholder="123 Main St, Apt 4B"
           />
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="profile-form-group" style={{ marginBottom: 0 }}>
+            <label htmlFor="city">City</label>
+            <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} placeholder="e.g. New York" />
+          </div>
+          <div className="profile-form-group" style={{ marginBottom: 0 }}>
+            <label htmlFor="zipCode">ZIP Code</label>
+            <input type="text" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} placeholder="e.g. 10001" maxLength="5" />
+          </div>
         </div>
 
         <button type="submit" className="profile-save-btn" disabled={saving}>

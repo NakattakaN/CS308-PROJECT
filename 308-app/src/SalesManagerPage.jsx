@@ -17,6 +17,9 @@ const SalesManagerPage = () => {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [discountInputs, setDiscountInputs] = useState({});
+  const [campaignEndInputs, setCampaignEndInputs] = useState({});
+  const [priceInputs, setPriceInputs] = useState({});
+  const [isPriceEditMode, setIsPriceEditMode] = useState(false);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
@@ -74,7 +77,7 @@ const SalesManagerPage = () => {
     try {
       const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/items/${itemId}/return`, {
         method: 'PUT',
-        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({ action })
       });
       if (res.ok) {
@@ -89,19 +92,38 @@ const SalesManagerPage = () => {
     }
   };
 
-  const applyDiscount = async (productId, rate) => {
+  const applyDiscount = async (productId, rate, campaignEnd) => {
     try {
+      const payload = { discountRate: Number(rate) };
+      if (campaignEnd) payload.campaignEnd = campaignEnd;
+
       const res = await fetch(`http://localhost:5000/api/products/${productId}/discount`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ discountRate: Number(rate) })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.message || 'Failed to apply discount', 'error'); return; }
-      setProducts(prev => prev.map(p => p._id === productId ? { ...p, price: data.price, originalPrice: data.originalPrice, discountRate: data.discountRate } : p));
+      setProducts(prev => prev.map(p => p._id === productId ? { ...p, price: data.price, originalPrice: data.originalPrice, discountRate: data.discountRate, campaignEnd: data.campaignEnd } : p));
       setDiscountInputs(prev => { const n = { ...prev }; delete n[productId]; return n; });
+      setCampaignEndInputs(prev => { const n = { ...prev }; delete n[productId]; return n; });
       showToast(`Discount applied! New price: $${data.price?.toLocaleString()}`, 'success');
     } catch { showToast('Failed to apply discount', 'error'); }
+  };
+
+  const updateDirectPrice = async (productId, newPrice) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${productId}/price`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ price: Number(newPrice) })
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.message || 'Failed to update price', 'error'); return; }
+      setProducts(prev => prev.map(p => p._id === productId ? { ...p, price: data.price, originalPrice: data.originalPrice } : p));
+      setPriceInputs(prev => { const n = { ...prev }; delete n[productId]; return n; });
+      showToast(`Price updated successfully to $${newPrice}!`, 'success');
+    } catch { showToast('Failed to update price', 'error'); }
   };
 
   return (
@@ -121,17 +143,42 @@ const SalesManagerPage = () => {
         {loading && <p className="admin-loading">Loading...</p>}
 
         {!loading && activeTab === 'Discounts' && (
-          <table className="admin-table">
-            <thead>
-              <tr><th>Name</th><th>Brand</th><th>Original Price</th><th>Current Price</th><th>Discount %</th><th>Set Discount</th></tr>
-            </thead>
-            <tbody>
-              {products.map(p => (
-                <tr key={p._id}>
-                  <td>{p.name}</td>
-                  <td>{p.brand}</td>
-                  <td>${(p.originalPrice || p.price)?.toLocaleString()}</td>
-                  <td>
+          <>
+            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                className={isPriceEditMode ? "admin-btn-danger" : "admin-btn-secondary"} 
+                onClick={() => setIsPriceEditMode(!isPriceEditMode)}
+              >
+                {isPriceEditMode ? "Disable Price Editing" : "Enable Price Editing"}
+              </button>
+            </div>
+            <table className="admin-table">
+              <thead>
+                <tr><th>Name</th><th>Brand</th><th>Original Price</th><th>Current Price</th><th>Discount %</th><th>Set Discount</th></tr>
+              </thead>
+              <tbody>
+                {products.map(p => (
+                  <tr key={p._id}>
+                    <td>{p.name}</td>
+                    <td>{p.brand}</td>
+                    <td>
+                      {isPriceEditMode ? (
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          $<input
+                            type="number"
+                            min="0"
+                            placeholder="New Price"
+                            value={priceInputs[p._id] ?? (p.originalPrice || p.price)}
+                            onChange={e => setPriceInputs(prev => ({ ...prev, [p._id]: e.target.value }))}
+                            style={{ width: '80px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '0.9rem' }}
+                          />
+                          <button className="admin-btn-success" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => updateDirectPrice(p._id, priceInputs[p._id] ?? (p.originalPrice || p.price))}>Save</button>
+                        </div>
+                      ) : (
+                        `$${(p.originalPrice || p.price)?.toLocaleString()}`
+                      )}
+                    </td>
+                    <td>
                     ${p.price?.toLocaleString()}
                     {p.discountRate > 0 && (
                       <span style={{ marginLeft: '6px', background: '#dcfce7', color: '#15803d', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem' }}>-{p.discountRate}%</span>
@@ -139,23 +186,33 @@ const SalesManagerPage = () => {
                   </td>
                   <td>{p.discountRate || 0}%</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="0–100"
+                          value={discountInputs[p._id] ?? ''}
+                          onChange={e => setDiscountInputs(prev => ({ ...prev, [p._id]: e.target.value }))}
+                          style={{ width: '70px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '0.9rem' }}
+                        />
+                        <button className="admin-btn-success" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => applyDiscount(p._id, discountInputs[p._id] ?? 0, campaignEndInputs[p._id])}>Apply</button>
+                      </div>
                       <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        placeholder="0–100"
-                        value={discountInputs[p._id] ?? ''}
-                        onChange={e => setDiscountInputs(prev => ({ ...prev, [p._id]: e.target.value }))}
-                        style={{ width: '70px', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '0.9rem' }}
+                        type="date"
+                        title="Campaign End Date (optional)"
+                        value={campaignEndInputs[p._id] ?? ''}
+                        onChange={e => setCampaignEndInputs(prev => ({ ...prev, [p._id]: e.target.value }))}
+                        style={{ padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '0.8rem' }}
                       />
-                      <button className="admin-btn-success" style={{ padding: '4px 10px', fontSize: '0.85rem' }} onClick={() => applyDiscount(p._id, discountInputs[p._id] ?? 0)}>Apply</button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </>
         )}
 
         {!loading && activeTab === 'Invoices' && (

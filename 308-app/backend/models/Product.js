@@ -84,6 +84,7 @@ const productSchema = new mongoose.Schema(
     stock: { type: Number, default: 50, min: 0 },
     originalPrice: { type: Number, default: null },
     discountRate: { type: Number, default: 0, min: 0, max: 100 },
+    campaignEnd: { type: Date, default: null },
 
     specs: {
       movement: { type: String, default: '', trim: true },

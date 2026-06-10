@@ -101,12 +101,14 @@ router.get('/profile', requireAuth, async (req, res) => {
 // Update user profile (address, taxId)
 router.put('/profile', requireAuth, async (req, res) => {
   try {
-    const { taxId, homeAddress, firstName, lastName } = req.body;
+    const { taxId, homeAddress, city, zipCode, firstName, lastName } = req.body;
     
     // Allow updating only safe fields
     const updates = {};
     if (taxId !== undefined) updates.taxId = taxId;
     if (homeAddress !== undefined) updates.homeAddress = homeAddress;
+    if (city !== undefined) updates.city = city;
+    if (zipCode !== undefined) updates.zipCode = zipCode;
     if (firstName !== undefined) updates.firstName = firstName;
     if (lastName !== undefined) updates.lastName = lastName;
 
