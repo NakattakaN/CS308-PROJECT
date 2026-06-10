@@ -139,6 +139,38 @@ const ProductPage = () => {
     setFilters(prev => ({ ...prev, [key]: [] }));
   };
 
+  const activeFilterTags = useMemo(() => {
+    const tags = [];
+    if (filters.gender) {
+      const genderLabel = filters.gender === 'erkek' ? "Men's" : filters.gender === 'kadın' ? "Women's" : "Unisex";
+      tags.push({ type: 'gender', value: filters.gender, label: `Category: ${genderLabel}` });
+    }
+    filters.brands.forEach(brand => {
+      tags.push({ type: 'brands', value: brand, label: `Brand: ${brand}` });
+    });
+    FILTER_CONFIG.forEach(cfg => {
+      const values = filters[cfg.key] || [];
+      values.forEach(val => {
+        const option = cfg.options.find(opt => opt.value === val);
+        const label = option ? option.label : val;
+        tags.push({ type: cfg.key, value: val, label: `${cfg.label}: ${label}` });
+      });
+    });
+    return tags;
+  }, [filters]);
+
+  const removeFilterTag = (tag) => {
+    setFilters(prev => {
+      if (tag.type === 'gender') {
+        return { ...prev, gender: '' };
+      } else if (tag.type === 'brands') {
+        return { ...prev, brands: prev.brands.filter(b => b !== tag.value) };
+      } else {
+        return { ...prev, [tag.type]: prev[tag.type].filter(v => v !== tag.value) };
+      }
+    });
+  };
+
   const filteredProducts = useMemo(() => {
     const queryTerms = searchQuery.trim().toLowerCase().split(' ').filter(Boolean);
     const filtered = products.filter((product) => {
@@ -331,6 +363,21 @@ const ProductPage = () => {
             />
           </div>
         </div>
+
+        {activeFilterTags.length > 0 && (
+          <div className="active-filter-tags-container">
+            <span className="active-filters-label">Active Filters:</span>
+            <div className="active-filter-tags-list">
+              {activeFilterTags.map((tag, idx) => (
+                <span key={`${tag.type}-${tag.value}-${idx}`} className="active-filter-tag">
+                  {tag.label}
+                  <button className="remove-tag-btn" onClick={() => removeFilterTag(tag)} aria-label={`Remove filter ${tag.label}`}>×</button>
+                </span>
+              ))}
+              <button className="clear-all-tags-btn" onClick={clearFilters}>Clear All</button>
+            </div>
+          </div>
+        )}
 
         {filteredProducts.length > 0 ? (
           <section
