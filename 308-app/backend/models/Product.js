@@ -30,6 +30,7 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     image: { type: String, required: true, trim: true },
 
+    model: { type: String, trim: true },
     referenceNumber: { type: String, trim: true },
     serialNumber: { type: String, trim: true },
     warrantyStatus: { type: String, trim: true },

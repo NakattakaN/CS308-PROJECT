@@ -25,7 +25,7 @@ const ProductManagerPage = () => {
   const [editingStock, setEditingStock] = useState({});
   const [newProduct, setNewProduct] = useState({
     name: '', brand: '', price: '', image: '', description: '',
-    referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available',
+    model: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available',
     gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah',
     caseShape: 'oval', displayType: 'analog', category: ''
   });
@@ -104,7 +104,7 @@ const ProductManagerPage = () => {
       if (!res.ok) { showToast(data.error || 'Failed to add product', 'error'); return; }
       setProducts(prev => [data, ...prev]);
       setShowAddForm(false);
-      setNewProduct({ name: '', brand: '', price: '', image: '', description: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available', gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah', caseShape: 'oval', displayType: 'analog', category: '' });
+      setNewProduct({ name: '', brand: '', price: '', image: '', description: '', model: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available', gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah', caseShape: 'oval', displayType: 'analog', category: '' });
       showToast('Product added', 'success');
     } catch { showToast('Failed to add product', 'error'); }
   };
@@ -207,7 +207,7 @@ const ProductManagerPage = () => {
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem', marginBottom: '1.5rem' }}>
                 <h3 style={{ marginBottom: '1rem', color: '#0f172a' }}>New Product</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  {[['Name *', 'name', 'text'], ['Brand *', 'brand', 'text'], ['Price *', 'price', 'number'], ['Image URL *', 'image', 'text'], ['Reference No', 'referenceNumber', 'text'], ['Serial No', 'serialNumber', 'text'], ['Warranty', 'warrantyStatus', 'text'], ['Distributor Info', 'distributorInfo', 'text'], ['Stock', 'stock', 'number']].map(([label, key, type]) => (
+                  {[['Name *', 'name', 'text'], ['Brand *', 'brand', 'text'], ['Model', 'model', 'text'], ['Price *', 'price', 'number'], ['Image URL *', 'image', 'text'], ['Reference No', 'referenceNumber', 'text'], ['Serial No', 'serialNumber', 'text'], ['Warranty', 'warrantyStatus', 'text'], ['Distributor Info', 'distributorInfo', 'text'], ['Stock', 'stock', 'number']].map(([label, key, type]) => (
                     <div key={key}>
                       <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '4px' }}>{label}</label>
                       <input type={type} value={newProduct[key]} onChange={e => setNewProduct(p => ({ ...p, [key]: e.target.value }))} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box' }} />
