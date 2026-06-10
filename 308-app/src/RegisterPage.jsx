@@ -14,8 +14,11 @@ const RegisterPage = () => {
     fullName: '',
     email: '',
     password: '',
+    taxId: '',
+    homeAddress: '',
   });
   const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -109,18 +112,71 @@ const RegisterPage = () => {
               </div>
 
               <div className="input-group">
+                <label htmlFor="taxId">Tax ID (Optional)</label>
+                <input
+                  type="text"
+                  id="taxId"
+                  name="taxId"
+                  placeholder="e.g. 123456789"
+                  value={formData.taxId}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="homeAddress">Home Address (Optional)</label>
+                <textarea
+                  id="homeAddress"
+                  name="homeAddress"
+                  placeholder="123 Main St, City, Country"
+                  value={formData.homeAddress}
+                  onChange={handleChange}
+                  rows={2}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div className="input-group">
                 <div className="label-flex">
                   <label htmlFor="password">Password</label>
                 </div>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: 'var(--text-muted)',
+                      padding: '4px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      transition: 'color 0.2s'
+                    }}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onMouseEnter={(e) => e.target.style.color = 'var(--primary-color)'}
+                    onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
                 <small style={{ color: passwordError ? '#b00020' : '#777', display: 'block', marginTop: '4px' }}>
                   {passwordError || PASSWORD_HINT}
                 </small>

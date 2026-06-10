@@ -105,6 +105,7 @@ const ProductDetailsPage = () => {
         }
         setIsInWishlist(false);
         showToast('Removed from wishlist', 'success');
+        window.dispatchEvent(new Event('wishlist-updated'));
       } else {
         const res = await fetch(`http://localhost:5000/api/users/${userId}/wishlist`, {
           method: 'POST',
@@ -118,6 +119,7 @@ const ProductDetailsPage = () => {
         }
         setIsInWishlist(true);
         showToast('Added to wishlist!', 'success');
+        window.dispatchEvent(new Event('wishlist-updated'));
       }
     } catch {
       showToast('Something went wrong', 'error');
@@ -146,6 +148,7 @@ const ProductDetailsPage = () => {
       }
       localStorage.setItem('guestCart', JSON.stringify(guestCart));
       showToast('Added to cart! Sign in to checkout.', 'success');
+      window.dispatchEvent(new Event('cart-updated'));
       return;
     }
 
@@ -162,6 +165,7 @@ const ProductDetailsPage = () => {
         return;
       }
       showToast('Added to cart!', 'success');
+      window.dispatchEvent(new Event('cart-updated'));
     } catch (error) {
       console.error('Add to cart error:', error);
       showToast('Something went wrong. Please try again.', 'error');
@@ -292,7 +296,15 @@ const ProductDetailsPage = () => {
         <div className="details-info-wrapper">
           <span className="details-brand">{product.brand}</span>
           <h1 className="details-name">{product.name}</h1>
-          <p className="details-price">${product.price.toLocaleString()}</p>
+          {product.discountRate > 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '8px 0' }}>
+              <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '1.1rem' }}>${product.originalPrice?.toLocaleString()}</span>
+              <span className="details-price" style={{ margin: 0 }}>${product.price.toLocaleString()}</span>
+              <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: '6px', padding: '3px 10px', fontWeight: 700, fontSize: '0.9rem' }}>-{product.discountRate}%</span>
+            </div>
+          ) : (
+            <p className="details-price">${product.price.toLocaleString()}</p>
+          )}
 
           {product.reviewCount > 0 && (
             <div className="details-rating-summary" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
@@ -317,6 +329,9 @@ const ProductDetailsPage = () => {
             <div className="spec-item"><span className="spec-label">Year:</span><span className="spec-value">{product.specs?.year}</span></div>
             <div className="spec-item"><span className="spec-label">Box & Papers:</span><span className="spec-value">{product.specs?.boxAndPapers ? 'Yes' : 'No'}</span></div>
             <div className="spec-item"><span className="spec-label">Reference:</span><span className="spec-value">{product.referenceNumber}</span></div>
+            {product.serialNumber && <div className="spec-item"><span className="spec-label">Serial No:</span><span className="spec-value">{product.serialNumber}</span></div>}
+            {product.warrantyStatus && <div className="spec-item"><span className="spec-label">Warranty:</span><span className="spec-value">{product.warrantyStatus}</span></div>}
+            {product.distributorInfo && <div className="spec-item"><span className="spec-label">Distributor:</span><span className="spec-value">{product.distributorInfo}</span></div>}
             <div className="spec-item">
               <span className="spec-label">Stock:</span>
               <span className="spec-value" style={{ color: product.stock === 0 ? '#6b7280' : product.stock <= 10 ? '#dc2626' : 'inherit', fontWeight: product.stock <= 10 ? 700 : 'inherit' }}>
@@ -407,19 +422,19 @@ const ProductDetailsPage = () => {
         </div>
       )}
 
-      <section className="reviews-section" style={{ marginTop: '2.5rem', padding: '1.5rem', background: '#fff', borderRadius: '12px' }}>
+      <section className="reviews-section" style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
         <h2 style={{ marginTop: 0 }}>Reviews</h2>
 
         {authToken ? (
-          <div style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
 
             {/* ── Rate this watch ── */}
-            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #f0f0f0' }}>
+            <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
               <h3 style={{ marginTop: 0 }}>{myReview?.rating ? 'Update your rating' : 'Rate this watch'}</h3>
-              <p style={{ color: '#666', marginTop: '-4px', fontSize: '0.9rem' }}>Ratings are posted instantly.</p>
+              <p style={{ color: 'var(--text-muted)', marginTop: '-4px', fontSize: '0.9rem' }}>Ratings are posted instantly.</p>
               {myReview?.rating && (
-                <p style={{ color: '#888', fontSize: '0.85rem', margin: '4px 0 8px' }}>
-                  Your current rating: {[1,2,3,4,5].map(n => <span key={n} style={{ color: n <= myReview.rating ? '#f5a623' : '#d4d4d4' }}>★</span>)}
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '4px 0 8px' }}>
+                  Your current rating: {[1,2,3,4,5].map(n => <span key={n} style={{ color: n <= myReview.rating ? '#f5a623' : 'var(--border-color)' }}>★</span>)}
                 </p>
               )}
               <div style={{ margin: '10px 0' }}>
@@ -428,7 +443,7 @@ const ProductDetailsPage = () => {
                     key={n}
                     type="button"
                     onClick={() => setRatingDraft(n)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '28px', color: n <= ratingDraft ? '#f5a623' : '#d4d4d4', padding: '0 2px' }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '28px', color: n <= ratingDraft ? '#f5a623' : 'var(--border-color)', padding: '0 2px' }}
                     aria-label={`${n} star${n === 1 ? '' : 's'}`}
                   >★</button>
                 ))}
@@ -436,7 +451,7 @@ const ProductDetailsPage = () => {
               <button
                 onClick={handleSubmitRating}
                 disabled={ratingDraft === 0 || ratingSubmitting}
-                style={{ marginTop: '8px', padding: '10px 18px', background: ratingDraft === 0 ? '#ccc' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: ratingDraft === 0 || ratingSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                style={{ marginTop: '8px', padding: '10px 18px', background: ratingDraft === 0 ? 'var(--surface-muted)' : 'var(--primary-color)', color: ratingDraft === 0 ? 'var(--text-muted)' : 'var(--text-invert)', border: 'none', borderRadius: '8px', cursor: ratingDraft === 0 || ratingSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}
               >
                 {ratingSubmitting ? 'Submitting…' : myReview?.rating ? 'Update Rating' : 'Submit Rating'}
               </button>
@@ -445,9 +460,9 @@ const ProductDetailsPage = () => {
             {/* ── Write a comment ── */}
             <div>
               <h3 style={{ marginTop: 0 }}>{myReview?.body ? 'Update your comment' : 'Write a comment'}</h3>
-              <p style={{ color: '#666', marginTop: '-4px', fontSize: '0.9rem' }}>Comments need admin approval before they're visible.</p>
+              <p style={{ color: 'var(--text-muted)', marginTop: '-4px', fontSize: '0.9rem' }}>Comments need admin approval before they're visible.</p>
               {myReview?.body && (
-                <p style={{ color: '#888', fontSize: '0.85rem', margin: '4px 0 8px' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '4px 0 8px' }}>
                   Your current comment: "{myReview.body.length > 80 ? myReview.body.slice(0, 80) + '…' : myReview.body}"
                   {myReview.status === 'UNDER_REVIEW' && <span style={{ marginLeft: '8px', color: '#b26b00' }}>· Pending approval</span>}
                 </p>
@@ -458,12 +473,12 @@ const ProductDetailsPage = () => {
                 placeholder="Share your thoughts about this watch..."
                 rows={4}
                 maxLength={1000}
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontFamily: 'inherit', boxSizing: 'border-box', color: 'var(--text-main)', background: 'var(--bg-input)' }}
               />
               <button
                 onClick={handleSubmitComment}
                 disabled={!commentDraft.trim() || commentSubmitting}
-                style={{ marginTop: '8px', padding: '10px 18px', background: !commentDraft.trim() ? '#ccc' : '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', cursor: !commentDraft.trim() || commentSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                style={{ marginTop: '8px', padding: '10px 18px', background: !commentDraft.trim() ? 'var(--surface-muted)' : 'var(--primary-color)', color: !commentDraft.trim() ? 'var(--text-muted)' : 'var(--text-invert)', border: 'none', borderRadius: '8px', cursor: !commentDraft.trim() || commentSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600 }}
               >
                 {commentSubmitting ? 'Submitting…' : myReview?.body ? 'Update Comment' : 'Submit Comment'}
               </button>
@@ -471,13 +486,13 @@ const ProductDetailsPage = () => {
 
           </div>
         ) : (
-          <p style={{ color: '#64748b' }}>
-            <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#0f172a', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>Sign in</button> to leave a review. Purchase required.
+          <p style={{ color: 'var(--text-muted)' }}>
+            <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}>Sign in</button> to leave a review. Purchase required.
           </p>
         )}
 
         {reviews.length === 0 ? (
-          <p style={{ color: '#777' }}>No reviews yet. Be the first!</p>
+          <p style={{ color: 'var(--text-muted)' }}>No reviews yet. Be the first!</p>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {reviews.map(r => {
@@ -485,13 +500,13 @@ const ProductDetailsPage = () => {
               const pending = r.status === 'UNDER_REVIEW';
               const rejected = r.status === 'REJECTED';
               return (
-                <li key={r._id} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '10px' }}>
+                <li key={r._id} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'var(--surface-soft)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <strong>{r.reviewerName}</strong>
                     <Stars value={r.rating} size={16} />
                   </div>
-                  {r.body && <p style={{ margin: '8px 0 0' }}>{r.body}</p>}
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#888' }}>
+                  {r.body && <p style={{ margin: '8px 0 0', color: 'var(--text-main)' }}>{r.body}</p>}
+                  <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
                     {new Date(r.createdAt).toLocaleDateString()}
                     {isMine && pending && <span style={{ marginLeft: '8px', color: '#b26b00' }}>· Pending admin approval</span>}
                     {isMine && rejected && <span style={{ marginLeft: '8px', color: '#b00020' }}>· Rejected</span>}

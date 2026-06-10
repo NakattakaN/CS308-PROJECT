@@ -66,4 +66,28 @@ async function sendInvoiceEmail(to, name, orderId, total, pdfBuffer) {
   }
 }
 
-module.exports = { sendInvoiceEmail };
+async function sendDiscountNotificationEmail(to, name, productName, originalPrice, newPrice, discountRate) {
+  if (!transporter) await initTransporter();
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER ? `"Saatinden Store" <${process.env.SMTP_USER}>` : '"Saatinden Test" <test@saatinden.local>',
+    replyTo: process.env.SMTP_USER,
+    to,
+    subject: `Price Drop on Your Wishlist: ${productName}`,
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 500px; margin: 0 auto;">
+        <h2 style="color: #0f172a;">Good news, ${name}!</h2>
+        <p style="color: #475569;">A watch on your wishlist just got a <strong>${discountRate}% discount</strong>.</p>
+        <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
+          <tr><td style="color:#64748b; padding: 6px 0;">Product</td><td style="font-weight:600;">${productName}</td></tr>
+          <tr><td style="color:#64748b; padding: 6px 0;">Original Price</td><td style="text-decoration:line-through; color:#94a3b8;">$${originalPrice.toLocaleString()}</td></tr>
+          <tr><td style="color:#64748b; padding: 6px 0;">New Price</td><td style="font-weight:700; color:#15803d; font-size:1.1em;">$${newPrice.toLocaleString()}</td></tr>
+        </table>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+        <p style="color: #94a3b8; font-size: 13px;">Saatinden — Premium Watch Marketplace</p>
+      </div>
+    `
+  });
+}
+
+module.exports = { sendInvoiceEmail, sendDiscountNotificationEmail };

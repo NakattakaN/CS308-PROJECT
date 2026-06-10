@@ -9,9 +9,12 @@ import ProductDetailsPage from './ProductDetailsPage';
 import PaymentPage from './PaymentPage'; // NEW PAYMENT PAGE
 import AboutUsPage from './AboutUsPage';
 import AdminPage from './AdminPage';
+import ProductManagerPage from './ProductManagerPage';
+import SalesManagerPage from './SalesManagerPage';
 import InvoicePage from './InvoicePage';
 import OrdersPage from './OrdersPage';
 import WishlistPage from './WishlistPage';
+import ProfilePage from './ProfilePage';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { ToastProvider } from './Toast';
@@ -44,11 +47,20 @@ function App() {
         {/* ORDERS */}
         <Route path="/orders" element={<OrdersPage />} />
 
+        {/* PROFILE */}
+        <Route path="/profile" element={<ProfilePage />} />
+
         {/* WISHLIST */}
         <Route path="/wishlist" element={<WishlistPage />} />
 
         {/* ADMIN */}
         <Route path="/admin" element={<AdminPage />} />
+
+        {/* PRODUCT MANAGER */}
+        <Route path="/product-manager" element={<ProductManagerPage />} />
+
+        {/* SALES MANAGER */}
+        <Route path="/sales-manager" element={<SalesManagerPage />} />
       </Routes>
 
       <Footer />

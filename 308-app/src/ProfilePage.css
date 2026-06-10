@@ -1,0 +1,92 @@
+.profile-page-container {
+  max-width: 800px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background-color: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-color);
+}
+
+.profile-page-container h1 {
+  font-size: 2rem;
+  color: var(--text-h);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.profile-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-form-group label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.profile-form-group input,
+.profile-form-group textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--text-main);
+  background-color: var(--bg-input);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.profile-form-group input:focus,
+.profile-form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: var(--surface);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.profile-form-group input:disabled {
+  background-color: var(--surface-muted);
+  color: var(--text-muted);
+  opacity: 1;
+  font-weight: 500;
+  cursor: not-allowed;
+  border-color: var(--border-color);
+}
+
+.profile-save-btn {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--primary-color);
+  color: var(--text-invert);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-save-btn:hover:not(:disabled) {
+  background-color: var(--primary-hover, #1e293b);
+}
+
+.profile-save-btn:disabled {
+  background-color: var(--surface-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}

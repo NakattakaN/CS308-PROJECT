@@ -47,6 +47,7 @@ const WishlistPage = () => {
       if (res.ok) {
         setWishlist(prev => prev.filter(p => p._id !== productId));
         showToast('Removed from wishlist', 'success');
+        window.dispatchEvent(new Event('wishlist-updated'));
       }
     } catch (err) {
       showToast('Could not remove from wishlist. Please try again.', 'error');
@@ -66,6 +67,7 @@ const WishlistPage = () => {
         return;
       }
       showToast('Added to cart!', 'success');
+      window.dispatchEvent(new Event('cart-updated'));
     } catch {
       showToast('Could not add to cart. Please try again.', 'error');
     }

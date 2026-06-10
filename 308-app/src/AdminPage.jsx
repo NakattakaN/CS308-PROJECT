@@ -61,7 +61,9 @@ const AdminPage = () => {
     setLoading(true);
     try {
       const endpoints = { Products: '/admin/products', Users: '/admin/users', Offers: '/admin/offers', Orders: '/admin/orders', Returns: '/admin/returns' };
-      const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`);
+      const res = await fetch(`http://localhost:5000/api${endpoints[tab]}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
       const data = await res.json();
       if (tab === 'Products') setProducts(data);
       else if (tab === 'Users') setUsers(data);
@@ -77,14 +79,17 @@ const AdminPage = () => {
 
   const deleteProduct = async (id) => {
     if (!window.confirm('Delete this product?')) return;
-    await fetch(`http://localhost:5000/api/admin/products/${id}`, { method: 'DELETE' });
+    await fetch(`http://localhost:5000/api/admin/products/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
     setProducts(prev => prev.filter(p => p._id !== id));
   };
 
   const updateOfferStatus = async (id, status) => {
     const res = await fetch(`http://localhost:5000/api/admin/offers/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({ status })
     });
     const updated = await res.json();
@@ -110,7 +115,7 @@ const AdminPage = () => {
   const updateAdminOrderStatus = async (id, status) => {
     const res = await fetch(`http://localhost:5000/api/admin/orders/${id}/status`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({ status })
     });
     const updated = await res.json();
@@ -172,7 +177,7 @@ const AdminPage = () => {
                   <td>{p.name}</td>
                   <td>{p.brand}</td>
                   <td>${p.price.toLocaleString()}</td>
-                  <td><span className={`status-badge ${p.status}`}>{p.status}</span></td>
+                  <td><span className={`status-badge ${p.stock === 0 ? 'out_of_stock' : 'available'}`}>{p.stock === 0 ? 'out_of_stock' : 'available'}</span></td>
                   <td>
                     <button className="admin-btn-danger" onClick={() => deleteProduct(p._id)}>Delete</button>
                   </td>
@@ -243,12 +248,12 @@ const AdminPage = () => {
                     cursor: 'pointer',
                     fontWeight: 600,
                     fontSize: '0.85rem',
-                    background: deliveryFilter === f ? '#0f172a' : '#f1f5f9',
-                    color: deliveryFilter === f ? '#fff' : '#475569'
+                    background: deliveryFilter === f ? 'var(--primary-color)' : 'var(--bg-input)',
+                    color: deliveryFilter === f ? 'var(--text-invert)' : 'var(--text-muted)'
                   }}
                 >
                   {f}
-                  <span style={{ marginLeft: '6px', background: deliveryFilter === f ? 'rgba(255,255,255,0.2)' : '#e2e8f0', borderRadius: '10px', padding: '1px 7px', fontSize: '0.75rem' }}>
+                  <span style={{ marginLeft: '6px', background: deliveryFilter === f ? 'rgba(255,255,255,0.2)' : 'var(--border-color)', borderRadius: '10px', padding: '1px 7px', fontSize: '0.75rem' }}>
                     {f === 'All' ? orders.length : orders.filter(o => o.status === f).length}
                   </span>
                 </button>

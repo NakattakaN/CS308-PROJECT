@@ -3,23 +3,64 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth, requireProductManager } = require('../middleware/auth');
+const { requireAuth, requireProductManager, requireSelf } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
+
+// Get wallet balance for a user
+router.get('/users/:userId/wallet', requireAuth, requireSelf, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('walletBalance');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ walletBalance: user.walletBalance || 0 });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Create an order after successful payment
 router.post('/orders', requireAuth, async (req, res) => {
   try {
-    const { items, totalAmount, shippingAddress } = req.body;
+    const { items, shippingAddress, useWallet } = req.body;
+
+    let calculatedTotal = 0;
+
+    // 1. Pre-check stock and calculate true total amount securely
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({ error: `Product not found: ${item.name || item.productId}` });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({ error: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}` });
+      }
+      
+      // Override frontend price with true database price
+      item.price = product.price;
+      calculatedTotal += product.price * item.quantity;
+    }
+
+    // Deduct wallet balance if requested
+    let walletDeducted = 0;
+    if (useWallet) {
+      const user = await User.findById(req.userId).select('walletBalance');
+      walletDeducted = Math.min(user.walletBalance || 0, calculatedTotal);
+      if (walletDeducted > 0) {
+        await User.findByIdAndUpdate(req.userId, { $inc: { walletBalance: -walletDeducted } });
+      }
+    }
 
     // Decrement stock for each ordered item and set status to out_of_stock if stock hits 0
     await Promise.all(items.map(async item => {
-      const updated = await Product.findByIdAndUpdate(
-        item.productId,
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.productId, stock: { $gte: item.quantity } },
         { $inc: { stock: -item.quantity } },
         { new: true }
       );
-      if (updated && updated.stock <= 0) {
+      if (!updated) {
+        throw new Error(`Concurrency error: Not enough stock for ${item.name}`);
+      }
+      if (updated.stock <= 0) {
         await Product.findByIdAndUpdate(item.productId, { status: 'out_of_stock' });
       }
     }));
@@ -27,20 +68,20 @@ router.post('/orders', requireAuth, async (req, res) => {
     const order = await Order.create({
       userId: req.userId,
       items,
-      totalAmount,
+      totalAmount: calculatedTotal,
       shippingAddress,
       status: 'Processing'
     });
 
     // Generate PDF and send email in the background — don't block the response
-    const user = await User.findById(req.userId).select('firstName lastName email');
+    const user = await User.findById(req.userId).select('firstName lastName email taxId homeAddress city zipCode');
     if (user?.email) {
       generateInvoicePdf(order, user)
         .then(pdfBuffer => sendInvoiceEmail(
           user.email,
           [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Customer',
           order._id.toString(),
-          totalAmount,
+          calculatedTotal,
           pdfBuffer
         ))
         .then(() => console.log(`Invoice emailed for order ${order._id}`))
@@ -58,12 +99,13 @@ router.get('/orders/:orderId/invoice', requireAuth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.userId.toString() !== req.userId && req.userRole !== 'admin') {
+    const staffRoles = ['admin', 'product_manager', 'sales_manager'];
+    if (order.userId.toString() !== req.userId && !staffRoles.includes(req.userRole)) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
     const targetUserId = order.userId.toString() === req.userId ? req.userId : order.userId;
-    const user = await User.findById(targetUserId).select('firstName lastName email');
+    const user = await User.findById(targetUserId).select('firstName lastName email taxId homeAddress city zipCode');
     const pdfBuffer = await generateInvoicePdf(order, user || {});
 
     res.set({
@@ -120,8 +162,8 @@ router.put('/orders/:orderId/cancel', requireAuth, async (req, res) => {
   }
 });
 
-// Request a return for a delivered order (within 30 days of delivery)
-router.post('/orders/:orderId/return', requireAuth, async (req, res) => {
+// Request a return for a specific item in a delivered order
+router.post('/orders/:orderId/items/:itemId/return', requireAuth, async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found' });
@@ -129,8 +171,12 @@ router.post('/orders/:orderId/return', requireAuth, async (req, res) => {
     if (order.status !== 'Delivered') {
       return res.status(400).json({ message: 'Only delivered orders can be returned' });
     }
-    if (order.returnStatus !== 'none') {
-      return res.status(400).json({ message: 'A return has already been requested for this order' });
+
+    const item = order.items.id(req.params.itemId);
+    if (!item) return res.status(404).json({ message: 'Item not found in this order' });
+
+    if (item.returnStatus !== 'none') {
+      return res.status(400).json({ message: 'A return has already been requested for this item' });
     }
 
     const deliveredDate = order.deliveredAt || order.updatedAt;
@@ -140,8 +186,8 @@ router.post('/orders/:orderId/return', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Return window has expired (must be within 30 days of delivery)' });
     }
 
-    order.returnStatus = 'requested';
-    order.returnRequestedAt = new Date();
+    item.returnStatus = 'requested';
+    item.returnRequestedAt = new Date();
     await order.save();
 
     res.json({ message: 'Return request submitted successfully', order });

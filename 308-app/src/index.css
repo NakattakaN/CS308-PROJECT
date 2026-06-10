@@ -1,5 +1,6 @@
 :root {
   --primary-color: #0f172a;
+  --primary-hover: #1e293b;
   --text-main: #1e293b;
   --text-muted: #64748b;
   --text-invert: #ffffff;
@@ -20,18 +21,26 @@
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
   --shadow-soft: 0 4px 6px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-card: 0 12px 30px rgba(0,0,0,0.04);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --glass-bg: rgba(255,255,255,0.85);
   --danger: #ef4444;
-  --danger-bg: rgba(254, 226, 226, 0.8);
+  --danger-bg: rgba(239, 68, 68, 0.1);
   --success: #10b981;
   --focus-ring: rgba(15, 23, 42, 0.1);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --heading: 'Inter', system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -76,8 +85,9 @@ button,
 input,
 textarea,
 select {
-  color: inherit;
+  color: var(--text-main);
   font: inherit;
+  background-color: var(--bg-input);
 }
 
 a {
@@ -90,20 +100,36 @@ a:hover {
 
 /* Dark theme */
 [data-theme="dark"] {
-  --text: #cbd5e1;
-  --text-h: #e6eef8;
-  --bg: #0b1220;
-  --border: #1f2937;
-  --border-color: #1f2937;
+  color-scheme: dark;
+  --text: #a0aec0;
+  --text-h: #f1f5f9;
+  --text-main: #e2e8f0;
+  --text-muted: #718096;
+  --text-invert: #ffffff;
+
+  /* Background depth: body = bg = bg-main → same base, no visible step */
+  --bg: #111111;
+  --bg-main: #111111;
+  --bg-input: #2a2a2a;
+
+  /* Surface depth: cards float slightly above page background */
+  --surface: #1e1e1e;
+  --surface-soft: #252525;
+  --surface-muted: #2a2a2a;
+
+  --border: #2e2e2e;
+  --border-color: #2e2e2e;
+
   --accent: #60a5fa;
-  --primary-color: #93c5fd;
-  --text-main: #e6eef8;
-  --text-muted: #94a3b8;
-  --bg-main: #071126;
-  --bg-input: #0f1724;
-  --surface: #111827;
-  --surface-soft: #141d2d;
-  --surface-muted: #1f2937;
+  --accent-bg: rgba(96, 165, 250, 0.15);
+  --primary-color: #60a5fa;
+  --primary-hover: #93c5fd;
+
+  --glass-bg: rgba(17, 17, 17, 0.92);
+  --shadow-card: 0 12px 30px rgba(0,0,0,0.35);
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --shadow-soft: 0 4px 6px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
 }
 
 /* Yotsuba B - green theme */
@@ -115,6 +141,7 @@ a:hover {
   --border-color: #d6efd6;
   --accent: #2f9a3a;
   --primary-color: #2f9a3a;
+  --primary-hover: #166534;
   --text-main: #0b3d0b;
   --text-muted: #276b27;
   --bg-main: #f4fbf5;
@@ -122,7 +149,33 @@ a:hover {
   --surface: #ffffff;
   --surface-soft: #f7fbf6;
   --surface-muted: #ecf7ec;
+  --glass-bg: rgba(239, 250, 240, 0.85);
 }
+
+
+
+/* Dark mode: primary button hover — override the hardcoded #1e293b */
+[data-theme="dark"] .btn-primary:hover,
+[data-theme="dark"] .btn-add-cart:hover,
+[data-theme="dark"] .nav-btn-primary:hover,
+[data-theme="dark"] .checkout-action-btn:hover,
+[data-theme="dark"] .pay-btn:hover,
+[data-theme="dark"] .browse-btn:hover,
+[data-theme="dark"] .submit-btn:hover,
+[data-theme="dark"] .primary-btn:hover,
+[data-theme="dark"] .admin-btn-primary:hover {
+  background-color: #93c5fd !important;
+  border-color: #93c5fd !important;
+  color: #0f172a !important;
+}
+
+/* Dark mode: status badge text — ensure readability on dark surfaces */
+[data-theme="dark"] .status-badge.available,
+[data-theme="dark"] .status-badge.accepted { color: #6ee7b7; background: rgba(16,185,129,0.18); }
+[data-theme="dark"] .status-badge.out_of_stock,
+[data-theme="dark"] .status-badge.rejected  { color: #fca5a5; background: rgba(239,68,68,0.18); }
+[data-theme="dark"] .status-badge.pending   { color: #fcd34d; background: rgba(245,158,11,0.18); }
+[data-theme="dark"] .role-badge.admin       { color: #d8b4fe; background: rgba(168,85,247,0.18); }
 
 #root {
   width: 100%;

@@ -5,7 +5,10 @@ const orderItemSchema = new mongoose.Schema({
   name:      String,
   brand:     String,
   price:     Number,
-  quantity:  Number
+  quantity:  Number,
+  returnStatus:       { type: String, enum: ['none', 'requested', 'approved', 'rejected'], default: 'none' },
+  returnRequestedAt:  { type: Date },
+  refundAmount:       { type: Number, default: 0 }
 });
 
 const orderSchema = new mongoose.Schema({
@@ -24,10 +27,7 @@ const orderSchema = new mongoose.Schema({
     default: 'Processing'
   },
   cancelledAt:        { type: Date },
-  deliveredAt:        { type: Date },
-  returnStatus:       { type: String, enum: ['none', 'requested', 'approved', 'rejected'], default: 'none' },
-  returnRequestedAt:  { type: Date },
-  refundAmount:       { type: Number, default: 0 }
+  deliveredAt:        { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

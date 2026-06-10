@@ -9,6 +9,8 @@ const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionBusy, setActionBusy] = useState(null);
+  const [confirmCancelId, setConfirmCancelId] = useState(null);
+  const [confirmReturnId, setConfirmReturnId] = useState(null);
 
   const userId = localStorage.getItem('userId');
   const authToken = localStorage.getItem('authToken');
@@ -42,7 +44,6 @@ const OrdersPage = () => {
   }, [userId, navigate, authToken]);
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
     setActionBusy(orderId + '-cancel');
     try {
       const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
@@ -60,17 +61,33 @@ const OrdersPage = () => {
     }
   };
 
-  const handleReturnRequest = async (orderId) => {
-    if (!window.confirm('Request a return for this order?')) return;
-    setActionBusy(orderId + '-return');
+  const isReturnWindowExpired = (order) => {
+    const deliveredDate = order.deliveredAt || order.updatedAt;
+    if (!deliveredDate) return false;
+    const daysElapsed = (Date.now() - new Date(deliveredDate).getTime()) / (1000 * 60 * 60 * 24);
+    return daysElapsed >= 30;
+  };
+
+  const handleReturnRequest = async (orderId, itemId) => {
+    setActionBusy(`${orderId}-${itemId}-return`);
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/return`, {
+      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/items/${itemId}/return`, {
         method: 'POST',
         headers: authHeaders
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.message || 'Could not submit return request.', 'error'); return; }
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, returnStatus: 'requested' } : o));
+      
+      // Update state locally
+      setOrders(prev => prev.map(o => {
+        if (o._id === orderId) {
+          return {
+            ...o,
+            items: o.items.map(item => item._id === itemId ? { ...item, returnStatus: 'requested' } : item)
+          };
+        }
+        return o;
+      }));
       showToast('Return request submitted! We will review it shortly.', 'success');
     } catch {
       showToast('Something went wrong.', 'error');
@@ -140,32 +157,35 @@ const OrdersPage = () => {
                       View Invoice
                     </button>
                     {order.status === 'Processing' && (
-                      <button
-                        className="cancel-order-btn"
-                        onClick={() => handleCancelOrder(order._id)}
-                        disabled={actionBusy === order._id + '-cancel'}
-                      >
-                        {actionBusy === order._id + '-cancel' ? 'Cancelling...' : 'Cancel Order'}
-                      </button>
-                    )}
-                    {order.status === 'Delivered' && order.returnStatus === 'none' && (
-                      <button
-                        className="return-order-btn"
-                        onClick={() => handleReturnRequest(order._id)}
-                        disabled={actionBusy === order._id + '-return'}
-                      >
-                        {actionBusy === order._id + '-return' ? 'Submitting...' : 'Request Return'}
-                      </button>
-                    )}
-                    {order.returnStatus && order.returnStatus !== 'none' && (
-                      <span className={`return-status-badge ${order.returnStatus}`}>
-                        Return: {order.returnStatus.charAt(0).toUpperCase() + order.returnStatus.slice(1)}
-                      </span>
-                    )}
-                    {order.returnStatus === 'approved' && order.refundAmount > 0 && (
-                      <span className="refund-badge">
-                        Refund: ${order.refundAmount?.toLocaleString()} credited to wallet
-                      </span>
+                      confirmCancelId === order._id ? (
+                        <div className="cancel-confirm-inline" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: '600' }}>Are you sure?</span>
+                          <button 
+                            className="cancel-order-btn" 
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                            onClick={() => { setConfirmCancelId(null); handleCancelOrder(order._id); }}
+                            disabled={actionBusy === order._id + '-cancel'}
+                          >
+                            Yes
+                          </button>
+                          <button 
+                            className="view-invoice-btn"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                            onClick={() => setConfirmCancelId(null)}
+                            disabled={actionBusy === order._id + '-cancel'}
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          className="cancel-order-btn"
+                          onClick={() => setConfirmCancelId(order._id)}
+                          disabled={actionBusy === order._id + '-cancel'}
+                        >
+                          {actionBusy === order._id + '-cancel' ? 'Cancelling...' : 'Cancel Order'}
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -195,8 +215,53 @@ const OrdersPage = () => {
                           <p className="order-item-brand">{item.brand}</p>
                           <p className="order-item-qty">Qty: {item.quantity}</p>
                         </div>
-                        <div className="order-item-price">
-                          ${item.price?.toLocaleString()}
+                        <div className="order-item-price" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                          <span>${item.price?.toLocaleString()}</span>
+                          {order.status === 'Delivered' && (!item.returnStatus || item.returnStatus === 'none') && !isReturnWindowExpired(order) && (
+                            confirmReturnId === item._id ? (
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>Confirm?</span>
+                                <button
+                                  className="return-order-btn"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#ef4444', color: 'white', border: 'none' }}
+                                  onClick={() => { setConfirmReturnId(null); handleReturnRequest(order._id, item._id); }}
+                                  disabled={actionBusy === `${order._id}-${item._id}-return`}
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  className="view-invoice-btn"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                                  onClick={() => setConfirmReturnId(null)}
+                                  disabled={actionBusy === `${order._id}-${item._id}-return`}
+                                >
+                                  No
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                className="return-order-btn"
+                                style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                                onClick={() => setConfirmReturnId(item._id)}
+                                disabled={actionBusy === `${order._id}-${item._id}-return`}
+                              >
+                                {actionBusy === `${order._id}-${item._id}-return` ? 'Submitting...' : 'Return Item'}
+                              </button>
+                            )
+                          )}
+                          {order.status === 'Delivered' && (!item.returnStatus || item.returnStatus === 'none') && isReturnWindowExpired(order) && (
+                            <span className="return-expired-badge" style={{ fontSize: '0.75rem' }}>Return Window Closed</span>
+                          )}
+                          {item.returnStatus && item.returnStatus !== 'none' && (
+                            <span className={`return-status-badge ${item.returnStatus}`} style={{ fontSize: '0.75rem' }}>
+                              Return: {item.returnStatus.charAt(0).toUpperCase() + item.returnStatus.slice(1)}
+                            </span>
+                          )}
+                          {item.returnStatus === 'approved' && item.refundAmount > 0 && (
+                            <span className="refund-badge" style={{ fontSize: '0.75rem' }}>
+                              Refunded: ${item.refundAmount?.toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}

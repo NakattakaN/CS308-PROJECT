@@ -24,7 +24,10 @@ const RevenueChart = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/revenue?from=${from}&to=${to}`);
+      const authToken = localStorage.getItem('authToken');
+      const res = await fetch(`http://localhost:5000/api/admin/revenue?from=${from}&to=${to}`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
       if (!res.ok) throw new Error('Failed to fetch revenue data');
       const json = await res.json();
       setData(json.data || []);

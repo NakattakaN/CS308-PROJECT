@@ -31,6 +31,9 @@ const productSchema = new mongoose.Schema(
     image: { type: String, required: true, trim: true },
 
     referenceNumber: { type: String, trim: true },
+    serialNumber: { type: String, trim: true },
+    warrantyStatus: { type: String, trim: true },
+    distributorInfo: { type: String, trim: true },
     description: { type: String, default: '', trim: true },
 
     status: {
@@ -79,6 +82,9 @@ const productSchema = new mongoose.Schema(
     },
 
     stock: { type: Number, default: 50, min: 0 },
+    originalPrice: { type: Number, default: null },
+    discountRate: { type: Number, default: 0, min: 0, max: 100 },
+    campaignEnd: { type: Date, default: null },
 
     specs: {
       movement: { type: String, default: '', trim: true },
@@ -90,5 +96,10 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.pre('save', function () {
+  if (this.stock < 0) this.stock = 0;
+  this.status = this.stock === 0 ? 'out_of_stock' : 'available';
+});
 
 module.exports = mongoose.model('Product', productSchema);

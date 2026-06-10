@@ -41,7 +41,7 @@
 
 .rc-apply-btn {
   padding: 0.5rem 1.4rem;
-  background: var(--text-h);
+  background: var(--primary-color);
   color: var(--text-invert);
   border: none;
   border-radius: 6px;
@@ -54,7 +54,7 @@
 }
 
 .rc-apply-btn:hover:not(:disabled) {
-  background: #1e293b;
+  background: var(--primary-hover);
 }
 
 .rc-apply-btn:disabled {
@@ -86,6 +86,11 @@
 .rc-stat-card.net.positive { background: rgba(220, 252, 231, 0.6); }
 .rc-stat-card.net.negative { background: rgba(255, 247, 237, 0.6); }
 
+[data-theme="dark"] .rc-stat-card.revenue  { background: rgba(67, 56, 202, 0.18); }
+[data-theme="dark"] .rc-stat-card.refunds  { background: rgba(220, 38, 38, 0.18); }
+[data-theme="dark"] .rc-stat-card.net.positive { background: rgba(16, 185, 129, 0.18); }
+[data-theme="dark"] .rc-stat-card.net.negative { background: rgba(194, 65, 12, 0.18); }
+
 .rc-stat-label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -103,6 +108,11 @@
 .rc-stat-card.refunds  .rc-stat-value { color: #dc2626; }
 .rc-stat-card.net.positive .rc-stat-value { color: #15803d; }
 .rc-stat-card.net.negative .rc-stat-value { color: #c2410c; }
+
+[data-theme="dark"] .rc-stat-card.revenue  .rc-stat-value { color: #93c5fd; }
+[data-theme="dark"] .rc-stat-card.refunds  .rc-stat-value { color: #fca5a5; }
+[data-theme="dark"] .rc-stat-card.net.positive .rc-stat-value { color: #6ee7b7; }
+[data-theme="dark"] .rc-stat-card.net.negative .rc-stat-value { color: #fdba74; }
 
 /* ── Chart ── */
 .rc-chart-wrapper {
