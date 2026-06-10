@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import './Navbar.css';
 
@@ -9,6 +9,14 @@ const Navbar = () => {
 
   const isOnHome = location.pathname === '/home' || location.pathname === '/';
   const [searchInput, setSearchInput] = useState('');
+  
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    } catch { return []; }
+  });
+  const [showHistory, setShowHistory] = useState(false);
+  const searchWrapperRef = useRef(null);
 
   useEffect(() => {
     setSearchInput(isOnHome ? (searchParams.get('q') || '') : '');
@@ -94,6 +102,49 @@ const Navbar = () => {
     navigate('/home');
   };
 
+  useEffect(() => {
+    const clickOutside = (e) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+        setShowHistory(false);
+      }
+    };
+    document.addEventListener('mousedown', clickOutside);
+    return () => document.removeEventListener('mousedown', clickOutside);
+  }, []);
+
+  const addRecentSearch = (query) => {
+    if (!query || !query.trim()) return;
+    const clean = query.trim();
+    setRecentSearches(prev => {
+      const filtered = prev.filter(s => s.toLowerCase() !== clean.toLowerCase());
+      const updated = [clean, ...filtered].slice(0, 5);
+      try { localStorage.setItem('recentSearches', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  const handleSelectRecentSearch = (term) => {
+    setSearchInput(term);
+    addRecentSearch(term);
+    setShowHistory(false);
+    if (isOnHome) {
+      const next = new URLSearchParams(searchParams);
+      next.set('q', term);
+      setSearchParams(next, { replace: true });
+    } else {
+      navigate(`/home?q=${encodeURIComponent(term)}`);
+    }
+  };
+
+  const handleRemoveRecentSearch = (e, term) => {
+    e.stopPropagation();
+    setRecentSearches(prev => {
+      const updated = prev.filter(s => s !== term);
+      try { localStorage.setItem('recentSearches', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
   const handleSearchChange = (e) => {
     const val = e.target.value;
     setSearchInput(val);
@@ -114,8 +165,15 @@ const Navbar = () => {
   };
 
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter' && !isOnHome && searchInput) {
-      navigate(`/home?q=${encodeURIComponent(searchInput)}`);
+    if (e.key === 'Enter') {
+      const term = searchInput.trim();
+      if (term) {
+        addRecentSearch(term);
+        setShowHistory(false);
+        if (!isOnHome) {
+          navigate(`/home?q=${encodeURIComponent(term)}`);
+        }
+      }
     }
   };
 
@@ -125,7 +183,7 @@ const Navbar = () => {
         Saatinden
       </div>
 
-      <div className="nav-search-wrapper">
+      <div className="nav-search-wrapper" ref={searchWrapperRef}>
         <svg className="nav-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -137,9 +195,36 @@ const Navbar = () => {
           value={searchInput}
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
+          onFocus={() => setShowHistory(true)}
         />
         {searchInput && (
           <button className="nav-search-clear" onClick={handleSearchClear}>×</button>
+        )}
+
+        {showHistory && recentSearches.length > 0 && (
+          <div className="nav-search-history-dropdown">
+            <div className="nav-search-history-header">Recent Searches</div>
+            {recentSearches.map((term, index) => (
+              <div
+                key={`${term}-${index}`}
+                className="nav-search-history-item"
+                onClick={() => handleSelectRecentSearch(term)}
+              >
+                <div className="nav-search-history-text">
+                  <span className="nav-search-history-clock">🕒</span>
+                  <span>{term}</span>
+                </div>
+                <button
+                  type="button"
+                  className="nav-search-history-delete"
+                  onClick={(e) => handleRemoveRecentSearch(e, term)}
+                  aria-label={`Delete search history item ${term}`}
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
