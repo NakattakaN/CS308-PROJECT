@@ -74,6 +74,7 @@ const CartPage = () => {
       );
       setCartItems(updated);
       localStorage.setItem('guestCart', JSON.stringify(updated));
+      window.dispatchEvent(new Event('cart-updated'));
       return;
     }
 
@@ -103,6 +104,8 @@ const CartPage = () => {
       if (!response.ok) {
         setCartItems(previousCart); // Ekranı bozmamak için eski yedeğe geri dön
         showToast(data.message || "Miktar güncellenemedi, lütfen tekrar deneyin.", "error");
+      } else {
+        window.dispatchEvent(new Event('cart-updated'));
       }
       
     } catch (error) {
@@ -118,6 +121,7 @@ const CartPage = () => {
       const updated = cartItems.filter(item => item._id !== itemId);
       setCartItems(updated);
       localStorage.setItem('guestCart', JSON.stringify(updated));
+      window.dispatchEvent(new Event('cart-updated'));
       return;
     }
 
@@ -129,6 +133,7 @@ const CartPage = () => {
       const data = await response.json();
       if (response.ok) {
         setCartItems(data.cart);
+        window.dispatchEvent(new Event('cart-updated'));
       }
     } catch (error) {
       console.error("Error removing item:", error);
