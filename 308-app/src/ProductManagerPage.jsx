@@ -305,14 +305,17 @@ const ProductManagerPage = () => {
             </div>
             <table className="admin-table">
               <thead>
-                <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Amount</th><th>Date</th><th>Ship To</th><th>Status</th></tr>
+                <tr><th>Delivery ID</th><th>Customer ID</th><th>Product ID × Qty</th><th>Total Price</th><th>Date</th><th>Delivery Address</th><th>Status</th></tr>
               </thead>
               <tbody>
                 {orders.filter(o => deliveryFilter === 'All' || o.status === deliveryFilter).map(o => (
                   <tr key={o._id}>
                     <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
-                    <td>{o.userId?.firstName} {o.userId?.lastName}</td>
-                    <td><div style={{ fontSize: '0.85rem', color: '#475569' }}>{o.items?.map((item, i) => <span key={i} style={{ display: 'block' }}>{item.quantity}× {item.name}</span>)}</div></td>
+                    <td>
+                      <div>{o.userId?.firstName} {o.userId?.lastName}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>{o.userId?._id?.toString().slice(-8).toUpperCase()}</div>
+                    </td>
+                    <td><div style={{ fontSize: '0.85rem', color: '#475569' }}>{o.items?.map((item, i) => <span key={i} style={{ display: 'block' }}>{item.productId?._id?.toString().slice(-6).toUpperCase() || item.productId?.toString().slice(-6).toUpperCase()} × {item.quantity} ({item.name})</span>)}</div></td>
                     <td>${o.totalAmount?.toLocaleString()}</td>
                     <td>{new Date(o.createdAt).toLocaleDateString()}</td>
                     <td style={{ fontSize: '0.82rem', color: '#475569' }}>
