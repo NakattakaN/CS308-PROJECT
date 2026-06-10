@@ -75,7 +75,13 @@ router.delete('/admin/products/:id', requireAuth, requireProductManager, async (
       { $pull: { cart: { 'product._id': productId } } }
     );
 
-    res.json({ message: 'Product deleted and removed from all user carts.' });
+    // Remove the deleted product from every user's wishlist
+    await User.updateMany(
+      { wishlist: productId },
+      { $pull: { wishlist: productId } }
+    );
+
+    res.json({ message: 'Product deleted and removed from all user carts and wishlists.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

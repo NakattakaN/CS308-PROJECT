@@ -3,7 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const { requireAuth, requireProductManager, requireSelf } = require('../middleware/auth');
+const { requireAuth, requireSelf } = require('../middleware/auth');
 const { generateInvoicePdf } = require('../services/invoicePdf');
 const { sendInvoiceEmail } = require('../services/emailService');
 
@@ -23,24 +23,34 @@ router.post('/orders', requireAuth, async (req, res) => {
   try {
     const { items, shippingAddress, useWallet } = req.body;
 
-    let calculatedTotal = 0;
-
-    // 1. Pre-check stock and calculate true total amount securely
+    // 1. Atomically decrement stock and capture true price snapshots from each updated doc.
+    // Sequential so we can roll back partial decrements on failure.
+    const decremented = [];
     for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        return res.status(404).json({ error: `Product not found: ${item.name || item.productId}` });
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+      if (!updated) {
+        // Roll back already-decremented items
+        for (const d of decremented) {
+          await Product.findByIdAndUpdate(d.productId, { $inc: { stock: d.quantity } });
+        }
+        return res.status(400).json({ error: `Insufficient stock for ${item.name || item.productId}` });
       }
-      if (product.stock < item.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}` });
+      decremented.push({ productId: item.productId, quantity: item.quantity });
+      item.price = updated.price;
+      item.name = updated.name;
+      item.brand = updated.brand;
+      if (updated.stock <= 0) {
+        await Product.findByIdAndUpdate(item.productId, { status: 'out_of_stock' });
       }
-      
-      // Override frontend price with true database price
-      item.price = product.price;
-      calculatedTotal += product.price * item.quantity;
     }
 
-    // Deduct wallet balance if requested — atomic to prevent double-spend
+    const calculatedTotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+    // 2. Atomic wallet decrement. Rolls back stock if balance changed mid-request.
     let walletDeducted = 0;
     if (useWallet) {
       const user = await User.findById(req.userId).select('walletBalance');
@@ -52,26 +62,14 @@ router.post('/orders', requireAuth, async (req, res) => {
           { new: true }
         );
         if (!updated) {
+          for (const d of decremented) {
+            await Product.findByIdAndUpdate(d.productId, { $inc: { stock: d.quantity } });
+          }
           return res.status(409).json({ error: 'Wallet balance changed — please try again' });
         }
         walletDeducted = desired;
       }
     }
-
-    // Decrement stock for each ordered item and set status to out_of_stock if stock hits 0
-    await Promise.all(items.map(async item => {
-      const updated = await Product.findOneAndUpdate(
-        { _id: item.productId, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } },
-        { new: true }
-      );
-      if (!updated) {
-        throw new Error(`Concurrency error: Not enough stock for ${item.name}`);
-      }
-      if (updated.stock <= 0) {
-        await Product.findByIdAndUpdate(item.productId, { status: 'out_of_stock' });
-      }
-    }));
 
     const order = await Order.create({
       userId: req.userId,
@@ -204,27 +202,6 @@ router.post('/orders/:orderId/items/:itemId/return', requireAuth, async (req, re
     await order.save();
 
     res.json({ message: 'Return request submitted successfully', order });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update order status — product manager (or admin) only
-router.put('/orders/:id/status', requireAuth, requireProductManager, async (req, res) => {
-  try {
-    const { status } = req.body;
-    const allowed = ['Processing', 'In-Transit', 'Delivered'];
-    if (!allowed.includes(status)) {
-      return res.status(400).json({ message: `Invalid status. Must be one of: ${allowed.join(', ')}` });
-    }
-
-    const update = { status };
-    if (status === 'Delivered') update.deliveredAt = new Date();
-
-    const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-
-    res.json(order);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

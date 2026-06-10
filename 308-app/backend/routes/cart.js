@@ -17,8 +17,7 @@ const populateCartWithStock = async (cart) => {
         ...plainItem,
         product: {
           ...plainItem.product,
-          stock: freshProduct.stock,      
-          quantity: freshProduct.quantity  
+          stock: freshProduct.stock
         }
       });
     }
@@ -63,7 +62,7 @@ router.post('/users/:userId/cart', requireAuth, requireSelf, async (req, res) =>
     if (!product) return res.status(404).json({ message: "Product not found!" });
 
     const safeQty = Number.parseInt(quantity) || 1;
-    const currentStock = product.stock || product.quantity || 0; // Veritabanındaki gerçek stok
+    const currentStock = product.stock || 0;
 
     // Ürün zaten sepette var mı?
     const existingIndex = user.cart.findIndex(item => item.product._id.toString() === productId);
@@ -121,15 +120,8 @@ router.put('/users/:userId/cart/:itemId', requireAuth, requireSelf, async (req, 
     }
 
     // 2. Veritabanındaki mağaza stoğunu güvenli bir tam sayıya çevir
-    // (Modelde ismi quantity veya stock olabilir, ikisini de kontrol ediyoruz)
-    let maxQty = parseInt(product.quantity, 10);
-    if (isNaN(maxQty)) {
-      maxQty = parseInt(product.stock, 10);
-    }
-    // Her iki durumda da mağaza stoğu gelmiyorsa (undefined ise) çökmemesi için 99 kabul et
-    if (isNaN(maxQty)) {
-      maxQty = 99; 
-    }
+    let maxQty = parseInt(product.stock, 10);
+    if (isNaN(maxQty)) maxQty = 0;
 
     // 3. Miktarı hesapla ve kaydet (Artık NaN olma ihtimali sıfır)
     cartItem.quantity = Math.min(Math.max(1, newQty), maxQty);
