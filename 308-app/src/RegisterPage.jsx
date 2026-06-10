@@ -18,6 +18,7 @@ const RegisterPage = () => {
     homeAddress: '',
   });
   const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -139,15 +140,43 @@ const RegisterPage = () => {
                 <div className="label-flex">
                   <label htmlFor="password">Password</label>
                 </div>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: 'var(--text-muted)',
+                      padding: '4px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      transition: 'color 0.2s'
+                    }}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onMouseEnter={(e) => e.target.style.color = 'var(--primary-color)'}
+                    onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
                 <small style={{ color: passwordError ? '#b00020' : '#777', display: 'block', marginTop: '4px' }}>
                   {passwordError || PASSWORD_HINT}
                 </small>
