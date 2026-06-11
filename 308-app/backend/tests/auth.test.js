@@ -88,7 +88,7 @@ describe('1. Authentication Tests', () => {
       const res = await request(app)
         .get('/api/profile')
         .set('Authorization', `Bearer ${validToken}`);
-      
+
       expect(res.status).to.equal(200);
       expect(res.body.email).to.equal('test@example.com');
       expect(res.body.firstName).to.equal('Test');
@@ -97,9 +97,75 @@ describe('1. Authentication Tests', () => {
     it('should fail to retrieve profile without a token (401 Unauthorized)', async () => {
       const res = await request(app)
         .get('/api/profile');
-      
+
       expect(res.status).to.equal(401);
       expect(res.body.message).to.equal('Missing auth token');
+    });
+
+    it('should not expose password, cart or wishlist', async () => {
+      const res = await request(app)
+        .get('/api/profile')
+        .set('Authorization', `Bearer ${validToken}`);
+
+      expect(res.status).to.equal(200);
+      expect(res.body).to.not.have.property('password');
+      expect(res.body).to.not.have.property('cart');
+      expect(res.body).to.not.have.property('wishlist');
+    });
+  });
+
+  describe('PUT /api/profile', () => {
+    it('should update address fields', async () => {
+      const res = await request(app)
+        .put('/api/profile')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({
+          homeAddress: '42 Baker Street',
+          city: 'London',
+          zipCode: 'NW1 6XE',
+          taxId: 'UK123456'
+        });
+
+      expect(res.status).to.equal(200);
+      expect(res.body.message).to.include('updated');
+      expect(res.body.user.city).to.equal('London');
+      expect(res.body.user.homeAddress).to.equal('42 Baker Street');
+    });
+
+    it('should update name fields', async () => {
+      const res = await request(app)
+        .put('/api/profile')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ firstName: 'Updated', lastName: 'Name' });
+
+      expect(res.status).to.equal(200);
+      expect(res.body.user.firstName).to.equal('Updated');
+      expect(res.body.user.lastName).to.equal('Name');
+    });
+
+    it('should only touch fields that are sent', async () => {
+      // set city to something known, then update something else
+      await request(app)
+        .put('/api/profile')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ city: 'Berlin' });
+
+      const res = await request(app)
+        .put('/api/profile')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({ taxId: 'DE987' });
+
+      expect(res.status).to.equal(200);
+      expect(res.body.user.city).to.equal('Berlin');
+      expect(res.body.user.taxId).to.equal('DE987');
+    });
+
+    it('should require auth', async () => {
+      const res = await request(app)
+        .put('/api/profile')
+        .send({ city: 'Paris' });
+
+      expect(res.status).to.equal(401);
     });
   });
 });
