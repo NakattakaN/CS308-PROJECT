@@ -23,10 +23,12 @@ const ProductManagerPage = () => {
   const [busyReviewId, setBusyReviewId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingStock, setEditingStock] = useState({});
+  const [confirmDeleteProductId, setConfirmDeleteProductId] = useState(null);
+  const [confirmDeleteCategoryId, setConfirmDeleteCategoryId] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: '', brand: '', price: '', image: '', description: '',
     model: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available',
-    gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah',
+    gender: 'unisex', strapMaterial: 'metal', strapColor: 'black',
     caseShape: 'oval', displayType: 'analog', category: ''
   });
 
@@ -80,7 +82,6 @@ const ProductManagerPage = () => {
   };
 
   const deleteProduct = async (id) => {
-    if (!window.confirm('Delete this product?')) return;
     await fetch(`http://localhost:5000/api/admin/products/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${authToken}` }
@@ -104,7 +105,7 @@ const ProductManagerPage = () => {
       if (!res.ok) { showToast(data.error || 'Failed to add product', 'error'); return; }
       setProducts(prev => [data, ...prev]);
       setShowAddForm(false);
-      setNewProduct({ name: '', brand: '', price: '', image: '', description: '', model: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available', gender: 'unisex', strapMaterial: 'metal', strapColor: 'siyah', caseShape: 'oval', displayType: 'analog', category: '' });
+      setNewProduct({ name: '', brand: '', price: '', image: '', description: '', model: '', referenceNumber: '', serialNumber: '', warrantyStatus: '', distributorInfo: '', stock: 50, status: 'available', gender: 'unisex', strapMaterial: 'metal', strapColor: 'black', caseShape: 'oval', displayType: 'analog', category: '' });
       showToast('Product added', 'success');
     } catch { showToast('Failed to add product', 'error'); }
   };
@@ -152,7 +153,6 @@ const ProductManagerPage = () => {
   };
 
   const deleteCategory = async (id) => {
-    if (!window.confirm('Delete this category? It will be removed from all products.')) return;
     try {
       const res = await fetch(`http://localhost:5000/api/admin/categories/${id}`, {
         method: 'DELETE',
@@ -210,7 +210,11 @@ const ProductManagerPage = () => {
                   {[['Name *', 'name', 'text'], ['Brand *', 'brand', 'text'], ['Model', 'model', 'text'], ['Price *', 'price', 'number'], ['Image URL *', 'image', 'text'], ['Reference No', 'referenceNumber', 'text'], ['Serial No', 'serialNumber', 'text'], ['Warranty', 'warrantyStatus', 'text'], ['Distributor Info', 'distributorInfo', 'text'], ['Stock', 'stock', 'number']].map(([label, key, type]) => (
                     <div key={key}>
                       <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '4px' }}>{label}</label>
-                      <input type={type} value={newProduct[key]} onChange={e => setNewProduct(p => ({ ...p, [key]: e.target.value }))} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box' }} />
+                      <input type={type} min={type === 'number' ? '0' : undefined} value={newProduct[key]} onChange={e => {
+                        let val = e.target.value;
+                        if (type === 'number' && val !== '' && Number(val) < 0) val = '0';
+                        setNewProduct(p => ({ ...p, [key]: val }));
+                      }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.9rem', boxSizing: 'border-box' }} />
                     </div>
                   ))}
                   <div>
@@ -242,7 +246,11 @@ const ProductManagerPage = () => {
                     <td>
                       {editingStock[p._id] !== undefined ? (
                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                          <input type="number" value={editingStock[p._id]} onChange={e => setEditingStock(prev => ({ ...prev, [p._id]: e.target.value }))} style={{ width: '70px', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
+                          <input type="number" min="0" value={editingStock[p._id]} onChange={e => {
+                            let val = e.target.value;
+                            if (val !== '' && Number(val) < 0) val = '0';
+                            setEditingStock(prev => ({ ...prev, [p._id]: val }));
+                          }} style={{ width: '70px', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'var(--bg-input)', color: 'var(--text-main)' }} />
                           <button className="admin-btn-success" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => updateStock(p._id, editingStock[p._id])}>✓</button>
                           <button className="admin-btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setEditingStock(prev => { const n = { ...prev }; delete n[p._id]; return n; })}>✕</button>
                         </div>
@@ -254,7 +262,15 @@ const ProductManagerPage = () => {
                     </td>
                     <td><span className={`status-badge ${p.stock === 0 ? 'out_of_stock' : 'available'}`}>{p.stock === 0 ? 'out_of_stock' : 'available'}</span></td>
                     <td>
-                      <button className="admin-btn-danger" onClick={() => deleteProduct(p._id)}>Delete</button>
+                      {confirmDeleteProductId === p._id ? (
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>Sure?</span>
+                          <button className="admin-btn-danger" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => { setConfirmDeleteProductId(null); deleteProduct(p._id); }}>Yes</button>
+                          <button className="admin-btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setConfirmDeleteProductId(null)}>No</button>
+                        </div>
+                      ) : (
+                        <button className="admin-btn-danger" onClick={() => setConfirmDeleteProductId(p._id)}>Delete</button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -285,7 +301,17 @@ const ProductManagerPage = () => {
                   {categories.map(c => (
                     <tr key={c._id}>
                       <td>{c.name}</td>
-                      <td><button className="admin-btn-danger" onClick={() => deleteCategory(c._id)}>Delete</button></td>
+                      <td>
+                        {confirmDeleteCategoryId === c._id ? (
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>Sure?</span>
+                            <button className="admin-btn-danger" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => { setConfirmDeleteCategoryId(null); deleteCategory(c._id); }}>Yes</button>
+                            <button className="admin-btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setConfirmDeleteCategoryId(null)}>No</button>
+                          </div>
+                        ) : (
+                          <button className="admin-btn-danger" onClick={() => setConfirmDeleteCategoryId(c._id)}>Delete</button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -305,14 +331,17 @@ const ProductManagerPage = () => {
             </div>
             <table className="admin-table">
               <thead>
-                <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Amount</th><th>Date</th><th>Ship To</th><th>Status</th></tr>
+                <tr><th>Delivery ID</th><th>Customer ID</th><th>Product ID × Qty</th><th>Total Price</th><th>Date</th><th>Delivery Address</th><th>Status</th></tr>
               </thead>
               <tbody>
                 {orders.filter(o => deliveryFilter === 'All' || o.status === deliveryFilter).map(o => (
                   <tr key={o._id}>
                     <td>#{o._id.toString().slice(-8).toUpperCase()}</td>
-                    <td>{o.userId?.firstName} {o.userId?.lastName}</td>
-                    <td><div style={{ fontSize: '0.85rem', color: '#475569' }}>{o.items?.map((item, i) => <span key={i} style={{ display: 'block' }}>{item.quantity}× {item.name}</span>)}</div></td>
+                    <td>
+                      <div>{o.userId?.firstName} {o.userId?.lastName}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>{o.userId?._id?.toString().slice(-8).toUpperCase()}</div>
+                    </td>
+                    <td><div style={{ fontSize: '0.85rem', color: '#475569' }}>{o.items?.map((item, i) => <span key={i} style={{ display: 'block' }}>{item.productId?._id?.toString().slice(-6).toUpperCase() || item.productId?.toString().slice(-6).toUpperCase()} × {item.quantity} ({item.name})</span>)}</div></td>
                     <td>${o.totalAmount?.toLocaleString()}</td>
                     <td>{new Date(o.createdAt).toLocaleDateString()}</td>
                     <td style={{ fontSize: '0.82rem', color: '#475569' }}>

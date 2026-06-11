@@ -28,6 +28,7 @@ const ProductDetailsPage = () => {
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const reviewPrefilled = React.useRef(false);
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const [offerModalOpen, setOfferModalOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState('');
@@ -130,30 +131,32 @@ const ProductDetailsPage = () => {
 
  
   const handleAddToCart = async () => {
-    // Guest user — save to localStorage, login required only at checkout
-    if (!userId || !authToken) {
-      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
-      const existingIdx = guestCart.findIndex(item => item._id === product._id);
-      if (existingIdx >= 0) {
-        guestCart[existingIdx].quantity = Math.min(
-          guestCart[existingIdx].quantity + quantity,
-          product.stock || 99
-        );
-      } else {
-        guestCart.push({
-          _id: product._id,
-          product: { _id: product._id, name: product.name, brand: product.brand, image: product.image, price: product.price, stock: product.stock },
-          quantity
-        });
-      }
-      localStorage.setItem('guestCart', JSON.stringify(guestCart));
-      showToast('Added to cart! Sign in to checkout.', 'success');
-      window.dispatchEvent(new Event('cart-updated'));
-      return;
-    }
-
-    // Logged-in user — save to server
+    if (isAddingToCart) return;
+    setIsAddingToCart(true);
     try {
+      // Guest user — save to localStorage, login required only at checkout
+      if (!userId || !authToken) {
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+        const existingIdx = guestCart.findIndex(item => item._id === product._id);
+        if (existingIdx >= 0) {
+          guestCart[existingIdx].quantity = Math.min(
+            guestCart[existingIdx].quantity + quantity,
+            product.stock || 99
+          );
+        } else {
+          guestCart.push({
+            _id: product._id,
+            product: { _id: product._id, name: product.name, brand: product.brand, image: product.image, price: product.price, stock: product.stock },
+            quantity
+          });
+        }
+        localStorage.setItem('guestCart', JSON.stringify(guestCart));
+        showToast('Added to cart! Sign in to checkout.', 'success');
+        window.dispatchEvent(new Event('cart-updated'));
+        return;
+      }
+
+      // Logged-in user — save to server
       const response = await fetch(`http://localhost:5000/api/users/${userId}/cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
@@ -166,9 +169,10 @@ const ProductDetailsPage = () => {
       }
       showToast('Added to cart!', 'success');
       window.dispatchEvent(new Event('cart-updated'));
-    } catch (error) {
-      console.error('Add to cart error:', error);
-      showToast('Something went wrong. Please try again.', 'error');
+    } catch (err) {
+      showToast('Could not add to cart. Please try again.', 'error');
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -349,9 +353,9 @@ const ProductDetailsPage = () => {
 
             <button
               className="btn-add-cart"
-              style={{ flex: 1, opacity: (product.status !== 'available' || product.stock === 0) ? 0.5 : 1, cursor: (product.status !== 'available' || product.stock === 0) ? 'not-allowed' : 'pointer' }}
+              style={{ flex: 1, opacity: (product.status !== 'available' || product.stock === 0 || isAddingToCart) ? 0.5 : 1, cursor: (product.status !== 'available' || product.stock === 0 || isAddingToCart) ? 'not-allowed' : 'pointer' }}
               onClick={handleAddToCart}
-              disabled={product.status !== 'available' || product.stock === 0}
+              disabled={product.status !== 'available' || product.stock === 0 || isAddingToCart}
             >
               {product.stock === 0 ? 'Out of Stock' : product.status === 'available' ? 'Add to Cart' : 'Unavailable'}
             </button>

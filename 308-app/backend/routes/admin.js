@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 const Offer = require('../models/Offer');
 const Order = require('../models/Order');
 const { requireAuth, requireAdmin, requireProductManager, requireSalesManager, requireStaff } = require('../middleware/auth');
+const { sendRefundApprovedEmail } = require('../services/emailService');
 
 // Get all users
 router.get('/admin/users', requireAuth, requireAdmin, async (req, res) => {
@@ -201,6 +202,18 @@ router.put('/admin/orders/:orderId/items/:itemId/return', requireAuth, requireSa
       );
       if (updated && updated.stock > 0) {
         await Product.findByIdAndUpdate(item.productId, { status: 'available' });
+      }
+
+      // Notify the customer via email
+      const customer = await User.findById(order.userId).select('firstName email');
+      if (customer?.email) {
+        sendRefundApprovedEmail(
+          customer.email,
+          customer.firstName || 'Customer',
+          item.name || 'product',
+          item.refundAmount,
+          order._id.toString()
+        ).catch(err => console.error('Refund email failed:', err.message));
       }
     } else {
       item.returnStatus = 'rejected';
