@@ -17,7 +17,6 @@ describe('2. Product & Inventory Tests', () => {
       model: 'Submariner',
       price: 10000,
       stock: 5,
-      category: 'mens',
       image: 'img.jpg'
     });
     productId1 = p1._id;
@@ -28,7 +27,6 @@ describe('2. Product & Inventory Tests', () => {
       model: 'F91W',
       price: 20,
       stock: 100,
-      category: 'unisex',
       image: 'img2.jpg'
     });
     productId2 = p2._id;
