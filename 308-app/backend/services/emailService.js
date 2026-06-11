@@ -90,4 +90,30 @@ async function sendDiscountNotificationEmail(to, name, productName, originalPric
   });
 }
 
-module.exports = { sendInvoiceEmail, sendDiscountNotificationEmail };
+async function sendRefundApprovedEmail(to, name, productName, refundAmount, orderId) {
+  if (!transporter) await initTransporter();
+
+  const shortId = orderId.slice(-8).toUpperCase();
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER ? `"Saatinden Store" <${process.env.SMTP_USER}>` : '"Saatinden Test" <test@saatinden.local>',
+    replyTo: process.env.SMTP_USER,
+    to,
+    subject: `Refund Approved for ${productName}`,
+    html: `
+      <div style="font-family: system-ui, sans-serif; max-width: 500px; margin: 0 auto;">
+        <h2 style="color: #0f172a;">Your refund has been approved, ${name}!</h2>
+        <p style="color: #475569;">We've approved your return request for <strong>${productName}</strong> from order <strong>#${shortId}</strong>.</p>
+        <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
+          <tr><td style="color:#64748b; padding: 6px 0;">Refunded amount</td><td style="font-weight:700; color:#15803d; font-size:1.1em;">$${refundAmount.toLocaleString()}</td></tr>
+          <tr><td style="color:#64748b; padding: 6px 0;">Credited to</td><td style="font-weight:600;">Your Saatinden wallet</td></tr>
+        </table>
+        <p style="color: #475569;">The amount is already available in your wallet for your next purchase.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+        <p style="color: #94a3b8; font-size: 13px;">Saatinden — Premium Watch Marketplace</p>
+      </div>
+    `
+  });
+}
+
+module.exports = { sendInvoiceEmail, sendDiscountNotificationEmail, sendRefundApprovedEmail };

@@ -8,6 +8,12 @@
   width: 100%;
 }
 
+.sticky-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
 .nav-brand {
   color: var(--text-h);
   font-size: 1.75rem;
@@ -35,10 +41,11 @@
   color: var(--text-h);
 }
 
+
 .nav-search-wrapper {
   position: relative;
   flex: 1;
-  max-width: 600px;
+  max-width: 400px;
   margin: 0 2rem;
   display: flex;
   align-items: center;

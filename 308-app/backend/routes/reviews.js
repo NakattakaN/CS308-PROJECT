@@ -5,7 +5,7 @@ const Review = require('../models/Review');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
-const { requireAuth, attachAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, attachAuth, requireProductManager } = require('../middleware/auth');
 
 const { REVIEW_STATUS } = Review;
 
@@ -122,7 +122,7 @@ router.post('/products/:productId/reviews', requireAuth, async (req, res) => {
 });
 
 // ---- ADMIN: moderation queue ----
-router.get('/admin/reviews', requireAuth, requireAdmin, async (req, res) => {
+router.get('/admin/reviews', requireAuth, requireProductManager, async (req, res) => {
   try {
     const status = REVIEW_STATUS.includes(req.query.status) ? req.query.status : 'UNDER_REVIEW';
     const reviews = await Review.find({ status })
@@ -136,7 +136,7 @@ router.get('/admin/reviews', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ---- ADMIN: approve or reject
-router.patch('/admin/reviews/:id', requireAuth, requireAdmin, async (req, res) => {
+router.patch('/admin/reviews/:id', requireAuth, requireProductManager, async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id)) {

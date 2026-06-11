@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Offer = require('../models/Offer');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireSalesManager } = require('../middleware/auth');
 
 // Submit an offer on a product
 router.post('/products/:productId/offers', requireAuth, async (req, res) => {
@@ -34,7 +34,7 @@ router.get('/products/:productId/offers', async (req, res) => {
 });
 
 // Get all offers (admin panel)
-router.get('/offers', async (req, res) => {
+router.get('/offers', requireAuth, requireSalesManager, async (req, res) => {
   try {
     const offers = await Offer.find().populate('productId', 'name brand').sort({ createdAt: -1 });
     res.json(offers);
@@ -43,8 +43,8 @@ router.get('/offers', async (req, res) => {
   }
 });
 
-// Update offer status (admin: accept/reject)
-router.put('/offers/:offerId', async (req, res) => {
+// Update offer status (sales manager: accept/reject)
+router.put('/offers/:offerId', requireAuth, requireSalesManager, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['accepted', 'rejected'].includes(status)) {

@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Product = require('../models/Product');
 const Review = require('../models/Review');
 const User = require('../models/User');
+const Order = require('../models/Order');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 const SAMPLE_PRODUCTS = [
   // ——— 1-7: Original lineup ———
@@ -73,7 +77,7 @@ const SAMPLE_PRODUCTS = [
 ];
 
 // ---- DEV: seed products ----
-router.post('/seed-products', async (req, res) => {
+router.post('/seed-products', requireAuth, requireAdmin, async (req, res) => {
   try {
     await Product.deleteMany({});
 
@@ -103,7 +107,7 @@ router.post('/seed-products', async (req, res) => {
 });
 
 // ---- DEV: seed mixed-status reviews across all products ----
-router.post('/seed-reviews', async (req, res) => {
+router.post('/seed-reviews', requireAuth, requireAdmin, async (req, res) => {
   try {
     const users = await User.find().select('_id firstName lastName').lean();
     if (users.length === 0) {
@@ -151,6 +155,138 @@ router.post('/seed-reviews', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Seed failed', details: err.message });
+  }
+});
+
+// ---- DEMO: idempotent setup for the final demo scenario ----
+// Creates customer/PM/SM accounts and products A, B, C, E, F, G, H with
+// 4 orders for the customer covering the scenario's status cases.
+router.post('/seed-demo', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const CUSTOMER_EMAIL = 'taha.yusa.bayraktar@gmail.com';
+    const PM_EMAIL = 'pm@demo.com';
+    const SM_EMAIL = 'sm@demo.com';
+    const DEMO_PASSWORD = 'demo123';
+    const DEMO_PRODUCT_REGEX = /^Demo Product [A-H]$/;
+
+    // 1. Clean up any prior demo data so this is idempotent.
+    const existingDemoUsers = await User.find({ email: { $in: [CUSTOMER_EMAIL, PM_EMAIL, SM_EMAIL] } }).select('_id');
+    const demoUserIds = existingDemoUsers.map(u => u._id);
+    if (demoUserIds.length > 0) {
+      await Order.deleteMany({ userId: { $in: demoUserIds } });
+    }
+    await User.deleteMany({ email: { $in: [CUSTOMER_EMAIL, PM_EMAIL, SM_EMAIL] } });
+    await Product.deleteMany({ name: { $regex: DEMO_PRODUCT_REGEX } });
+
+    // 2. Create demo products.
+    const demoImage = 'https://content.rolex.com/v7/dam/model/upright-c/m116500ln-0001.png';
+    const productSpecs = [
+      { name: 'Demo Product A', stock: 0,  price: 800,  status: 'out_of_stock' },
+      { name: 'Demo Product B', stock: 1,  price: 1200 },
+      { name: 'Demo Product C', stock: 20, price: 500 },
+      { name: 'Demo Product E', stock: 10, price: 900 },
+      { name: 'Demo Product F', stock: 10, price: 700 },
+      { name: 'Demo Product G', stock: 10, price: 600 },
+      { name: 'Demo Product H', stock: 10, price: 1100 }
+    ];
+    const productDocs = productSpecs.map(p => ({
+      name: p.name,
+      brand: 'Saatinden Demo',
+      model: 'Demo Model',
+      price: p.price,
+      image: demoImage,
+      description: 'Demo product for final demo scenario.',
+      referenceNumber: `DEMO-${p.name.slice(-1)}`,
+      serialNumber: `SN-${p.name.slice(-1)}-001`,
+      warrantyStatus: '2 years',
+      distributorInfo: 'Saatinden Demo Distribution',
+      stock: p.stock,
+      status: p.status || 'available',
+      gender: 'unisex', strapColor: 'siyah', strapMaterial: 'metal',
+      caseShape: 'oval', displayType: 'analog'
+    }));
+    const createdProducts = await Product.insertMany(productDocs);
+    const productByName = Object.fromEntries(createdProducts.map(p => [p.name, p]));
+
+    // 3. Create demo accounts.
+    const hashedPassword = await bcrypt.hash(DEMO_PASSWORD, 10);
+    const customer = await User.create({
+      firstName: 'Taha', lastName: 'Bayraktar',
+      email: CUSTOMER_EMAIL,
+      password: hashedPassword,
+      taxId: '12345678901',
+      homeAddress: 'Tuzla Mahallesi, Sabanci Universitesi',
+      city: 'Istanbul', zipCode: '34956',
+      role: 'user',
+      walletBalance: 1000
+    });
+    const pm = await User.create({
+      firstName: 'Product', lastName: 'Manager',
+      email: PM_EMAIL, password: hashedPassword, role: 'product_manager'
+    });
+    const sm = await User.create({
+      firstName: 'Sales', lastName: 'Manager',
+      email: SM_EMAIL, password: hashedPassword, role: 'sales_manager'
+    });
+
+    // 4. Create orders with backdated timestamps. Use direct collection insert
+    // to bypass Mongoose's automatic createdAt overwrite.
+    const now = Date.now();
+    const daysAgo = d => new Date(now - d * 24 * 60 * 60 * 1000);
+    const shippingAddress = {
+      fullName: 'Taha Bayraktar',
+      address: 'Tuzla Mahallesi, Sabanci Universitesi',
+      city: 'Istanbul', zipCode: '34956'
+    };
+    const buildOrder = (productName, opts) => {
+      const product = productByName[productName];
+      return {
+        _id: new mongoose.Types.ObjectId(),
+        userId: customer._id,
+        items: [{
+          _id: new mongoose.Types.ObjectId(),
+          productId: product._id,
+          name: product.name,
+          brand: product.brand,
+          price: product.price,
+          quantity: 1,
+          returnStatus: 'none',
+          refundAmount: 0
+        }],
+        totalAmount: product.price,
+        shippingAddress,
+        status: opts.status,
+        deliveredAt: opts.deliveredAt,
+        createdAt: opts.createdAt,
+        updatedAt: opts.createdAt
+      };
+    };
+    const orderDocs = [
+      buildOrder('Demo Product E', { status: 'Delivered',  createdAt: daysAgo(45), deliveredAt: daysAgo(45) }),
+      buildOrder('Demo Product F', { status: 'Delivered',  createdAt: daysAgo(10), deliveredAt: daysAgo(10) }),
+      buildOrder('Demo Product G', { status: 'Processing', createdAt: daysAgo(2) }),
+      buildOrder('Demo Product H', { status: 'In-Transit', createdAt: daysAgo(3) })
+    ];
+    await Order.collection.insertMany(orderDocs);
+
+    res.json({
+      message: 'Demo seeded successfully.',
+      accounts: {
+        customer:        { email: CUSTOMER_EMAIL, password: DEMO_PASSWORD },
+        productManager:  { email: PM_EMAIL,       password: DEMO_PASSWORD },
+        salesManager:    { email: SM_EMAIL,       password: DEMO_PASSWORD }
+      },
+      products: createdProducts.map(p => ({ name: p.name, stock: p.stock, price: p.price })),
+      orders: [
+        { product: 'Demo Product E', status: 'Delivered (>30 days ago, return blocked)' },
+        { product: 'Demo Product F', status: 'Delivered (10 days ago, returnable)' },
+        { product: 'Demo Product G', status: 'Processing (cancellable)' },
+        { product: 'Demo Product H', status: 'In-Transit' }
+      ],
+      walletBalance: customer.walletBalance
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Demo seed failed', details: error.message });
   }
 });
 

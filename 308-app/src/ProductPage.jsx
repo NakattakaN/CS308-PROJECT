@@ -7,47 +7,47 @@ const FILTER_CONFIG = [
     key: 'strapColor',
     label: 'Strap Color',
     options: [
-      { value: 'gümüş', label: 'Silver' }, { value: 'altın', label: 'Gold' },
-      { value: 'mavi', label: 'Blue' }, { value: 'yeşil', label: 'Green' },
-      { value: 'sarı', label: 'Yellow' }, { value: 'kırmızı', label: 'Red' },
-      { value: 'turuncu', label: 'Orange' }, { value: 'mor', label: 'Purple' },
-      { value: 'kahverengi', label: 'Brown' }, { value: 'pembe', label: 'Pink' },
-      { value: 'siyah', label: 'Black' }, { value: 'beyaz', label: 'White' },
+      { value: 'silver', label: 'Silver' }, { value: 'gold', label: 'Gold' },
+      { value: 'blue', label: 'Blue' }, { value: 'green', label: 'Green' },
+      { value: 'yellow', label: 'Yellow' }, { value: 'red', label: 'Red' },
+      { value: 'orange', label: 'Orange' }, { value: 'purple', label: 'Purple' },
+      { value: 'brown', label: 'Brown' }, { value: 'pink', label: 'Pink' },
+      { value: 'black', label: 'Black' }, { value: 'white', label: 'White' },
     ]
   },
   {
     key: 'strapMaterial',
     label: 'Strap Material',
     options: [
-      { value: 'metal', label: 'Metal' }, { value: 'deri', label: 'Leather' },
-      { value: 'silikon', label: 'Silicon' }, { value: 'kumaş', label: 'Fabric' },
+      { value: 'metal', label: 'Metal' }, { value: 'leather', label: 'Leather' },
+      { value: 'silicone', label: 'Silicon' }, { value: 'fabric', label: 'Fabric' },
     ]
   },
   {
     key: 'caseShape',
     label: 'Case Shape',
     options: [
-      { value: 'oval', label: 'Oval' }, { value: 'köşeli', label: 'Square' },
+      { value: 'oval', label: 'Oval' }, { value: 'square', label: 'Square' },
     ]
   },
   {
     key: 'displayType',
     label: 'Display Type',
     options: [
-      { value: 'analog', label: 'Analog' }, { value: 'dijital', label: 'Digital' },
+      { value: 'analog', label: 'Analog' }, { value: 'digital', label: 'Digital' },
     ]
   },
   {
     key: 'dialColor',
     label: 'Dial Color',
     options: [
-      { value: 'gümüş', label: 'Silver' }, { value: 'altın', label: 'Gold' },
-      { value: 'mavi', label: 'Blue' }, { value: 'yeşil', label: 'Green' },
-      { value: 'sarı', label: 'Yellow' }, { value: 'kırmızı', label: 'Red' },
-      { value: 'turuncu', label: 'Orange' }, { value: 'mor', label: 'Purple' },
-      { value: 'kahverengi', label: 'Brown' }, { value: 'pembe', label: 'Pink' },
-      { value: 'siyah', label: 'Black' }, { value: 'beyaz', label: 'White' },
-      { value: 'krem', label: 'Cream' },
+      { value: 'silver', label: 'Silver' }, { value: 'gold', label: 'Gold' },
+      { value: 'blue', label: 'Blue' }, { value: 'green', label: 'Green' },
+      { value: 'yellow', label: 'Yellow' }, { value: 'red', label: 'Red' },
+      { value: 'orange', label: 'Orange' }, { value: 'purple', label: 'Purple' },
+      { value: 'brown', label: 'Brown' }, { value: 'pink', label: 'Pink' },
+      { value: 'black', label: 'Black' }, { value: 'white', label: 'White' },
+      { value: 'cream', label: 'Cream' },
     ]
   },
 ];
@@ -142,7 +142,7 @@ const ProductPage = () => {
   const activeFilterTags = useMemo(() => {
     const tags = [];
     if (filters.gender) {
-      const genderLabel = filters.gender === 'erkek' ? "Men's" : filters.gender === 'kadın' ? "Women's" : "Unisex";
+      const genderLabel = filters.gender === 'men' ? "Men's" : filters.gender === 'women' ? "Women's" : "Unisex";
       tags.push({ type: 'gender', value: filters.gender, label: `Category: ${genderLabel}` });
     }
     filters.brands.forEach(brand => {
@@ -247,11 +247,11 @@ const ProductPage = () => {
         </section>
 
         <section className="bento-categories">
-          <div className="bento-box bento-large" onClick={() => { setFilters(prev => ({ ...prev, gender: 'erkek', brands: [] })); setIsSideMenuOpen(false); }}>
+          <div className="bento-box bento-large" onClick={() => { setFilters(prev => ({ ...prev, gender: 'men', brands: [] })); setIsSideMenuOpen(false); }}>
             <div className="bento-overlay bento-mens"></div>
             <h3>Men's Collection</h3>
           </div>
-          <div className="bento-box" onClick={() => { setFilters(prev => ({ ...prev, gender: 'kadın', brands: [] })); setIsSideMenuOpen(false); }}>
+          <div className="bento-box" onClick={() => { setFilters(prev => ({ ...prev, gender: 'women', brands: [] })); setIsSideMenuOpen(false); }}>
             <div className="bento-overlay bento-womens"></div>
             <h3>Women's</h3>
           </div>
@@ -407,8 +407,8 @@ const ProductPage = () => {
                 </div>
                 {[
                   { label: 'All Watches', value: '' },
-                  { label: "Men's", value: 'erkek' },
-                  { label: "Women's", value: 'kadın' },
+                  { label: "Men's", value: 'men' },
+                  { label: "Women's", value: 'women' },
                   { label: 'Unisex', value: 'unisex' }
                 ].map(cat => (
                   <button

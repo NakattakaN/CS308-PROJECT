@@ -1,26 +1,26 @@
 const mongoose = require('mongoose');
 
-const GENDER_VALUES = ['kadın', 'erkek', 'unisex'];
-const STRAP_MATERIAL_VALUES = ['metal', 'deri', 'silikon', 'kumaş'];
+const GENDER_VALUES = ['women', 'men', 'unisex'];
+const STRAP_MATERIAL_VALUES = ['metal', 'leather', 'silicone', 'fabric'];
 const DIAL_COLOR_VALUES = [
-  'gümüş', 'altın', 'mavi', 'yeşil', 'sarı', 'kırmızı',
-  'turuncu', 'mor', 'kahverengi', 'pembe', 'siyah', 'beyaz', 'krem'
+  'silver', 'gold', 'blue', 'green', 'yellow', 'red',
+  'orange', 'purple', 'brown', 'pink', 'black', 'white', 'cream'
 ];
-const CASE_SHAPE_VALUES = ['oval', 'köşeli'];
-const DISPLAY_TYPE_VALUES = ['analog', 'dijital'];
+const CASE_SHAPE_VALUES = ['oval', 'square'];
+const DISPLAY_TYPE_VALUES = ['analog', 'digital'];
 const STRAP_COLOR_VALUES = [
-  'gümüş',
-  'altın',
-  'mavi',
-  'yeşil',
-  'sarı',
-  'kırmızı',
-  'turuncu',
-  'mor',
-  'kahverengi',
-  'pembe',
-  'siyah',
-  'beyaz'
+  'silver',
+  'gold',
+  'blue',
+  'green',
+  'yellow',
+  'red',
+  'orange',
+  'purple',
+  'brown',
+  'pink',
+  'black',
+  'white'
 ];
 
 const productSchema = new mongoose.Schema(
@@ -30,6 +30,7 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     image: { type: String, required: true, trim: true },
 
+    model: { type: String, trim: true },
     referenceNumber: { type: String, trim: true },
     serialNumber: { type: String, trim: true },
     warrantyStatus: { type: String, trim: true },
@@ -51,7 +52,7 @@ const productSchema = new mongoose.Schema(
     strapColor: {
       type: String,
       enum: STRAP_COLOR_VALUES,
-      default: 'siyah',
+      default: 'black',
       trim: true
     },
 
@@ -85,6 +86,8 @@ const productSchema = new mongoose.Schema(
     originalPrice: { type: Number, default: null },
     discountRate: { type: Number, default: 0, min: 0, max: 100 },
     campaignEnd: { type: Date, default: null },
+
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
 
     specs: {
       movement: { type: String, default: '', trim: true },

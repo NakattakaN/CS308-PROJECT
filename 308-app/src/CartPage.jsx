@@ -105,6 +105,7 @@ const CartPage = () => {
         setCartItems(previousCart); // Ekranı bozmamak için eski yedeğe geri dön
         showToast(data.message || "Miktar güncellenemedi, lütfen tekrar deneyin.", "error");
       } else {
+        setCartItems(data.cart);
         window.dispatchEvent(new Event('cart-updated'));
       }
       
@@ -194,9 +195,10 @@ const CartPage = () => {
                             <span style={{ padding: '4px 12px', background: 'var(--surface)', color: 'var(--text-main)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', fontWeight: 'bold', borderLeft: '1px solid var(--border-color)', borderRight: '1px solid var(--border-color)' }}>
                               {currentCartQuantity}
                             </span>
-                            {/* ARTIRMA BUTONU: disabled özelliği kaldırıldı, toast mesajını tetikleyebilmesi için tıklanabilir bırakıldı */}
+                            {/* ARTIRMA BUTONU */}
                             <button
                               onClick={() => handleUpdateQuantity(item._id, currentCartQuantity, 1, productQuantity)}
+                              disabled={productQuantity && currentCartQuantity >= productQuantity}
                               style={{
                                 padding: '4px 10px',
                                 background: 'var(--primary-color)',

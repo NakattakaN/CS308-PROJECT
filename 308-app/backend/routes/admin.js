@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 const Offer = require('../models/Offer');
 const Order = require('../models/Order');
 const { requireAuth, requireAdmin, requireProductManager, requireSalesManager, requireStaff } = require('../middleware/auth');
+const { sendRefundApprovedEmail } = require('../services/emailService');
 
 // Get all users
 router.get('/admin/users', requireAuth, requireAdmin, async (req, res) => {
@@ -51,7 +52,7 @@ router.put('/admin/products/:id', requireAuth, requireProductManager, async (req
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const allowed = ['name', 'brand', 'price', 'description', 'image', 'referenceNumber', 'serialNumber', 'warrantyStatus', 'distributorInfo', 'stock'];
+    const allowed = ['name', 'brand', 'price', 'description', 'image', 'model', 'referenceNumber', 'serialNumber', 'warrantyStatus', 'distributorInfo', 'stock', 'category'];
     for (const field of allowed) {
       if (req.body[field] !== undefined) product[field] = req.body[field];
     }
@@ -75,7 +76,13 @@ router.delete('/admin/products/:id', requireAuth, requireProductManager, async (
       { $pull: { cart: { 'product._id': productId } } }
     );
 
-    res.json({ message: 'Product deleted and removed from all user carts.' });
+    // Remove the deleted product from every user's wishlist
+    await User.updateMany(
+      { wishlist: productId },
+      { $pull: { wishlist: productId } }
+    );
+
+    res.json({ message: 'Product deleted and removed from all user carts and wishlists.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -195,6 +202,18 @@ router.put('/admin/orders/:orderId/items/:itemId/return', requireAuth, requireSa
       );
       if (updated && updated.stock > 0) {
         await Product.findByIdAndUpdate(item.productId, { status: 'available' });
+      }
+
+      // Notify the customer via email
+      const customer = await User.findById(order.userId).select('firstName email');
+      if (customer?.email) {
+        sendRefundApprovedEmail(
+          customer.email,
+          customer.firstName || 'Customer',
+          item.name || 'product',
+          item.refundAmount,
+          order._id.toString()
+        ).catch(err => console.error('Refund email failed:', err.message));
       }
     } else {
       item.returnStatus = 'rejected';
