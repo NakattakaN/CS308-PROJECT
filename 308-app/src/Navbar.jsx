@@ -177,8 +177,12 @@ const Navbar = () => {
     }
   };
 
+
+
+
+
   return (
-    <nav className="global-navbar">
+    <nav className={`global-navbar ${isOnHome ? 'sticky-navbar' : ''}`}>
       <div className="nav-brand" onClick={() => navigate('/home')}>
         Saatinden
       </div>
