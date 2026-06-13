@@ -1,4 +1,4 @@
-# ⌚ Luxury Watch Hero (CS308 Project)
+# ⌚ Saatinden (CS308 Project)
 
 An elegant, full-stack e-commerce web application dedicated to luxury watches. Built with a modern React frontend and a robust Node.js/Express backend, featuring comprehensive role-based access control, secure payment processing, and an automated testing suite.
 
