@@ -1,59 +1,106 @@
-#  Saatinden
+# ⌚ Luxury Watch Hero (CS308 Project)
 
-> Discover your next timepiece. Saatinden is a comprehensive e-commerce platform designed for browsing, purchasing, and managing a curated collection of premium and everyday watches. Developed for the CS 308 Software Engineering course.
+An elegant, full-stack e-commerce web application dedicated to luxury watches. Built with a modern React frontend and a robust Node.js/Express backend, featuring comprehensive role-based access control, secure payment processing, and an automated testing suite.
+
+## 🌟 Key Features
+
+### User Experience
+* **Authentication & Profiles:** Secure registration and login using JWT. Users can manage their personal information, home addresses, and view their wallet balance.
+* **Shopping Cart:** Dynamic cart management with real-time stock validation to prevent over-ordering.
+* **Checkout & Invoicing:** Seamless checkout process that generates automated PDF invoices sent directly to the user's email.
+* **Order Management & Selective Returns:** Users can view their entire order history and request **selective returns** for individual items within an order, rather than returning the entire purchase.
+
+### Admin & Manager Portals
+* **Product Managers:** Have exclusive access to add new watches, update inventory limits, edit watch details, and remove discontinued products.
+* **Sales Managers:** Review selective item return requests, approve/reject them, and automatically process refunds directly into the user's digital wallet.
+
+### Developer & Architecture Features
+* **RESTful API Architecture:** Clean separation of concerns with domain-driven routing (`/auth`, `/products`, `/orders`, `/cart`, `/admin`).
+* **Robust Automated Testing:** A full suite of 28 Unit Tests verifying critical backend logic (orders, stock boundaries, cart limits, access control) using Mocha, Chai, and an in-memory MongoDB instance.
+* **Security:** Password hashing via bcrypt and role-based route protection middleware.
 
 ---
 
-##  Table of Contents
+## 🛠️ Technology Stack
 
-* [About the Project](#-about-the-project)
-* [Core Features](#-core-features)
-* [Tech Stack](#-tech-stack)
-* [Database Schema Outline](#-database-schema-outline)
-* [Installation & Setup](#-installation--setup)
-* [Development Lifecycle](#-development-lifecycle)
-
----
-
-##  About the Project
-**Saatinden** is a full-stack digital storefront dedicated to horology enthusiasts and casual buyers alike. The platform provides a seamless shopping experience, allowing users to browse watches by brand, movement type (automatic, manual, quartz), and style. 
-
-Beyond the customer-facing storefront, Saatinden includes a robust administrative backend for inventory management, order tracking, and dynamic pricing adjustments, fulfilling the complex requirements of a modern software engineering architecture.
-
-##  Core Features
-
-### For Customers (Frontend)
-* **Advanced Product Filtering:** Sort and filter watches by brand, price range, movement type, case material, and water resistance.
-* **Shopping Cart & Checkout:** Persistent cart sessions with a simulated secure payment gateway.
-* **User Profiles:** Customers can create accounts, save their shipping details, and view their order history.
-* **Wishlist:** Save favorite timepieces for future reference or purchase, with instant add/remove from any product page and a dedicated wishlist view.
-
-### For Administrators (Backend/Dashboard)
-* **Inventory Management:** Add, edit, or remove watch listings, including uploading high-resolution images and updating stock counts.
-* **Order Fulfillment:** Track user orders from placement to delivery status.
-* **Sales Analytics:** View basic metrics on total revenue and best-selling watch models.
-
-##  Tech Stack
-The application is built using a modern JavaScript ecosystem to ensure high performance and responsive design:
-* **Frontend:** HTML5, CSS3, JavaScript (ES6+), [React/Vue]
+* **Frontend:** React, Vite, Vanilla CSS
 * **Backend:** Node.js, Express.js
-* **Database:** [MongoDB]
-* **Authentication:** JSON Web Tokens (JWT) & bcrypt for secure password hashing
-* **Tools:** Git, GitHub Actions (CI/CD), Postman
-
-##  Database Schema Outline
-The data architecture relies on three primary models:
-1. **Users:** Handles authentication credentials, shipping addresses, and role-based access (Customer vs. Admin).
-2. **Products (Watches):** Stores SKU, brand, model name, price, stock quantity, specifications (movement, dial color, strap), and image URLs.
-3. **Orders:** Links Users to Products, tracking total cost, payment status, and shipping milestones.
+* **Database:** MongoDB & Mongoose
+* **Testing:** Mocha, Chai, Supertest, MongoDB-Memory-Server
+* **Utilities:** PDFKit (Invoicing), Nodemailer (Emails), JSONWebToken (Auth)
 
 ---
 
-##  Installation & Setup
+## 🚀 Installation & Setup
 
-Because this is a full-stack application, you will need to run both the backend API and the frontend development server simultaneously in separate terminal windows.
+### Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) and [MongoDB](https://www.mongodb.com/) installed on your machine.
 
-### 1. Clone the repository
+### 1. Clone the Repository
 ```bash
-git clone [https://github.com/NakattakaN/CS308-PROJECT.git](https://github.com/NakattakaN/CS308-PROJECT.git)
-cd CS308-PROJECT/308-app
+git clone <repository-url>
+cd 308-app
+```
+
+### 2. Setup the Backend
+Open a terminal and navigate to the backend folder:
+```bash
+cd backend
+npm install
+```
+Create a `.env` file in the `backend/` directory with the following variables:
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+```
+
+### 3. Setup the Frontend
+Open a new terminal in the project root (`308-app`):
+```bash
+npm install
+```
+
+---
+
+## 💻 Running the Application
+
+You will need two terminals running simultaneously.
+
+**Start the Backend Server:**
+```bash
+cd backend
+npm run dev
+```
+
+**Start the Frontend Client:**
+```bash
+# In the root directory (308-app)
+npm run dev
+```
+The application will be available at `http://localhost:5173`.
+
+---
+
+## 🧪 Running the Unit Tests (20% Dev Activities)
+
+This project features a comprehensive suite of unit tests that run on an isolated in-memory database to prevent modifying your actual data.
+
+To execute the tests:
+```bash
+cd backend
+npm test
+```
+*You should see 28 passing tests covering Authentication, Cart Management, Order Processing, Admin controls, and Inventory validation.*
+
+---
+
+## 👥 Roles & Accounts
+
+To fully test the application, you can assign different roles to users in the database (`role: 'user'`, `role: 'product_manager'`, or `role: 'sales_manager'`).
+
+* **Users:** Can browse products, add to cart, checkout, view orders, and request returns.
+* **Product Managers:** Can view the "Manage Products" dashboard to alter inventory.
+* **Sales Managers:** Can view the "Manage Returns" dashboard to approve item returns.
