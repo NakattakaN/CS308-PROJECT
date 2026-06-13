@@ -13,6 +13,8 @@ const ProfilePage = () => {
     city: '',
     zipCode: '',
   });
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -39,6 +41,8 @@ const ProfilePage = () => {
           city: data.city || '',
           zipCode: data.zipCode || ''
         });
+        setWalletBalance(data.walletBalance ?? 0);
+        setUserId(data._id || '');
       } else {
         showToast('Failed to load profile', 'error');
       }
@@ -99,7 +103,24 @@ const ProfilePage = () => {
     <div className="profile-page-container">
       <h1>My Profile</h1>
       <p className="profile-subtitle">Manage your personal information and shipping details.</p>
-      
+
+      {(userId || walletBalance !== null) && (
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          {userId && (
+            <div style={{ background: 'var(--bg-input, #f1f5f9)', border: '1px solid var(--border, #e2e8f0)', borderRadius: '8px', padding: '0.75rem 1.25rem', fontSize: '0.85rem', color: 'var(--text-muted, #64748b)' }}>
+              <span style={{ fontWeight: 700, marginRight: '6px' }}>Customer ID:</span>
+              <span style={{ fontFamily: 'monospace' }}>{userId}</span>
+            </div>
+          )}
+          {walletBalance !== null && (
+            <div style={{ background: 'var(--bg-input, #f1f5f9)', border: '1px solid var(--border, #e2e8f0)', borderRadius: '8px', padding: '0.75rem 1.25rem', fontSize: '0.85rem', color: 'var(--text-muted, #64748b)' }}>
+              <span style={{ fontWeight: 700, marginRight: '6px' }}>Wallet Balance:</span>
+              <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '1rem' }}>${walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <form className="profile-form" onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
           <div className="profile-form-group">

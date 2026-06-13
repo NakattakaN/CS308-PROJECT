@@ -251,10 +251,10 @@ const Navbar = () => {
               </>
             )}
             {isProductManager && (
-              <button className="nav-btn" onClick={() => navigate('/product-manager')}>Manager Panel</button>
+              <button className="nav-btn" onClick={() => navigate('/product-manager')}>Product Manager Panel</button>
             )}
             {isSalesManager && (
-              <button className="nav-btn" onClick={() => navigate('/sales-manager')}>Manager Panel</button>
+              <button className="nav-btn" onClick={() => navigate('/sales-manager')}>Sales Manager Panel</button>
             )}
             {!isProductManager && !isSalesManager && (
               <>

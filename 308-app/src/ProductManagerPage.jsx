@@ -96,10 +96,12 @@ const ProductManagerPage = () => {
       return;
     }
     try {
+      const autoSerial = newProduct.serialNumber.trim() ||
+        'SN-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       const res = await fetch('http://localhost:5000/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ ...newProduct, price: Number(newProduct.price), stock: Number(newProduct.stock), category: newProduct.category || null })
+        body: JSON.stringify({ ...newProduct, serialNumber: autoSerial, price: Number(newProduct.price), stock: Number(newProduct.stock), category: newProduct.category || null })
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error || 'Failed to add product', 'error'); return; }
